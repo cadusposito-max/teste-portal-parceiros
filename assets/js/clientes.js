@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // RENDERIZADOR: CLIENTES
 // ==========================================
 
@@ -153,7 +153,7 @@ function renderClientesList(container) {
     }).join('');
 
     return `
-    <div class="metric-card shine-effect ${stagger} relative border border-neutral-800 hover:border-orange-500/25 p-5 group transition-all duration-300">
+    <div class="metric-card client-metric-card shine-effect ${stagger} relative border border-neutral-800 hover:border-orange-500/25 p-5 group transition-all duration-300">
       <!-- Glow blob -->
       <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/3 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
@@ -178,6 +178,8 @@ function renderClientesList(container) {
             <span class="flex items-center gap-1"><i data-lucide="phone" class="w-2.5 h-2.5"></i>${escapeHTML(c.telefone)}</span>
             ${c.cidade ? `<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-2.5 h-2.5"></i>${escapeHTML(c.cidade)}</span>` : ''}
             <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-2.5 h-2.5"></i>${formatDate(c.created_at)}</span>
+            ${(state.isAdmin && state.adminViewAll && c.vendedor_email) ? `<span class="flex items-center gap-1 text-purple-400 font-bold"><i data-lucide="user" class="w-2.5 h-2.5"></i>${escapeHTML(c.vendedor_email.split('@')[0])}</span>` : ''}
+            ${(state.isGestor && state.gestorViewAll && c.vendedor_email) ? `<span class="flex items-center gap-1 text-blue-400 font-bold"><i data-lucide="user" class="w-2.5 h-2.5"></i>${escapeHTML(c.vendedor_email.split('@')[0])}</span>` : ''}
           </div>
 
           <!-- Pipeline progress -->
@@ -193,17 +195,17 @@ function renderClientesList(container) {
       <!-- Action row -->
       <div class="relative z-10 flex gap-2 mt-4 pt-3.5 border-t border-neutral-800/50">
         <a href="${waLink}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp ${escapeHTML(c.nome)}"
-          class="flex items-center gap-1.5 bg-green-950/30 border border-green-900/40 hover:border-green-600 hover:bg-green-950/60 text-green-500 px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 text-[9px] shrink-0">
+          class="flex items-center gap-1.5 bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 text-[9px] shrink-0">
           <i data-lucide="message-circle" class="w-3.5 h-3.5 stroke-[2.5px]"></i>
           <span class="hidden sm:inline">WhatsApp</span>
         </a>
-        <button onclick="openProposalBuilder('${c.id}')" aria-label="Nova proposta para ${escapeHTML(c.nome)}"
+        <button onclick="openProposalBuilder('${c.id}')" aria-label="Expandir cliente para ${escapeHTML(c.nome)}"
           class="flex-1 bg-neutral-800/50 border border-neutral-700/50 hover:border-orange-500/50 hover:bg-orange-500/8 hover:text-orange-400 text-neutral-400 px-4 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-2 items-center justify-center text-[9px]">
           <i data-lucide="file-text" class="w-3.5 h-3.5 stroke-[3px]"></i>
-          NOVA PROPOSTA
+          EXPANDIR CLIENTE
         </button>
         <button onclick="openFechaVenda('${c.id}')" aria-label="Fechar venda para ${escapeHTML(c.nome)}"
-          class="bg-green-950/40 border border-green-900/50 hover:border-green-500 hover:bg-green-950/70 text-green-500 px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-1.5 items-center justify-center text-[9px] shrink-0">
+          class="bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-2 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-1.5 items-center justify-center text-[9px] shrink-0">
           <i data-lucide="trophy" class="w-3.5 h-3.5 stroke-[2.5px]"></i>
           <span class="hidden md:inline">FECHAR</span>
         </button>
@@ -257,7 +259,9 @@ async function cycleClientStatus(id, currentStatus) {
   try {
     await supabaseClient.from('clientes').update({ status: newStatus }).eq('id', id);
     showToast(`STATUS: ${newStatus}`);
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[cycleClientStatus] Falha ao persistir status do cliente.', { id, currentStatus, newStatus, error: e });
+  }
 }
 
 // --- Exportar XLSX ---
@@ -307,7 +311,10 @@ function formatarTelefone(event) {
 
 document.getElementById('client-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!state.currentUser) return alert('Faça login primeiro!');
+  if (!state.currentUser) {
+    showToast('Faça login primeiro!');
+    return;
+  }
 
   const btnSave = document.getElementById('btn-save-client');
   btnSave.innerText = 'SALVANDO...';
@@ -317,13 +324,25 @@ document.getElementById('client-form').addEventListener('submit', async (e) => {
     nome:    document.getElementById('client-nome').value.toUpperCase(),
     telefone:document.getElementById('client-telefone').value,
     cidade:  document.getElementById('client-cidade').value,
-    status:  'NOVO'
+    status:  'NOVO',
+    franquia_id: state.franquiaId
   };
 
   let { data, error } = await supabaseClient.from('clientes').insert([newClient]);
   if (error && error.code === '42703') {
     delete newClient.status;
-    await supabaseClient.from('clientes').insert([newClient]);
+    const { error: error2 } = await supabaseClient.from('clientes').insert([newClient]);
+    if (error2) {
+      console.error('Erro ao salvar cliente:', error2);
+      showToast(`Erro ao salvar cliente: ${error2.message}`);
+      btnSave.innerText = 'SALVAR CLIENTE';
+      return;
+    }
+  } else if (error) {
+    console.error('Erro ao salvar cliente:', error);
+    showToast(`Erro ao salvar cliente: ${error.message}`);
+    btnSave.innerText = 'SALVAR CLIENTE';
+    return;
   }
 
   await fetchClientes();
@@ -332,3 +351,5 @@ document.getElementById('client-form').addEventListener('submit', async (e) => {
   renderContent();
   btnSave.innerText = 'SALVAR CLIENTE';
 });
+
+

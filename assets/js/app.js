@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // APP: ORQUESTRADOR PRINCIPAL
 // ==========================================
 
@@ -6,6 +6,9 @@
 let _clockInterval = null;
 
 function startDashboardClock() {
+  // Evita acumular múltiplos intervals quando o dashboard é re-renderizado.
+  if (_clockInterval) clearInterval(_clockInterval);
+
   const tick = () => {
     const el = document.getElementById('dashboard-clock');
     if (!el) return;
@@ -21,6 +24,19 @@ function stopDashboardClock() {
   if (_clockInterval) { clearInterval(_clockInterval); _clockInterval = null; }
 }
 
+let _appLucideCreateIconsRaf = null;
+
+function queueAppLucideCreateIcons() {
+  if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+  if (_appLucideCreateIconsRaf) return;
+
+  _appLucideCreateIconsRaf = window.requestAnimationFrame(() => {
+    _appLucideCreateIconsRaf = null;
+    window.lucide.createIcons();
+  });
+}
+
+
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   const btn  = document.getElementById('hamburger-btn');
@@ -30,7 +46,7 @@ function toggleMobileMenu() {
   if (btn) btn.setAttribute('aria-expanded', String(!isOpen));
   if (icon) {
     icon.setAttribute('data-lucide', isOpen ? 'menu' : 'x');
-    lucide.createIcons();
+    queueAppLucideCreateIcons();
   }
 }
 
@@ -40,72 +56,169 @@ function closeMobileMenu() {
   const icon = document.getElementById('hamburger-icon');
   if (menu) menu.classList.add('hidden');
   if (btn)  btn.setAttribute('aria-expanded', 'false');
-  if (icon) { icon.setAttribute('data-lucide', 'menu'); lucide.createIcons(); }
+  if (icon) { icon.setAttribute('data-lucide', 'menu'); queueAppLucideCreateIcons(); }
 }
 
 // --- Header User Pill ---
 function renderHeaderUser() {
-  const firstName = getFirstName();
-  const email     = state.currentUser ? state.currentUser.email : '';
-  const initial   = firstName ? firstName.charAt(0).toUpperCase()
-                  : email.charAt(0).toUpperCase();
+  const profileNome = state.profile?.nome || '';
+  const email       = state.currentUser ? state.currentUser.email : '';
+  const displayName = profileNome || getFirstName();
+  const initial     = displayName ? displayName.charAt(0).toUpperCase() : email.charAt(0).toUpperCase();
+  const rawAvatarUrl = state.profile?.avatar_url || '';
+  const avatarUrl    = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
 
   const avatarEl = document.getElementById('header-user-avatar');
   const nameEl   = document.getElementById('header-user-name');
+  const roleEl   = document.getElementById('header-user-role');
   const wrapEl   = document.getElementById('header-user');
 
-  if (avatarEl) avatarEl.textContent = initial;
-  if (nameEl)   nameEl.textContent   = firstName || email.split('@')[0];
+  if (avatarEl) {
+    if (avatarUrl) {
+      avatarEl.innerHTML = `<img src="${avatarUrl}" alt="avatar" class="w-full h-full object-cover rounded-full" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">`;
+    } else {
+      avatarEl.textContent = initial;
+    }
+    avatarEl.title   = 'Meu Perfil';
+    avatarEl.style.cursor = 'pointer';
+    avatarEl.onclick = openProfileModal;
+  }
+  if (nameEl)   nameEl.textContent = displayName;
+  if (roleEl)   roleEl.textContent = state.isAdmin ? 'Administrador' : state.isGestor ? 'Gestor' : 'Vendedor';
   if (wrapEl)   wrapEl.classList.replace('hidden', 'flex');
+
+  // Botão de alternância de visão (somente admin)
+  const existingToggle = document.getElementById('admin-view-toggle-btn');
+  if (existingToggle) existingToggle.remove();
+  const existingGestorToggle = document.getElementById('gestor-view-toggle-btn');
+  if (existingGestorToggle) existingGestorToggle.remove();
+
+  let shouldRefreshHeaderIcons = false;
+
+  if (state.isAdmin) {
+    const adminBtn = document.getElementById('admin-toggle-btn');
+    const btn = document.createElement('button');
+    btn.id = 'admin-view-toggle-btn';
+    btn.onclick = toggleAdminViewMode;
+    btn.title = state.adminViewAll ? 'Clique para ver só sua franquia' : 'Clique para ver todas as franquias';
+    btn.className = state.adminViewAll
+      ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600 border-purple-500 text-white hover:bg-purple-700 hover:border-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+    btn.innerHTML = state.adminViewAll
+      ? '<i data-lucide="layers" class="w-4 h-4"></i><span class="hidden sm:inline">CONSOLIDADO</span>'
+      : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>';
+    if (adminBtn && adminBtn.parentNode) {
+      adminBtn.parentNode.insertBefore(btn, adminBtn);
+    }
+    shouldRefreshHeaderIcons = true;
+  }
+
+  if (state.isGestor) {
+    const adminBtn = document.getElementById('admin-toggle-btn');
+    const btn = document.createElement('button');
+    btn.id = 'gestor-view-toggle-btn';
+    btn.onclick = toggleGestorViewMode;
+    btn.title = state.gestorViewAll ? 'Clique para ver só os seus clientes' : 'Clique para ver toda a unidade';
+    btn.className = state.gestorViewAll
+      ? 'view-scope-toggle is-gestor-all p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
+      : 'view-scope-toggle is-gestor-own p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
+    btn.innerHTML = state.gestorViewAll
+      ? '<i data-lucide="users" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>'
+      : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">APENAS MEUS</span>';
+    if (adminBtn && adminBtn.parentNode) {
+      adminBtn.parentNode.insertBefore(btn, adminBtn);
+    }
+    shouldRefreshHeaderIcons = true;
+  }
+
+  if (shouldRefreshHeaderIcons) queueAppLucideCreateIcons();
+}
+
+async function toggleAdminViewMode() {
+  state.adminViewAll = !state.adminViewAll;
+  showToast(state.adminViewAll ? 'VISÃO: TODAS AS FRANQUIAS' : 'VISÃO: MINHA UNIDADE');
+  await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
+  renderHeaderUser();
+  renderContent();
+}
+
+async function toggleGestorViewMode() {
+  state.gestorViewAll = !state.gestorViewAll;
+  showToast(state.gestorViewAll ? 'VISÃO: MINHA UNIDADE' : 'VISÃO: APENAS MEUS CLIENTES');
+  await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
+  renderHeaderUser();
+  renderContent();
 }
 
 function initSplash() {
-  const MESSAGES = [
-    'Sincronizando Banco de Dados...',
-    'Carregando Catálogo de Kits...',
-    'Validando Credenciais...',
-    'Preparando Dashboard...',
-  ];
-  let progress = 0;
-  let msgIdx   = 0;
-  const percentageEl = document.getElementById('loading-percentage');
-  const barEl        = document.getElementById('loading-bar');
-  const msgEl        = document.querySelector('#splash-screen .animate-pulse');
+  return new Promise(resolve => {
+    const MESSAGES = [
+      'Sincronizando Banco de Dados...',
+      'Carregando Catálogo de Kits...',
+      'Validando Credenciais...',
+      'Preparando Dashboard...',
+    ];
+    let progress = 0;
+    let msgIdx   = 0;
+    const percentageEl = document.getElementById('loading-percentage');
+    const barEl        = document.getElementById('loading-bar');
+    const msgEl        = document.querySelector('#splash-screen .animate-pulse');
 
-  const interval = setInterval(() => {
-    progress += Math.floor(Math.random() * 12) + 4;
-    if (progress > 100) progress = 100;
-    percentageEl.innerText = `${progress}%`;
-    barEl.style.width      = `${progress}%`;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 4;
+      if (progress > 100) progress = 100;
+      percentageEl.innerText = `${progress}%`;
+      barEl.style.width      = `${progress}%`;
 
-    if (progress > 25 && msgIdx === 0) { msgIdx = 1; if (msgEl) msgEl.textContent = MESSAGES[1]; }
-    if (progress > 55 && msgIdx === 1) { msgIdx = 2; if (msgEl) msgEl.textContent = MESSAGES[2]; }
-    if (progress > 80 && msgIdx === 2) { msgIdx = 3; if (msgEl) msgEl.textContent = MESSAGES[3]; }
+      if (progress > 25 && msgIdx === 0) { msgIdx = 1; if (msgEl) msgEl.textContent = MESSAGES[1]; }
+      if (progress > 55 && msgIdx === 1) { msgIdx = 2; if (msgEl) msgEl.textContent = MESSAGES[2]; }
+      if (progress > 80 && msgIdx === 2) { msgIdx = 3; if (msgEl) msgEl.textContent = MESSAGES[3]; }
 
-    if (progress === 100) {
-      clearInterval(interval);
-      setTimeout(() => {
-        document.getElementById('splash-screen').classList.add('opacity-0', 'pointer-events-none');
-        document.getElementById('splash-content').classList.add('scale-110');
-        document.getElementById('app-content').classList.remove('opacity-0', 'scale-95', 'hidden');
-        document.getElementById('app-content').classList.add('opacity-100', 'scale-100');
-        renderHeaderUser();
-        renderContent();
-      }, 500);
-      setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
-    }
-  }, 95);
+      if (progress === 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          document.getElementById('splash-screen').classList.add('opacity-0', 'pointer-events-none');
+          document.getElementById('splash-content').classList.add('scale-110');
+          document.getElementById('app-content').classList.remove('opacity-0', 'scale-95', 'hidden');
+          document.getElementById('app-content').classList.add('opacity-100', 'scale-100');
+          resolve(); // dados já estarão prontos quando isso for chamado
+        }, 500);
+        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
+      }
+    }, 95);
+  });
+}
+
+async function refreshData() {
+  const icon = document.getElementById('refresh-data-icon');
+  if (icon) icon.classList.add('animate-spin');
+  await Promise.all([
+    fetchClientes(),
+    fetchPropostas(),
+    fetchVendas(),
+    fetchProducts(),
+    fetchComponentes(),
+    fetchComunicados(),
+    updateVendedorStats(state.currentUser?.email),
+  ]);
+  if (icon) icon.classList.remove('animate-spin');
+  renderContent();
+  showToast('Dados atualizados.');
 }
 
 function renderTabs() {
   const container = document.getElementById('tab-container');
   const mobileNav = document.getElementById('mobile-menu-tabs');
 
-  const desktopHTML = TABS.map(tab => {
+  const tabs = state.isAdmin
+    ? [...TABS, { id: 'admin', label: 'ADMIN', icon: 'settings' }]
+    : TABS;
+
+  const desktopHTML = tabs.map(tab => {
     const isActive = state.activeTab === tab.id;
     return `
       <button onclick="setTab('${tab.id}')"
-        class="relative flex items-center gap-2 px-5 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-200 whitespace-nowrap
+        class="app-tab-btn ${isActive ? 'is-active' : ''} relative flex items-center gap-2 px-5 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all duration-200 whitespace-nowrap
           ${isActive
             ? 'text-black bg-gradient-to-r from-orange-600 to-yellow-500 shadow-[0_0_12px_rgba(234,88,12,0.3)]'
             : 'text-neutral-500 hover:text-neutral-300 bg-transparent'
@@ -119,11 +232,11 @@ function renderTabs() {
   container.innerHTML = desktopHTML;
 
   if (mobileNav) {
-    mobileNav.innerHTML = TABS.map(tab => {
+    mobileNav.innerHTML = tabs.map(tab => {
       const isActive = state.activeTab === tab.id;
       return `
         <button onclick="setTab('${tab.id}')"
-          class="flex items-center gap-3 w-full px-4 py-4 text-sm font-black uppercase tracking-widest transition-all duration-200
+          class="app-tab-mobile-btn ${isActive ? 'is-active' : ''} flex items-center gap-3 w-full px-4 py-4 text-sm font-black uppercase tracking-widest transition-all duration-200
             ${isActive
               ? 'bg-gradient-to-r from-orange-600 to-yellow-500 text-black shadow-[inset_0_0_20px_rgba(0,0,0,0.15)]'
               : 'text-neutral-400 hover:text-white hover:bg-neutral-900/80 border-l-2 border-transparent hover:border-orange-500/40'
@@ -136,11 +249,12 @@ function renderTabs() {
     }).join('');
   }
 
-  lucide.createIcons();
+  queueAppLucideCreateIcons();
 }
 
 function setTab(tabId) {
   closeMobileMenu();
+  if (typeof chatHandleAppTabChange === 'function') chatHandleAppTabChange();
   stopDashboardClock();
   state.activeTab = tabId;
   renderTabs();
@@ -184,6 +298,19 @@ function renderContent() {
     toggleContainer.classList.add('hidden');
     if (adminBar) adminBar.classList.add('hidden');
     renderVendas(container);
+  } else if (state.activeTab === 'materiais') {
+    stopDashboardClock();
+    mainToolbar.classList.add('hidden');
+    toggleContainer.classList.add('hidden');
+    if (adminBar) adminBar.classList.add('hidden');
+    renderMateriais(container);
+  } else if (state.activeTab === 'admin') {
+    stopDashboardClock();
+    mainToolbar.classList.add('hidden');
+    toggleContainer.classList.add('hidden');
+    if (adminBar) adminBar.classList.add('hidden');
+    state.isEditMode = true;
+    renderAdminPanel(container);
   } else {
     stopDashboardClock();
     if (!state.isEditMode) {
@@ -195,17 +322,22 @@ function renderContent() {
     }
     renderProductsList(container);
   }
-  lucide.createIcons();
+  queueAppLucideCreateIcons();
 }
 
 // --- Event Listeners Globais ---
-document.getElementById('search-input').addEventListener('input', (e) => {
-  state.searchTerm = e.target.value;
+const _onSearchInput = debounce((value) => {
+  state.searchTerm = value;
   renderContent();
+}, 180);
+
+document.getElementById('search-input').addEventListener('input', (e) => {
+  _onSearchInput(e.target.value);
 });
 
 document.getElementById('client-telefone').addEventListener('input', formatarTelefone);
 
 // --- Inicialização ---
-lucide.createIcons();
+queueAppLucideCreateIcons();
 checkAuth();
+

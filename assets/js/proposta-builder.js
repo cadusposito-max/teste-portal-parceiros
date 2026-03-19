@@ -1,20 +1,44 @@
-// ==========================================
+﻿// ==========================================
 // POPUP: CONSTRUTOR DE PROPOSTAS
 // ==========================================
 
 // Bancos de financiamento solar
 const BANCOS_FINANCIAMENTO = [
-  { nome: 'Solfácil',   url: 'https://app.solfacil.com.br',          cor: 'from-orange-600 to-orange-500',  taxa: 'A partir de 0,79% a.m.', prazo: 'Até 84 meses',    icon: '⚡' },
-  { nome: 'BV',         url: 'https://www.bv.com.br/para-voce/credito/financiamento-solar', cor: 'from-blue-700 to-blue-600',    taxa: 'A partir de 0,89% a.m.', prazo: 'Até 60 meses',    icon: '🏦' },
-  { nome: 'Santander',  url: 'https://www.santander.com.br/negocios/credito-garantido',     cor: 'from-red-700 to-red-600',      taxa: 'Consulte condições',     prazo: 'Até 60 meses',    icon: '🔴' },
-  { nome: 'Sicoob',     url: 'https://www.sicoob.com.br/simuladores', cor: 'from-green-700 to-green-600',  taxa: 'Taxas cooperadas',       prazo: 'Até 84 meses',    icon: '🤝' },
-  { nome: 'Sicredi',    url: 'https://www.sicredi.com.br/site/para-voce/credito/', cor: 'from-emerald-700 to-emerald-600', taxa: 'Taxas cooperadas', prazo: 'Até 84 meses', icon: '🌿' },
-  { nome: 'Losango',    url: 'https://www.losango.com.br',            cor: 'from-purple-700 to-purple-600', taxa: 'Consulte condições',     prazo: 'Até 72 meses',    icon: '💜' },
+  { nome: 'Solfacil',  url: 'https://app.solfacil.com.br',                                cor: 'from-orange-600 to-orange-500',  taxa: 'A partir de 0,79% a.m.', prazo: 'Ate 84 meses', icon: 'SF' },
+  { nome: 'BV',        url: 'https://www.bv.com.br/para-voce/credito/financiamento-solar', cor: 'from-blue-700 to-blue-600',    taxa: 'A partir de 0,89% a.m.', prazo: 'Ate 60 meses', icon: 'BV' },
+  { nome: 'Santander', url: 'https://www.santander.com.br/negocios/credito-garantido',      cor: 'from-red-700 to-red-600',      taxa: 'Consulte condicoes',      prazo: 'Ate 60 meses', icon: 'SA' },
+  { nome: 'Sicoob',    url: 'https://www.sicoob.com.br/simuladores',                         cor: 'from-green-700 to-green-600',  taxa: 'Taxas cooperadas',        prazo: 'Ate 84 meses', icon: 'SC' },
+  { nome: 'Sicredi',   url: 'https://www.sicredi.com.br/site/para-voce/credito/',            cor: 'from-emerald-700 to-emerald-600', taxa: 'Taxas cooperadas',      prazo: 'Ate 84 meses', icon: 'SI' },
+  { nome: 'Losango',   url: 'https://www.losango.com.br',                                     cor: 'from-purple-700 to-purple-600', taxa: 'Consulte condicoes',     prazo: 'Ate 72 meses', icon: 'LO' }
 ];
 
+const PB_PROPOSAL_MODES = {
+  PROMOCIONAL:  'PROMOCIONAL',
+  PERSONALIZADA: 'PERSONALIZADA',
+  EQUIPAMENTOS: 'EQUIPAMENTOS'
+};
+
+function getPBDefaultEquipDraft() {
+  return {
+    descricao:      '',
+    valorEquip:     '',
+    potencia:       '',
+    paymentNote:    '',
+    commercialNote: ''
+  };
+}
+
+function resetPBEquipDraft() {
+  state.pbEquipDraft = getPBDefaultEquipDraft();
+}
 function openProposalBuilder(clientId) {
   state.pbActiveClient = state.clientes.find(c => c.id === clientId);
   const client = state.pbActiveClient;
+
+  if (!client) {
+    showToast('Cliente nao encontrado.');
+    return;
+  }
 
   // Atualiza header do modal
   const nome    = client.nome;
@@ -30,24 +54,35 @@ function openProposalBuilder(clientId) {
   }
   document.getElementById('pb-client-name').innerText = nome;
 
-  state.pbCategory = 'kitsInversor';
-  state.pbSearch   = '';
-  state.pbMainTab  = 'kits';
-  document.getElementById('pb-search').value = '';
+  state.pbCategory     = 'kitsInversor';
+  state.pbSearch       = '';
+  state.pbMainTab      = 'kits';
+  state.pbProposalMode = PB_PROPOSAL_MODES.PROMOCIONAL;
+  resetPBEquipDraft();
+
+  const searchEl = document.getElementById('pb-search');
+  if (searchEl) searchEl.value = '';
+  syncEquipInputsFromState();
 
   setPBMainTab('kits');
   updatePBTabsUI();
-  renderModalProducts();
+  setPBProposalMode(PB_PROPOSAL_MODES.PROMOCIONAL);
+
   document.getElementById('proposal-builder-modal').classList.remove('hidden');
   lucide.createIcons();
 }
 
 function closeProposalBuilder() {
   document.getElementById('proposal-builder-modal').classList.add('hidden');
-  state.pbActiveClient = null;
-  state.pbSearch = '';
+  state.pbActiveClient  = null;
+  state.pbSearch        = '';
+  state.pbProposalMode  = PB_PROPOSAL_MODES.PROMOCIONAL;
+  resetPBEquipDraft();
+
   const searchEl = document.getElementById('pb-search');
   if (searchEl) searchEl.value = '';
+  syncEquipInputsFromState();
+  updatePBModeUI();
 }
 
 // ==========================================
@@ -71,27 +106,35 @@ function setPBMainTab(tab) {
   const active = document.getElementById(`pb-section-${tab}`);
   if (active) active.classList.remove('hidden');
 
+  if (tab === 'kits') {
+    updatePBModeUI();
+    if (state.pbProposalMode === PB_PROPOSAL_MODES.PERSONALIZADA || state.pbProposalMode === PB_PROPOSAL_MODES.EQUIPAMENTOS) {
+      syncEquipInputsFromState();
+      updateEquipamentosPreview();
+    }
+  }
+
   if (tab === 'financiamento') renderFinanciamento();
   if (tab === 'historico')     renderHistorico();
   lucide.createIcons();
 }
 
 // ==========================================
-// SEÇÃO: FINANCIAMENTO
+// SECAO: FINANCIAMENTO
 // ==========================================
 function renderFinanciamento() {
   const container = document.getElementById('pb-section-financiamento');
   if (!container) return;
 
-  const cardsHTML = BANCOS_FINANCIAMENTO.map(b => `
+  const cardsHTML = BANCOS_FINANCIAMENTO.map((b) => `
     <a href="${b.url}" target="_blank" rel="noopener noreferrer"
       class="metric-card shine-effect group block border border-neutral-800 hover:border-orange-500/30 p-5 transition-all duration-300 cursor-pointer">
       <div class="flex items-center gap-4 mb-4">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br ${b.cor} flex items-center justify-center text-2xl shadow-[0_0_12px_rgba(249,115,22,0.2)] shrink-0">
-          ${b.icon}
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br ${b.cor} flex items-center justify-center text-base font-black shadow-[0_0_12px_rgba(249,115,22,0.2)] shrink-0">
+          ${escapeHTML(b.icon)}
         </div>
         <div class="min-w-0">
-          <h3 class="text-white font-black text-base uppercase group-hover:text-orange-400 transition-colors leading-tight">${b.nome}</h3>
+          <h3 class="text-white font-black text-base uppercase group-hover:text-orange-400 transition-colors leading-tight">${escapeHTML(b.nome)}</h3>
           <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest mt-0.5">Financiamento Solar</p>
         </div>
         <i data-lucide="external-link" class="w-4 h-4 text-neutral-600 group-hover:text-orange-400 transition-colors ml-auto shrink-0"></i>
@@ -99,11 +142,11 @@ function renderFinanciamento() {
       <div class="grid grid-cols-2 gap-2 border-t border-neutral-800 pt-3">
         <div>
           <p class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Taxa</p>
-          <p class="text-orange-400 font-black text-xs mt-0.5">${b.taxa}</p>
+          <p class="text-orange-400 font-black text-xs mt-0.5">${escapeHTML(b.taxa)}</p>
         </div>
         <div>
-          <p class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Prazo Máx.</p>
-          <p class="text-yellow-400 font-black text-xs mt-0.5">${b.prazo}</p>
+          <p class="text-[9px] text-neutral-600 font-bold uppercase tracking-widest">Prazo max.</p>
+          <p class="text-yellow-400 font-black text-xs mt-0.5">${escapeHTML(b.prazo)}</p>
         </div>
       </div>
     </a>
@@ -114,8 +157,8 @@ function renderFinanciamento() {
       <p class="text-orange-500 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 mb-1">
         <i data-lucide="landmark" class="w-3.5 h-3.5"></i> BANCOS &amp; FINANCIADORAS
       </p>
-      <h3 class="text-xl font-black text-white uppercase tracking-tighter">Opções de Financiamento Solar</h3>
-      <p class="text-neutral-500 text-xs mt-1">Clique em qualquer banco para abrir o simulador direto no site. Taxas sujeitas a alteração.</p>
+      <h3 class="text-xl font-black text-white uppercase tracking-tighter">Opcoes de Financiamento Solar</h3>
+      <p class="text-neutral-500 text-xs mt-1">Clique em qualquer banco para abrir o simulador direto no site. Taxas sujeitas a alteracao.</p>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       ${cardsHTML}
@@ -123,7 +166,7 @@ function renderFinanciamento() {
     <div class="mt-6 p-4 bg-yellow-950/20 border border-yellow-900/30 flex items-start gap-3">
       <i data-lucide="info" class="w-4 h-4 text-yellow-500 shrink-0 mt-0.5"></i>
       <p class="text-yellow-500/80 text-xs leading-relaxed font-medium">
-        <strong class="text-yellow-400 font-black">Dica:</strong> Solicite ao cliente a fatura de energia antes de simular — a maioria das financiadoras usa o valor da conta como base para aprovação de crédito.
+        <strong class="text-yellow-400 font-black">Dica:</strong> Solicite ao cliente a fatura de energia antes de simular - a maioria das financiadoras usa o valor da conta como base para aprovacao de credito.
       </p>
     </div>
   `;
@@ -131,17 +174,17 @@ function renderFinanciamento() {
 }
 
 // ==========================================
-// SEÇÃO: HISTÓRICO DE PROPOSTAS
+// SECAO: HISTORICO DE PROPOSTAS
 // ==========================================
 function renderHistorico() {
   const container = document.getElementById('pb-section-historico');
   if (!container || !state.pbActiveClient) return;
 
-  const clienteNome  = state.pbActiveClient.nome;
-  const propostas    = state.propostas.filter(p =>
+  const clienteNome = state.pbActiveClient.nome;
+  const propostas = state.propostas.filter((p) =>
     p.cliente_nome && p.cliente_nome.toUpperCase() === clienteNome.toUpperCase()
   );
-  const vendasCliente = state.vendas.filter(v =>
+  const vendasCliente = state.vendas.filter((v) =>
     v.cliente_nome && v.cliente_nome.toUpperCase() === clienteNome.toUpperCase()
   );
 
@@ -150,7 +193,7 @@ function renderHistorico() {
       <div class="flex flex-col items-center justify-center h-full gap-4 text-center py-20">
         <i data-lucide="file-clock" class="w-14 h-14 text-neutral-700"></i>
         <p class="text-neutral-500 font-black uppercase tracking-widest text-sm">Nenhuma proposta gerada ainda</p>
-        <p class="text-neutral-700 text-xs">Vá até a aba KITS e gere a primeira proposta para este cliente.</p>
+        <p class="text-neutral-700 text-xs">Va ate a aba KITS e gere a primeira proposta para este cliente.</p>
       </div>`;
     lucide.createIcons();
     return;
@@ -162,42 +205,47 @@ function renderHistorico() {
     <div class="mb-5 flex items-center justify-between flex-wrap gap-3">
       <div>
         <p class="text-orange-500 text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 mb-1">
-          <i data-lucide="history" class="w-3.5 h-3.5"></i> HISTÓRICO
+          <i data-lucide="history" class="w-3.5 h-3.5"></i> HISTORICO
         </p>
         <h3 class="text-xl font-black text-white uppercase tracking-tighter">
           ${propostas.length} Proposta${propostas.length > 1 ? 's' : ''} Gerada${propostas.length > 1 ? 's' : ''}
-          ${vendasCliente.length > 0 ? `<span class="text-green-400 ml-2">· ${vendasCliente.length} Venda${vendasCliente.length > 1 ? 's' : ''} Fechada${vendasCliente.length > 1 ? 's' : ''} ✓</span>` : ''}
+          ${vendasCliente.length > 0 ? `<span class="text-green-400 ml-2">- ${vendasCliente.length} Venda${vendasCliente.length > 1 ? 's' : ''} Fechada${vendasCliente.length > 1 ? 's' : ''} OK</span>` : ''}
         </h3>
       </div>
     </div>
     <div class="space-y-3">
-      ${propostas.map(p => {
-        const isVendido = vendasKits.has(p.kit_nome);
-        const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
-        const link      = `${baseUrl}/proposta.html?id=${p.id}`;
+      ${propostas.map((p) => {
+        const isVendido       = vendasKits.has(p.kit_nome);
+        const isPersonalizada = p.proposal_mode === 'PERSONALIZADA' || p.proposal_mode === 'EQUIPAMENTOS';
+        const displayPrice    = isPersonalizada ? (p.custom_total_price || p.kit_price) : p.kit_price;
+        const displayPower    = isPersonalizada ? (p.custom_system_power_kwp || p.kit_power) : p.kit_power;
         return `
-        <div class="metric-card border ${isVendido ? 'border-green-900/40' : 'border-neutral-800'} p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 group">
+        <div class="metric-card border ${isVendido ? 'border-green-900/40' : isPersonalizada ? 'border-orange-900/40' : 'border-neutral-800'} p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 group">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap mb-1">
-              <span class="text-white font-black text-sm uppercase truncate group-hover:text-orange-400 transition-colors">${escapeHTML(p.kit_nome)}</span>
-              ${isVendido ? '<span class="text-[8px] bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 font-black uppercase tracking-widest">✓ VENDIDO</span>' : ''}
+              <span class="text-white font-black text-sm uppercase truncate group-hover:text-orange-400 transition-colors">${isPersonalizada ? 'Proposta Personalizada' : escapeHTML(p.kit_nome)}</span>
+              ${isVendido ? '<span class="text-[8px] bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 font-black uppercase tracking-widest">VENDIDO</span>' : ''}
+              ${isPersonalizada ? '<span class="text-[8px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 font-black uppercase tracking-widest">PERSONALIZADA</span>' : ''}
             </div>
             <div class="flex flex-wrap gap-x-3 text-[10px] text-neutral-600 font-mono">
               <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-2.5 h-2.5"></i>${formatDate(p.created_at)}</span>
-              <span class="flex items-center gap-1 text-orange-400/70 font-bold">${formatCurrency(p.kit_price)}</span>
-              ${p.kit_power ? `<span class="flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5"></i>${p.kit_power} kWp</span>` : ''}
+              <span class="flex items-center gap-1 text-orange-400/70 font-bold">${formatCurrency(displayPrice)}</span>
+              ${displayPower ? `<span class="flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5"></i>${displayPower} kWp</span>` : ''}
             </div>
           </div>
-          <button onclick="copiarLinkExistente('${p.id}', this)"
-            class="shrink-0 flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 hover:border-orange-500/50 hover:text-orange-400 text-neutral-400 px-3 py-2 font-black uppercase tracking-wider transition-all text-[9px]">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>COPIAR LINK
-          </button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="copiarLinkExistente('${p.id}', this)"
+              class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 hover:border-orange-500/50 hover:text-orange-400 text-neutral-400 px-3 py-2 font-black uppercase tracking-wider transition-all text-[9px]">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>COPIAR LINK
+            </button>
+          </div>
         </div>`;
       }).join('')}
     </div>
   `;
   lucide.createIcons();
 }
+
 
 function setPBTab(category) {
   state.pbCategory = category;
@@ -222,6 +270,8 @@ function setPBViewMode(mode) {
 function updatePBTabsUI() {
   const btnInv = document.getElementById('pb-tab-inversor');
   const btnMic = document.getElementById('pb-tab-micro');
+  if (!btnInv || !btnMic) return;
+
   const BASE   = 'flex-1 px-4 py-2.5 text-[10px] font-black uppercase transition-all whitespace-nowrap';
   if (state.pbCategory === 'kitsInversor') {
     btnInv.className = BASE + ' bg-orange-500 text-black';
@@ -232,25 +282,243 @@ function updatePBTabsUI() {
   }
 }
 
-document.getElementById('pb-search').addEventListener('input', (e) => {
-  state.pbSearch = e.target.value.toLowerCase();
-  renderModalProducts();
-});
+function setPBProposalMode(mode) {
+  const wantsPersonalizada = mode === PB_PROPOSAL_MODES.PERSONALIZADA || mode === PB_PROPOSAL_MODES.EQUIPAMENTOS;
+
+  if (wantsPersonalizada && !state.isAdmin) return;
+
+  state.pbProposalMode = wantsPersonalizada
+    ? PB_PROPOSAL_MODES.PERSONALIZADA
+    : PB_PROPOSAL_MODES.PROMOCIONAL;
+
+  if (state.pbProposalMode === PB_PROPOSAL_MODES.PERSONALIZADA) {
+    syncEquipInputsFromState();
+    updateEquipamentosPreview();
+  }
+
+  updatePBModeUI();
+
+  if (state.pbProposalMode === PB_PROPOSAL_MODES.PROMOCIONAL) {
+    renderModalProducts();
+  }
+}
+
+function updatePBModeUI() {
+  const mode            = state.pbProposalMode;
+  const isPersonalizada = mode === PB_PROPOSAL_MODES.PERSONALIZADA || mode === PB_PROPOSAL_MODES.EQUIPAMENTOS;
+
+  const btnPromo   = document.getElementById('pb-mode-promocional-btn');
+  const btnCustom  = document.getElementById('pb-mode-personalizada-btn');
+  const helperText = document.getElementById('pb-mode-helper');
+
+  const promoToolbar      = document.getElementById('pb-promocional-toolbar');
+  const equipPanel        = document.getElementById('pb-equip-panel');
+  const productsContainer = document.getElementById('pb-products-container');
+  const emptyEl           = document.getElementById('pb-empty');
+
+  const INACTIVE = 'flex-1 sm:flex-none px-4 py-2.5 text-[10px] font-black uppercase transition-all text-neutral-500 hover:text-white whitespace-nowrap border-l border-neutral-800';
+  const ACTIVE   = 'flex-1 sm:flex-none px-4 py-2.5 text-[10px] font-black uppercase transition-all bg-orange-500 text-black whitespace-nowrap';
+  const ACTIVE_BL = ACTIVE + ' border-l border-neutral-800';
+
+  if (btnPromo)  btnPromo.className  = (mode === 'PROMOCIONAL') ? ACTIVE : INACTIVE;
+  if (btnCustom) {
+    btnCustom.className = isPersonalizada ? ACTIVE_BL : INACTIVE;
+    btnCustom.classList.toggle('hidden', !state.isAdmin);
+  }
+
+  if (helperText) {
+    helperText.innerText = isPersonalizada
+      ? 'Modo personalizada ativo. Informe valor e potencia do sistema para gerar a proposta.'
+      : 'Promocional selecionado. Fluxo atual de kits prontos.';
+  }
+
+  const hidePromo = isPersonalizada;
+  if (promoToolbar)      promoToolbar.classList.toggle('hidden', hidePromo);
+  if (equipPanel)        equipPanel.classList.toggle('hidden', !isPersonalizada);
+  if (productsContainer) productsContainer.classList.toggle('hidden', hidePromo);
+  if (emptyEl && hidePromo) emptyEl.classList.add('hidden');
+
+  lucide.createIcons();
+}
+
+function bindPBSearchInputEvent() {
+  const debouncedPBSearchRender = debounce((rawValue) => {
+    state.pbSearch = String(rawValue || '').trim().toLowerCase();
+    renderModalProducts();
+  }, 170);
+
+  const pbSearchInput = document.getElementById('pb-search');
+  if (pbSearchInput && !pbSearchInput.dataset.bound) {
+    pbSearchInput.addEventListener('input', (e) => {
+      debouncedPBSearchRender(e.target.value);
+    });
+    pbSearchInput.dataset.bound = '1';
+  }
+}
+
+bindPBSearchInputEvent();
+// ==========================================
+// MODO: PERSONALIZADA (Admin only)
+// ==========================================
+
+function syncEquipInputsFromState() {
+  const d = state.pbEquipDraft || {};
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  setVal('pb-equip-descricao',       d.descricao      || '');
+  setVal('pb-equip-valor',           d.valorEquip     || '');
+  setVal('pb-equip-potencia',        d.potencia       || '');
+  setVal('pb-equip-payment-note',    d.paymentNote    || '');
+  setVal('pb-equip-commercial-note', d.commercialNote || '');
+  updateEquipamentosPreview();
+}
+
+function updateEquipamentosPreview() {
+  const draft    = state.pbEquipDraft || {};
+  const equip    = parseFloat(draft.valorEquip) || 0;
+  const potencia = parseFloat(draft.potencia) || 0;
+  const total    = equip;
+
+  const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setTxt('pb-equip-preview-equip', equip > 0 ? formatCurrency(equip) : 'R$ —');
+  setTxt('pb-equip-preview-total', total > 0 ? formatCurrency(total) : 'R$ —');
+
+  const canSubmit = total > 0 && potencia > 0;
+  const submitBtn = document.getElementById('pb-equip-submit');
+  if (submitBtn) {
+    submitBtn.disabled = !canSubmit;
+    submitBtn.classList.toggle('opacity-50', !canSubmit);
+    submitBtn.classList.toggle('cursor-not-allowed', !canSubmit);
+  }
+}
+
+function bindEquipUIEvents() {
+  const bindings = [
+    ['pb-equip-descricao',       v => { state.pbEquipDraft.descricao      = v; }],
+    ['pb-equip-valor',           v => { state.pbEquipDraft.valorEquip     = v; updateEquipamentosPreview(); }],
+    ['pb-equip-potencia',        v => { state.pbEquipDraft.potencia       = v; updateEquipamentosPreview(); }],
+    ['pb-equip-payment-note',    v => { state.pbEquipDraft.paymentNote    = v; }],
+    ['pb-equip-commercial-note', v => { state.pbEquipDraft.commercialNote = v; }],
+  ];
+  bindings.forEach(([id, handler]) => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.bound) { el.addEventListener('input', e => handler(e.target.value)); el.dataset.bound = '1'; }
+  });
+  const form = document.getElementById('pb-equip-form');
+  if (form && !form.dataset.bound) { form.addEventListener('submit', handleEquipamentosProposalSubmit); form.dataset.bound = '1'; }
+}
+
+async function handleEquipamentosProposalSubmit(event) {
+  event.preventDefault();
+  const draft    = state.pbEquipDraft || {};
+  const equip    = parseFloat(draft.valorEquip) || 0;
+  const potencia = parseFloat(draft.potencia) || 0;
+  const total    = equip;
+
+  if (total <= 0) {
+    showToast('Informe o valor da proposta para gerar a proposta personalizada.');
+    return;
+  }
+  if (potencia <= 0) {
+    showToast('Informe a potencia do sistema (kWp) para gerar a proposta personalizada.');
+    return;
+  }
+
+  const client = state.pbActiveClient;
+  if (!client) return showToast('Nenhum cliente em atendimento!');
+
+  const submitBtn    = document.getElementById('pb-equip-submit');
+  const originalText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled  = true;
+    submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1"></i> GERANDO...';
+    lucide.createIcons();
+  }
+
+  const shouldUsePopup = !isStandaloneDisplayMode();
+  const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
+  try {
+    const vendedorMeta = state.currentUser.user_metadata || {};
+    const vendedorNome = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
+    const vendedorTel  = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
+    const descricao    = (draft.descricao || '').trim() || 'Proposta Personalizada';
+
+    const { data, error } = await supabaseClient.from('propostas').insert([{
+      proposal_mode:           'PERSONALIZADA',
+      vendedor_email:          state.currentUser.email,
+      vendedor_nome:           vendedorNome,
+      vendedor_telefone:       vendedorTel,
+      cliente_nome:            client.nome,
+      cliente_telefone:        client.telefone,
+      cliente_cidade:          client.cidade,
+      kit_nome:                descricao,
+      kit_brand:               '',
+      kit_power:               potencia,
+      kit_price:               total,
+      kit_list_price:          total,
+      geracao_estimada:        calcularGeracaoEstimada(potencia),
+      custom_system_power_kwp: potencia,
+      custom_equipment_price:  equip,
+      custom_service_price:    null,
+      custom_total_price:      total,
+      custom_payment_note:     draft.paymentNote    || null,
+      custom_commercial_note:  draft.commercialNote || null,
+      franquia_id:             state.franquiaId,
+    }]).select();
+
+    if (error) throw error;
+
+    const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
+    const linkFinal = baseUrl + '/proposta.html?id=' + data[0].id;
+    handleProposalLinkOpen(linkFinal, popupRef);
+
+    if (!client.status || client.status === 'NOVO') await cycleClientStatus(client.id, 'NOVO');
+    await fetchPropostas();
+
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 inline mr-1"></i> GERADO E COPIADO!';
+      submitBtn.classList.remove('bg-orange-600', 'hover:bg-orange-500');
+      submitBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+      lucide.createIcons();
+      setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled  = false;
+        submitBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+        submitBtn.classList.add('bg-orange-600', 'hover:bg-orange-500');
+        lucide.createIcons();
+      }, 3000);
+    }
+    showToast('PROPOSTA PERSONALIZADA GERADA E LINK COPIADO!');
+  } catch (err) {
+    console.error('Erro ao gerar proposta personalizada:', err);
+    showToast('Erro ao gerar a proposta personalizada. Tente novamente.');
+    if (popupRef) popupRef.close();
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = originalText; lucide.createIcons(); }
+  }
+}
+
+bindEquipUIEvents();
 
 function renderModalProducts() {
   const container = document.getElementById('pb-products-container');
   const emptyEl   = document.getElementById('pb-empty');
+
+  if (!container || !emptyEl) return;
+
+  if (state.pbProposalMode !== PB_PROPOSAL_MODES.PROMOCIONAL) {
+    container.classList.add('hidden');
+    emptyEl.classList.add('hidden');
+    return;
+  }
 
   let list = state.data.filter(k => k.categoria === state.pbCategory);
 
   if (state.pbSearch) {
     const searchNum = parseInt(state.pbSearch, 10);
     list = list.filter(item => {
-      const estGeneration  = calcularGeracaoEstimada(item.power, item.categoria);
-      const textMatch      = item.name.toLowerCase().includes(state.pbSearch) ||
-                             item.brand.toLowerCase().includes(state.pbSearch) ||
-                             item.power.toString().includes(state.pbSearch);
-      const generationMatch= !isNaN(searchNum) && Math.abs(estGeneration - searchNum) <= 50;
+      const estGeneration = Number(item._estGeneration ?? calcularGeracaoEstimada(item.power, item.categoria));
+      const searchBlob = item._searchBlob || `${item.name || ''} ${item.brand || ''} ${item.power || ''}`.toLowerCase();
+      const textMatch = searchBlob.includes(state.pbSearch);
+      const generationMatch = !isNaN(searchNum) && Math.abs(estGeneration - searchNum) <= 50;
       return textMatch || generationMatch;
     });
   }
@@ -259,83 +527,86 @@ function renderModalProducts() {
     container.classList.add('hidden');
     emptyEl.classList.remove('hidden');
     emptyEl.classList.add('flex');
-  } else {
-    emptyEl.classList.add('hidden');
-    emptyEl.classList.remove('flex');
-    container.classList.remove('hidden');
-
-    container.className = state.pbViewMode === 'list'
-      ? 'flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-3 bg-[#050505] content-start'
-      : 'flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#050505] content-start';
-
-    container.innerHTML = list.map(item => {
-      const estGeneration    = calcularGeracaoEstimada(item.power, item.categoria).toFixed(0);
-      const formattedPrice   = formatCurrency(item.price);
-      const formattedListPrice= formatCurrency(item.list_price);
-      const safeId           = escapeHTML(String(item.id));
-      const safeName         = escapeHTML(item.name);
-      const safeBrand        = escapeHTML(item.brand);
-      const safePower        = escapeHTML(String(item.power));
-
-      if (state.pbViewMode === 'grid') {
-        return `
-          <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-5 flex flex-col gap-4 group transition-all rounded-sm shadow-xl">
-            <div class="flex justify-between items-start">
-              <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>
-              <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold">DE: ${formattedListPrice}</span>
-            </div>
-            <h3 class="text-white font-black text-sm uppercase leading-tight group-hover:text-orange-400 transition-colors">${safeName}</h3>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-              <div class="bg-black p-2 border border-neutral-800 flex flex-col items-center justify-center">
-                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potência</span>
-                <span class="text-orange-500 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${safePower} kWp</span>
-              </div>
-              <div class="bg-neutral-900 p-2 border border-neutral-800 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]">
-                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geração Est.</span>
-                <span class="text-blue-400 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ${estGeneration} kWh</span>
-              </div>
-            </div>
-            <div class="mt-auto pt-4 border-t border-neutral-800 flex items-center justify-between gap-3">
-              <div class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
-              <button data-kit-id="${safeId}" onclick="copyProposalLinkById(this.dataset.kitId, event)" aria-label="Gerar proposta para ${safeName}" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] text-[10px] font-black uppercase tracking-widest min-w-[110px]">
-                <i data-lucide="file-text" class="w-4 h-4"></i> GERAR PROPOSTA
-              </button>
-            </div>
-          </div>`;
-      } else {
-        return `
-          <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group transition-all rounded-sm shadow-xl">
-            <div class="flex-1 min-w-0 flex flex-col gap-2">
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>
-                <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold hidden md:inline-block">DE: ${formattedListPrice}</span>
-              </div>
-              <h3 class="text-white font-black text-sm md:text-base uppercase leading-tight group-hover:text-orange-400 transition-colors truncate" title="${safeName}">${safeName}</h3>
-            </div>
-            <div class="flex items-center gap-4 md:px-6 md:border-x border-neutral-800 shrink-0">
-              <div class="flex flex-col items-center justify-center">
-                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potência</span>
-                <span class="text-orange-500 font-black flex items-center gap-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${safePower} kWp</span>
-              </div>
-              <div class="flex flex-col items-center justify-center">
-                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geração Est.</span>
-                <span class="text-blue-400 font-black flex items-center gap-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ${estGeneration} kWh</span>
-              </div>
-            </div>
-            <div class="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-0 border-neutral-800">
-              <div class="text-right">
-                <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold md:hidden block">DE: ${formattedListPrice}</span>
-                <div class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
-              </div>
-              <button data-kit-id="${safeId}" onclick="copyProposalLinkById(this.dataset.kitId, event)" aria-label="Gerar proposta para ${safeName}" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] text-[10px] font-black uppercase tracking-widest min-w-[110px]">
-                <i data-lucide="file-text" class="w-4 h-4"></i> GERAR PROPOSTA
-              </button>
-            </div>
-          </div>`;
-      }
-    }).join('');
-    lucide.createIcons();
+    return;
   }
+
+  emptyEl.classList.add('hidden');
+  emptyEl.classList.remove('flex');
+  container.classList.remove('hidden');
+
+  container.className = state.pbViewMode === 'list'
+    ? 'flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-3 bg-[#050505] content-start'
+    : 'flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#050505] content-start';
+
+  container.innerHTML = list.map(item => {
+    const estGenerationNum  = Number(item._estGeneration ?? calcularGeracaoEstimada(item.power, item.categoria)) || 0;
+    const estGeneration     = estGenerationNum.toFixed(0);
+    const formattedPrice    = formatCurrency(item.price);
+    const formattedListPrice= formatCurrency(item.list_price);
+    const safeId            = escapeHTML(String(item.id));
+    const safeName          = escapeHTML(item.name);
+    const safeBrand         = escapeHTML(item.brand);
+    const safePower         = escapeHTML(String(item.power));
+
+    if (state.pbViewMode === 'grid') {
+      return `
+        <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-5 flex flex-col gap-4 group transition-all rounded-sm shadow-xl">
+          <div class="flex justify-between items-start">
+            <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>
+            <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold">DE: ${formattedListPrice}</span>
+          </div>
+          <h3 class="text-white font-black text-sm uppercase leading-tight group-hover:text-orange-400 transition-colors">${safeName}</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-black p-2 border border-neutral-800 flex flex-col items-center justify-center">
+              <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potencia</span>
+              <span class="text-orange-500 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${safePower} kWp</span>
+            </div>
+            <div class="bg-neutral-900 p-2 border border-neutral-800 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]">
+              <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geracao Est.</span>
+              <span class="text-blue-400 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ${estGeneration} kWh</span>
+            </div>
+          </div>
+          <div class="mt-auto pt-4 border-t border-neutral-800 flex items-center justify-between gap-3">
+            <div class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
+            <button data-kit-id="${safeId}" onclick="copyProposalLinkById(this.dataset.kitId, event)" aria-label="Gerar proposta para ${safeName}" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] text-[10px] font-black uppercase tracking-widest min-w-[110px]">
+              <i data-lucide="file-text" class="w-4 h-4"></i> GERAR PROPOSTA
+            </button>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group transition-all rounded-sm shadow-xl">
+        <div class="flex-1 min-w-0 flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>
+            <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold hidden md:inline-block">DE: ${formattedListPrice}</span>
+          </div>
+          <h3 class="text-white font-black text-sm md:text-base uppercase leading-tight group-hover:text-orange-400 transition-colors truncate" title="${safeName}">${safeName}</h3>
+        </div>
+        <div class="flex items-center gap-4 md:px-6 md:border-x border-neutral-800 shrink-0">
+          <div class="flex flex-col items-center justify-center">
+            <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potencia</span>
+            <span class="text-orange-500 font-black flex items-center gap-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${safePower} kWp</span>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geracao Est.</span>
+            <span class="text-blue-400 font-black flex items-center gap-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ${estGeneration} kWh</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 shrink-0 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-0 border-neutral-800">
+          <div class="text-right">
+            <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold md:hidden block">DE: ${formattedListPrice}</span>
+            <div class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
+          </div>
+          <button data-kit-id="${safeId}" onclick="copyProposalLinkById(this.dataset.kitId, event)" aria-label="Gerar proposta para ${safeName}" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] text-[10px] font-black uppercase tracking-widest min-w-[110px]">
+            <i data-lucide="file-text" class="w-4 h-4"></i> GERAR PROPOSTA
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  lucide.createIcons();
 }
 
 // --- Lookup por ID para evitar JSON em onclick ---
@@ -364,19 +635,20 @@ function copiarLinkExistente(id, btnElement) {
 
 async function copyProposalLink(kit, event) {
   const client = state.pbActiveClient;
-  if (!client) return alert('Nenhum cliente em atendimento!');
+  if (!client) return showToast('Nenhum cliente em atendimento!');
 
   const btnCopiar   = event.currentTarget;
   const originalText= btnCopiar.innerHTML;
   btnCopiar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> GERANDO...';
   lucide.createIcons();
 
-  const novaAba = window.open('', '_blank');
+  const shouldUsePopup = !isStandaloneDisplayMode();
+  const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
 
   try {
     const vendedorMeta  = state.currentUser.user_metadata || {};
     const vendedorNome  = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel   = vendedorMeta.phone || state.currentUser.phone || '';
+    const vendedorTel   = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
       vendedor_email:    state.currentUser.email,
@@ -389,7 +661,9 @@ async function copyProposalLink(kit, event) {
       kit_brand:         kit.brand,
       kit_power:         kit.power,
       kit_price:         kit.price,
-      kit_list_price:    kit.list_price
+      kit_list_price:    kit.list_price,
+      geracao_estimada:  calcularGeracaoEstimada(kit.power, kit.categoria),
+      franquia_id:       state.franquiaId
     }]).select();
 
     if (error) throw error;
@@ -397,8 +671,7 @@ async function copyProposalLink(kit, event) {
     const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = `${baseUrl}/proposta.html?id=${data[0].id}`;
 
-    novaAba.location.href = linkFinal;
-    copiarTextoBlindado(linkFinal);
+    handleProposalLinkOpen(linkFinal, popupRef);
 
     if (!client.status || client.status === 'NOVO') {
       await cycleClientStatus(client.id, 'NOVO');
@@ -420,11 +693,67 @@ async function copyProposalLink(kit, event) {
     }, 3000);
 
   } catch (err) {
-    console.error('Erro na geração:', err);
-    alert('Erro ao gerar a proposta. Tente novamente.');
-    novaAba.close();
+    console.error('Erro na geração da proposta personalizada:', err);
+    showToast('Erro ao gerar a proposta. Tente novamente.');
+    if (popupRef) popupRef.close();
     btnCopiar.innerHTML = originalText;
     lucide.createIcons();
+  }
+}
+
+function isStandaloneDisplayMode() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function handleProposalLinkOpen(link, popupRef) {
+  // Em modo app (PWA), evita navegar para dentro da proposta e "prender" o vendedor.
+  copiarTextoBlindado(link);
+
+  if (isStandaloneDisplayMode()) {
+    const externalAttempt = tryOpenExternalBrowser(link);
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Proposta Ágil Solar',
+        text: 'Segue o link da proposta:',
+        url: link,
+      }).catch(() => {});
+    }
+
+    showToast(externalAttempt
+      ? 'LINK COPIADO! Se nao abrir fora do app, use compartilhar.'
+      : 'LINK COPIADO! Use compartilhar para abrir no navegador.');
+    return;
+  }
+
+  if (popupRef) {
+    popupRef.location.href = link;
+    return;
+  }
+
+  const newTab = window.open(link, '_blank', 'noopener,noreferrer');
+  if (!newTab) {
+    window.location.href = link;
+  }
+}
+
+function tryOpenExternalBrowser(link) {
+  try {
+    const anchor = document.createElement('a');
+    anchor.href = link;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer external';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    return true;
+  } catch (_) {
+    return false;
   }
 }
 
@@ -451,9 +780,9 @@ function openFechaVenda(clientId) {
 
   // Popula o select com os kits do catálogo
   const select = document.getElementById('fv-kit-select');
-  select.innerHTML = '<option value="">— SELECIONE O KIT —</option>';
+  select.innerHTML = '<option value="">» SELECIONE O KIT «</option>';
 
-  // Adiciona kits do catálogo + propostas do cliente como opções
+  // Adiciona kits do catálogo + propostas do cliente como opçÃµes
   const clientPropostas = state.propostas.filter(
     p => p.cliente_nome && p.cliente_nome.toUpperCase() === client.nome.toUpperCase()
   );
@@ -465,7 +794,7 @@ function openFechaVenda(clientId) {
     clientPropostas.forEach(p => {
       const opt = document.createElement('option');
       opt.value = JSON.stringify({ nome: p.kit_nome, preco: p.kit_price, power: p.kit_power, brand: p.kit_brand });
-      opt.textContent = `${p.kit_nome} — ${formatCurrency(p.kit_price)}`;
+      opt.textContent = `${p.kit_nome} → ${formatCurrency(p.kit_price)}`;
       group.appendChild(opt);
     });
     select.appendChild(group);
@@ -476,7 +805,7 @@ function openFechaVenda(clientId) {
   state.data.forEach(k => {
     const opt = document.createElement('option');
     opt.value = JSON.stringify({ nome: k.name, preco: k.price, power: k.power, brand: k.brand });
-    opt.textContent = `${k.name} — ${formatCurrency(k.price)}`;
+    opt.textContent = `${k.name} → ${formatCurrency(k.price)}`;
     groupAll.appendChild(opt);
   });
   select.appendChild(groupAll);
@@ -497,7 +826,7 @@ function onFvKitChange() {
   try {
     const kit = JSON.parse(select.value);
     document.getElementById('fv-kit-price').innerText = formatCurrency(kit.preco);
-    document.getElementById('fv-kit-power').innerText = kit.power ? `${kit.power} kWp` : '—';
+    document.getElementById('fv-kit-power').innerText = kit.power ? `${kit.power} kWp` : 'N/A';
     infoDiv.classList.remove('hidden');
   } catch (_) { infoDiv.classList.add('hidden'); }
 }
@@ -549,6 +878,7 @@ async function confirmarFechaVenda() {
       kit_brand:         kit.brand || '',
       kit_power:         Number(kit.power) || 0,
       kit_price:         Number(kit.preco) || 0,
+      franquia_id:       state.franquiaId
     }]);
 
     if (insertError) {
@@ -569,7 +899,7 @@ async function confirmarFechaVenda() {
 
     closeFechaVenda();
     showSalesCelebration();
-    showToast(`🏆 VENDA FECHADA! ${kit.nome}`);
+        showToast(`\u{1F389} VENDA FECHADA! ${kit.nome}`);
     renderContent();
 
   } catch (err) {
@@ -583,3 +913,16 @@ async function confirmarFechaVenda() {
     lucide.createIcons();
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

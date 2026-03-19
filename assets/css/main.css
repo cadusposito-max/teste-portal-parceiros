@@ -8,6 +8,21 @@ body {
 }
 
 /* ==========================================
+   LOGO — glow only in dark mode
+   ========================================== */
+/* DESKTOP BACKGROUND ORBS */
+@keyframes orbFloat1 { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(5%, -5%) scale(1.05); } 66% { transform: translate(-3%, 3%) scale(0.95); } 100% { transform: translate(0, 0) scale(1); } }
+@keyframes orbFloat2 { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(-4%, 4%) scale(1.03); } 66% { transform: translate(3%, -3%) scale(0.97); } 100% { transform: translate(0, 0) scale(1); } }
+@keyframes orbFloat3 { 0% { transform: translate(0, 0) scale(1); } 33% { transform: translate(3%, 5%) scale(1.08); } 66% { transform: translate(-5%, -4%) scale(0.92); } 100% { transform: translate(0, 0) scale(1); } }
+.orb-float-1 { animation: orbFloat1 20s ease-in-out infinite; }
+.orb-float-2 { animation: orbFloat2 24s ease-in-out infinite reverse; }
+.orb-float-3 { animation: orbFloat3 18s ease-in-out infinite; }
+
+img[data-theme-logo="true"] {
+  filter: drop-shadow(0 0 22px rgba(249,115,22,0.4));
+}
+
+/* ==========================================
    SCROLLBARS
    ========================================== */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -260,6 +275,168 @@ body {
   backdrop-filter: blur(16px);
 }
 
+
+
+/* ==========================================
+   VERSION UPDATE NOTICE
+   ========================================== */
+#version-update-notice,
+#version-update-notice * {
+  box-sizing: border-box;
+}
+
+#version-update-notice {
+  position: fixed;
+  left: 24px;
+  right: auto;
+  bottom: 24px;
+  width: clamp(360px, 31vw, 420px);
+  max-width: calc(100vw - 48px);
+  z-index: 10000;
+  border: 1px solid rgba(249, 115, 22, 0.55);
+  border-radius: 14px;
+  background: rgba(10, 10, 10, 0.96);
+  box-shadow: 0 12px 36px rgba(249, 115, 22, 0.24);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  color: #ffffff;
+}
+
+#version-update-notice.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#version-update-notice .version-update-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+#version-update-notice .version-update-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.12);
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+
+#version-update-notice .version-update-icon {
+  width: 18px;
+  height: 18px;
+  color: #fb923c;
+  stroke-width: 2.4;
+}
+
+#version-update-notice .version-update-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+#version-update-notice .version-update-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+#version-update-notice .version-update-text {
+  margin: 6px 0 0;
+  color: #d4d4d4;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+#version-update-notice .version-update-actions {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#version-update-notice .version-update-btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter 0.2s ease, transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+#version-update-notice .version-update-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+#version-update-notice .version-update-btn-primary {
+  flex: 1;
+  color: #090909;
+  background: linear-gradient(90deg, #ea580c, #facc15);
+}
+
+#version-update-notice .version-update-btn-primary:hover {
+  filter: brightness(1.06);
+}
+
+#version-update-notice .version-update-btn-secondary {
+  min-width: 104px;
+  color: #ffffff;
+  background: #262626;
+  border: 1px solid #404040;
+}
+
+#version-update-notice .version-update-btn-secondary:hover {
+  background: #303030;
+  border-color: #525252;
+}
+
+@media (max-width: 760px) {
+  #version-update-notice {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: auto;
+    max-width: none;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  #version-update-notice .version-update-title {
+    font-size: 15px;
+  }
+
+  #version-update-notice .version-update-text {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  #version-update-notice .version-update-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  #version-update-notice .version-update-btn-secondary {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 /* ==========================================
    HOVER LIFT — generic
    ========================================== */
@@ -269,3 +446,1326 @@ body {
 .hover-lift:hover {
   transform: translateY(-2px);
 }
+
+/* ==========================================
+   PERFORMANCE — mobile/reduced motion
+   ========================================== */
+@media (prefers-reduced-motion: reduce), (max-width: 768px) {
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4,
+  .stagger-5,
+  .stagger-6,
+  .bar-animated,
+  .funnel-bar,
+  .number-pop,
+  .avatar-pulse {
+    animation: none !important;
+  }
+}
+
+/* animated-stripe: desativa só para reduced-motion, NÃO no mobile */
+@media (prefers-reduced-motion: reduce) {
+  .animated-stripe {
+    animation: none !important;
+  }
+
+  .metric-card,
+  .hover-lift,
+  .table-row-hover {
+    transition: none !important;
+  }
+
+  #toast {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ==========================================
+   VIDEO CAROUSEL ARROWS
+   ========================================== */
+.vid-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  transition: background 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+}
+.vid-nav-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: scale(1.1);
+}
+
+/* ==========================================
+   CHAT UI — Internal Messenger
+   ========================================== */
+:root {
+  --chat-bg: #090909;
+  --chat-panel: #0f0f10;
+  --chat-muted: #9ca3af;
+  --chat-border: #2a2a2b;
+  --chat-accent: #f97316;
+  --chat-accent-2: #eab308;
+  --chat-text: #f5f5f5;
+  --chat-me: #1f2937;
+  --chat-other: #111827;
+}
+
+body.theme-light {
+  --chat-bg: #eef2f7;
+  --chat-panel: #ffffff;
+  --chat-muted: #64748b;
+  --chat-border: #d6dde8;
+  --chat-accent: #2563eb;
+  --chat-accent-2: #60a5fa;
+  --chat-text: #0f172a;
+  --chat-me: #dbeafe;
+  --chat-other: #f1f5f9;
+}
+
+.chat-fab-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 1px solid rgba(249,115,22,0.5);
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-2));
+  color: #0b0b0c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 28px rgba(249,115,22,0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-fab-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 34px rgba(249,115,22,0.45);
+}
+
+.chat-fab-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0a0a0a;
+  padding: 0 5px;
+}
+
+#chat-shell {
+  pointer-events: none;
+}
+
+#chat-shell.chat-shell--desktop,
+#chat-shell.chat-shell--mobile {
+  pointer-events: auto;
+}
+
+#chat-shell.chat-shell--desktop {
+  right: 24px;
+  bottom: 96px;
+  width: min(92vw, 920px);
+  height: min(80vh, 680px);
+}
+
+#chat-shell.chat-shell--mobile {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+}
+
+.chat-shell-window {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--chat-bg);
+  border: 1px solid var(--chat-border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-shell--desktop .chat-shell-window {
+  border-radius: 14px;
+}
+
+.chat-shell--mobile .chat-shell-window {
+  border-radius: 0;
+  border: none;
+}
+
+.chat-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--chat-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0));
+}
+
+.chat-shell-header-left {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.chat-shell-header-title-wrap {
+  min-width: 0;
+}
+
+.chat-thread-meta-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.chat-thread-meta-btn.is-clickable:hover {
+  border-color: var(--chat-border);
+  background: rgba(255,255,255,0.03);
+}
+
+.chat-thread-meta-btn[disabled] {
+  cursor: default;
+}
+
+.chat-thread-avatar,
+.chat-profile-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.chat-shell-overline {
+  color: var(--chat-muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.chat-shell-title {
+  color: var(--chat-text);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-shell-subtitle {
+  color: var(--chat-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-shell-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-thread-profile-card {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 44px;
+  width: min(320px, calc(100vw - 28px));
+  border: 1px solid var(--chat-border);
+  background: var(--chat-panel);
+  padding: 10px;
+  z-index: 8;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.35);
+}
+
+.chat-thread-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--chat-border);
+}
+
+.chat-thread-profile-main {
+  min-width: 0;
+}
+
+.chat-thread-profile-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--chat-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-thread-profile-kind {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--chat-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.chat-thread-profile-grid {
+  margin-top: 10px;
+  display: grid;
+  gap: 7px;
+}
+
+.chat-thread-profile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chat-thread-profile-label {
+  font-size: 10px;
+  color: var(--chat-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.chat-thread-profile-value {
+  font-size: 11px;
+  color: var(--chat-text);
+  font-weight: 800;
+  text-align: right;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--chat-border);
+  background: var(--chat-panel);
+  color: var(--chat-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.chat-icon-btn:hover {
+  color: var(--chat-text);
+  border-color: var(--chat-accent);
+  transform: translateY(-1px);
+}
+
+.chat-shell-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.chat-list-panel {
+  border-right: 1px solid var(--chat-border);
+  background: var(--chat-panel);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--chat-border);
+  color: var(--chat-muted);
+}
+
+.chat-search-wrap input {
+  width: 100%;
+  border: 1px solid var(--chat-border);
+  background: transparent;
+  color: var(--chat-text);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+}
+
+.chat-search-wrap input:focus {
+  border-color: var(--chat-accent);
+}
+
+.chat-list-empty,
+.chat-thread-empty,
+.chat-thread-no-messages {
+  color: var(--chat-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.chat-list-empty {
+  padding: 18px 10px;
+}
+
+.chat-list-items,
+.chat-directory-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-conv-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--chat-text);
+  padding: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.chat-conv-item:hover {
+  border-color: var(--chat-border);
+  background: rgba(255,255,255,0.02);
+}
+
+.chat-conv-item.is-active {
+  border-color: rgba(249,115,22,0.35);
+  background: rgba(249,115,22,0.08);
+}
+
+.chat-conv-avatar,
+.chat-directory-avatar,
+.chat-thread-avatar-core,
+.chat-profile-avatar-core {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-2));
+  color: #0b0b0c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-thread-avatar-core,
+.chat-profile-avatar-core {
+  width: 36px;
+  height: 36px;
+}
+
+.chat-conv-avatar.has-image,
+.chat-thread-avatar-core.has-image,
+.chat-profile-avatar-core.has-image {
+  background: #0f1113;
+  border: 1px solid var(--chat-border);
+  color: transparent;
+}
+
+.chat-conv-avatar img,
+.chat-thread-avatar-core img,
+.chat-profile-avatar-core img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-conv-main,
+.chat-directory-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chat-conv-top,
+.chat-conv-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chat-conv-title,
+.chat-directory-name {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--chat-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-conv-time,
+.chat-directory-meta {
+  font-size: 10px;
+  color: var(--chat-muted);
+  white-space: nowrap;
+}
+
+.chat-conv-preview {
+  font-size: 11px;
+  color: var(--chat-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-conv-unread {
+  min-width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0 4px;
+}
+
+.chat-thread-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--chat-bg);
+}
+
+.chat-thread-empty {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-thread-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-thread-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--chat-muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--chat-border);
+}
+
+.chat-thread-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-msg-row {
+  display: flex;
+}
+
+.chat-msg-row.is-me {
+  justify-content: flex-end;
+}
+
+.chat-msg-row.is-other {
+  justify-content: flex-start;
+}
+
+.chat-msg-bubble {
+  max-width: min(78%, 520px);
+  border: 1px solid var(--chat-border);
+  background: var(--chat-other);
+  color: var(--chat-text);
+  padding: 8px 10px;
+}
+
+.chat-msg-row.is-me .chat-msg-bubble {
+  background: var(--chat-me);
+  border-color: rgba(99,102,241,0.25);
+}
+
+.chat-msg-sender {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--chat-muted);
+  margin-bottom: 4px;
+}
+
+.chat-msg-text {
+  font-size: 13px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.chat-msg-meta {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--chat-muted);
+  text-align: right;
+}
+
+.chat-thread-form {
+  border-top: 1px solid var(--chat-border);
+  padding: 10px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--chat-panel);
+}
+
+.chat-thread-form textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--chat-border);
+  background: transparent;
+  color: var(--chat-text);
+  padding: 8px 10px;
+  min-height: 44px;
+  max-height: 150px;
+  font-size: 13px;
+  outline: none;
+}
+
+.chat-thread-form textarea:focus {
+  border-color: var(--chat-accent);
+}
+
+.chat-thread-form button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--chat-border);
+  background: linear-gradient(135deg, var(--chat-accent), var(--chat-accent-2));
+  color: #0b0b0c;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.chat-thread-form button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chat-directory-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(5,5,5,0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.chat-directory-card {
+  width: min(560px, 96%);
+  height: min(72%, 560px);
+  background: var(--chat-bg);
+  border: 1px solid var(--chat-border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.chat-directory-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--chat-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-directory-title {
+  color: var(--chat-text);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.chat-directory-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--chat-text);
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.chat-directory-item:hover {
+  border-color: var(--chat-border);
+  background: rgba(255,255,255,0.02);
+}
+
+@media (max-width: 1023px) {
+  .chat-shell-header {
+    padding-top: calc(12px + env(safe-area-inset-top));
+  }
+
+  .chat-shell-body {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-shell--mobile .chat-list-panel {
+    border-right: none;
+  }
+
+  .chat-shell--mobile .chat-thread-panel {
+    display: none;
+  }
+
+  .chat-shell--mobile.chat-shell--thread .chat-list-panel {
+    display: none;
+  }
+
+  .chat-shell--mobile.chat-shell--thread .chat-thread-panel {
+    display: flex;
+  }
+
+  .chat-fab-btn {
+    width: 60px;
+    height: 60px;
+  }
+
+  .chat-shell--mobile .chat-thread-form {
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .chat-thread-profile-card {
+    left: 0;
+    width: min(300px, calc(100vw - 22px));
+  }
+}
+
+
+/* ==========================================
+   PROPOSTA — Urgency Banner (sem conflito hidden+flex)
+   ========================================== */
+
+.urgency-banner-hidden {
+  display: none !important;
+}
+
+.urgency-banner-visible {
+  display: flex !important;
+  align-items: center;
+}
+
+/* ==========================================
+   PROPOSTA — Credibilidade (overlay escuro fixo)
+   ========================================== */
+
+.proposta-credibilidade-card {
+  background-color: #080808;
+}
+
+/* Overlay escuro da credibilidade — aumentar opacidade no dark mode */
+.proposta-credibilidade-overlay {
+  background-color: rgba(3, 4, 10, 0.94) !important;
+}
+
+/* ==========================================
+   PROPOSTA — Setas do carrossel visíveis em ambos modos
+   ========================================== */
+
+.vid-nav-btn {
+  background: #1a1a1a;
+  border-color: rgba(255,255,255,0.2);
+  color: #ffffff;
+}
+
+.vid-nav-btn:hover {
+  background: #ea580c;
+  border-color: #f97316;
+  color: #ffffff;
+}
+
+/* ==========================================
+   PROPOSTA — Layout Principal
+   ========================================== */
+
+/* Container principal da página */
+.proposta-page-wrap {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+  box-sizing: border-box;
+}
+
+/* Grid de 2 colunas: 7 + 5 frações */
+.proposta-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .proposta-page-wrap {
+    padding: 32px 28px 48px;
+  }
+
+  .proposta-grid {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 24px;
+  }
+
+  .proposta-col-side {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .proposta-page-wrap {
+    padding: 24px 20px 36px;
+  }
+
+  .proposta-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 767px) {
+  .proposta-page-wrap {
+    padding: 16px 14px 32px;
+  }
+
+  .proposta-grid {
+    gap: 14px;
+  }
+}
+
+/* ==========================================
+   PROPOSTA — Reordenação mobile (<1024px)
+
+   ABORDAGEM: Grid 1 coluna + display:contents nas colunas.
+
+   POR QUÊ GRID E NÃO FLEX:
+   - O .proposta-grid base tem "align-items: start".
+   - No flex column, align-items controla o eixo TRANSVERSAL (largura),
+     então "start" impede os cards de esticarem para 100% de largura.
+   - No CSS Grid, align-items só afeta o eixo de bloco (altura das linhas),
+     enquanto justify-items:stretch (padrão) garante 100% de largura
+     via preenchimento do track de 1fr — independente do align-items.
+
+   DISPLAY:CONTENTS:
+   - Dissolve os wrappers de coluna na árvore de layout.
+   - Os filhos viram grid items diretos e preenchem o track de 1fr.
+   - !important necessário: Tailwind CDN injeta display:flex nas colunas
+     via JS APÓS o main.css ser carregado (sobrescreveria sem !important).
+
+   DESKTOP (≥1024px): completamente intocado.
+   ========================================== */
+@media (max-width: 1023px) {
+  /* Grid de 1 coluna: items ocupam 100% via justify-items:stretch (padrão) */
+  .proposta-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+
+  /* Dissolve os wrappers: filhos participam diretamente no grid de 1fr */
+  /* !important necessário contra o Tailwind CDN que injeta display:flex via JS */
+  .proposta-col-main,
+  .proposta-col-side {
+    display: contents !important;
+  }
+
+  /* Garante largura plena e comportamento correto em todos os cards */
+  .proposta-col-main > *,
+  .proposta-col-side > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ordem visual mobile */
+  .proposta-col-side > .proposal-hero-shell { order: 1; } /* Valor + Pagamento */
+  .proposta-col-main > .proposal-hero-shell { order: 2; } /* Kit Info */
+  .proposta-col-main > div:nth-child(2)     { order: 3; } /* Economia Real */
+  .proposta-col-main > div:nth-child(3)     { order: 4; } /* Inclusos */
+  .proposta-col-main > div:nth-child(4)     { order: 5; } /* Credibilidade */
+  .proposta-col-main > div:nth-child(5)     { order: 6; } /* Obras */
+  #vendor-card                              { order: 7; } /* Fale com Especialista */
+}
+
+/* ==========================================
+   PROPOSTA — Mobile: ajustes finos para telas pequenas (<768px)
+   Padding, tipografia, respiro e barra inferior.
+   ========================================== */
+@media (max-width: 767px) {
+  .proposta-page-wrap {
+    padding-bottom: 36px;
+  }
+
+  body.proposal-qa-visible .proposta-page-wrap {
+    padding-bottom: calc(124px + env(safe-area-inset-bottom));
+  }
+
+  .proposta-grid {
+    gap: 15px !important;
+  }
+
+  .proposta-col-main > .proposal-hero-shell,
+  .proposta-col-side > .proposal-hero-shell {
+    padding: 1rem;
+  }
+
+  .proposta-col-main > div:nth-child(2),
+  .proposta-col-main > div:nth-child(3),
+  .proposta-col-main > div:nth-child(5),
+  #vendor-card {
+    padding: 1rem;
+  }
+
+  .proposta-credibilidade-card .relative.z-10 {
+    padding: 1rem;
+  }
+
+  .proposta-col-side > .proposal-hero-shell .proposta-price-card {
+    padding-left: 0.95rem;
+    padding-right: 0.95rem;
+    padding-top: 1rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .proposta-col-side > .proposal-hero-shell .proposta-price-display {
+    font-size: clamp(2.2rem, 10.8vw, 2.9rem);
+    line-height: 0.95;
+  }
+
+  .proposta-col-main > .proposal-hero-shell #kit-name {
+    font-size: clamp(1.18rem, 5.2vw, 1.42rem);
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .proposta-col-main > .proposal-hero-shell .relative.z-10 {
+    gap: 0.9rem;
+  }
+
+  .proposta-col-main > .proposal-hero-shell .proposta-kpi-pill {
+    min-width: 0;
+    min-height: 78px;
+    padding: 0.62rem 0.62rem;
+    flex: 1 1 0;
+  }
+
+  .proposta-col-main > .proposal-hero-shell .proposta-bill-card {
+    min-height: 108px;
+    padding: 0.85rem;
+  }
+
+  .proposta-col-main > div:nth-child(5) .relative.w-full.z-10.px-5 {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+  }
+
+  #video-wrapper {
+    padding-top: 0 !important;
+    aspect-ratio: 16 / 9;
+    min-height: 220px;
+  }
+
+  #vendor-card {
+    margin-bottom: 8px;
+    padding-bottom: 1.15rem;
+  }
+
+  body.proposal-qa-visible #proposal-quick-actions {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    transform: none !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.proposal-qa-visible #proposal-quick-actions > div {
+    width: 100%;
+    gap: 0.45rem;
+  }
+
+  body.proposal-qa-visible #proposal-quick-actions button {
+    flex: 1 1 0;
+    justify-content: center;
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+}
+
+/* ==========================================
+   PROPOSTA — Premium hero/cards/CTA
+   ========================================== */
+.proposal-hero-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(249, 115, 22, 0.16) 0%, rgba(249, 115, 22, 0) 58%),
+    radial-gradient(90% 100% at 100% 0%, rgba(234, 179, 8, 0.14) 0%, rgba(234, 179, 8, 0) 55%),
+    linear-gradient(170deg, #101011 0%, #090909 55%, #050505 100%);
+  box-shadow: 0 0 46px rgba(234, 88, 12, 0.18);
+}
+
+.proposal-hero-shell::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(249, 115, 22, 0.35), rgba(234, 179, 8, 0.1), transparent 65%);
+  opacity: 0.65;
+}
+
+.proposal-kpi-card {
+  border: 1px solid rgba(115, 115, 115, 0.38);
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.92), rgba(16, 16, 16, 0.78));
+  border-radius: 0.9rem;
+  padding: 0.85rem 0.95rem;
+  min-height: 98px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.proposal-kpi-label {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.proposal-kpi-value {
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+  line-height: 1.2;
+}
+
+.proposal-kpi-note {
+  font-size: 0.72rem;
+  color: #737373;
+  font-weight: 700;
+}
+
+.proposal-inline-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.78rem 1.1rem;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  color: #0b0b0c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 0 26px rgba(234, 88, 12, 0.3);
+}
+
+.proposal-inline-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 0 34px rgba(234, 88, 12, 0.4);
+}
+
+.proposal-inline-cta.is-secondary {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.14), rgba(234, 179, 8, 0.13));
+  border-color: rgba(249, 115, 22, 0.34);
+  color: #f9fafb;
+  box-shadow: none;
+}
+
+.proposal-inline-cta.is-secondary:hover {
+  box-shadow: 0 0 24px rgba(234, 88, 12, 0.2);
+}
+
+/* ==========================================
+   DESKTOP BACKGROUND ORBS
+   ========================================== */
+@keyframes orbFloat1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(30px, -50px) scale(1.1); }
+  66%  { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes orbFloat2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(-40px, 30px) scale(1.05); }
+  66%  { transform: translate(20px, -20px) scale(0.95); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes orbFloat3 {
+  0%   { transform: translate(0, 0) scale(1.1); }
+  50%  { transform: translate(-30px, -30px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1.1); }
+}
+
+.orb-float-1 { animation: orbFloat1 18s ease-in-out infinite; }
+.orb-float-2 { animation: orbFloat2 22s ease-in-out infinite reverse; }
+.orb-float-3 { animation: orbFloat3 15s ease-in-out infinite; }
+
+@media (max-width: 768px) {
+  .proposal-kpi-card {
+    min-height: 84px;
+    padding: 0.75rem 0.8rem;
+  }
+
+  .proposal-inline-cta {
+    width: 100%;
+  }
+}
+
+/* ==========================================
+   PROPOSTA — Microinterações & Hovers
+   ========================================== */
+
+/* Preço destaque */
+.proposta-price-display {
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+.proposta-price-card:hover .proposta-price-display {
+  filter: brightness(1.1);
+}
+
+/* Bill card hover */
+.proposta-bill-card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.proposta-bill-card:hover {
+  border-color: rgba(249,115,22,0.4);
+  box-shadow: 0 0 20px rgba(249,115,22,0.08);
+}
+
+/* Price card subtle glow on hover */
+.proposta-price-card {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.proposta-price-card:hover {
+  box-shadow: inset 0 0 30px rgba(249,115,22,0.06), 0 0 0 1px rgba(249,115,22,0.12);
+}
+
+/* KPI pills hover */
+.proposta-kpi-pill {
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.proposta-kpi-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Eco rows hover */
+.proposta-eco-row {
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  cursor: default;
+}
+.proposta-eco-row:hover {
+  border-color: rgba(34,197,94,0.3);
+  background: rgba(0,0,0,0.5);
+  transform: translateX(2px);
+}
+
+/* Eco highlight hover */
+.proposta-eco-highlight {
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.proposta-eco-highlight:hover {
+  border-color: rgba(34,197,94,0.5);
+  box-shadow: 0 0 28px rgba(34,197,94,0.12), inset 0 0 20px rgba(34,197,94,0.07);
+}
+
+/* Payback row hover */
+.proposta-payback-row {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.proposta-payback-row:hover {
+  border-color: rgba(249,115,22,0.5);
+  box-shadow: 0 0 20px rgba(249,115,22,0.1);
+}
+
+/* Payment button hover */
+.proposta-payment-btn {
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.proposta-payment-btn:hover {
+  background: rgba(0,0,0,0.6);
+  border-color: rgba(249,115,22,0.45);
+  box-shadow: 0 0 16px rgba(249,115,22,0.08);
+}
+
+/* Payment info hover */
+.proposta-payment-info {
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.proposta-payment-info:hover {
+  border-color: rgba(115,115,115,0.4);
+  background: rgba(0,0,0,0.28);
+}
+
+/* Incluso items hover */
+.proposta-incluso-item {
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.proposta-incluso-item:hover {
+  border-color: rgba(59,130,246,0.3);
+  background: rgba(59,130,246,0.05);
+  transform: translateX(2px);
+}
+
+/* Stat cards hover */
+.proposta-stat-card {
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.proposta-stat-card:hover {
+  border-color: rgba(249,115,22,0.35);
+  background: rgba(249,115,22,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+
+/* Env cards hover */
+.proposta-env-card {
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.proposta-env-card:hover {
+  transform: translateY(-2px);
+}
+
+/* WhatsApp CTA hover */
+.proposta-cta-wa {
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.proposta-cta-wa:hover {
+  box-shadow: 0 0 18px rgba(37,211,102,0.18);
+}
+
+/* Contact rows hover */
+.proposta-contact-row {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Main CTA button */
+.proposta-cta-btn {
+  transition: background 0.2s ease, box-shadow 0.25s ease, transform 0.15s ease;
+}
+.proposta-cta-btn:hover {
+  transform: translateY(-1px);
+}
+.proposta-cta-btn:active {
+  transform: scale(0.97);
+}
+
+/* Section cards generic hover */
+.proposta-section-card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.proposta-section-card:hover {
+  border-color: rgba(115,115,115,0.3);
+}
+
+/* Hero banner hover lift */
+.proposta-hero-banner {
+  transition: box-shadow 0.3s ease;
+}
+.proposta-hero-banner:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ==========================================
+   MATERIAIS — Biblioteca de Documentos
+   ========================================== */
+
+/* Card da biblioteca */
+.materiais-card {
+  border-radius: 0;     /* estilo flat/sharp como o restante da UI */
+}
+
+/* Botões de filtro de categoria */
+.materiais-cat-btn {
+  background: transparent;
+  border-color: rgba(64,64,64,0.6);
+  color: #737373;
+  border-radius: 0;
+}
+.materiais-cat-btn:hover {
+  color: #ffffff;
+  border-color: rgba(115,115,115,0.6);
+}
+.materiais-cat-btn.is-active {
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  border-color: transparent;
+  color: #0b0b0c;
+}
+
+

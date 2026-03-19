@@ -1,8 +1,95 @@
-// ==========================================
-// UTILITÁRIOS GERAIS
+﻿// ==========================================
+// UTILITÃRIOS GERAIS
 // ==========================================
 
-// --- Segurança: sanitizar strings antes de inserir no DOM ---
+// --- Tema + logo por tema (dark/light) sem ocupar espaÃ§o no header ---
+function getThemePreference() {
+  const pref = localStorage.getItem('themePreference');
+  return (pref === 'light' || pref === 'dark' || pref === 'system') ? pref : 'system';
+}
+
+function getActiveThemeMode() {
+  const explicit = document.documentElement.getAttribute('data-theme');
+  if (explicit === 'light' || explicit === 'dark') return explicit;
+
+  const pref = getThemePreference();
+  if (pref === 'light' || pref === 'dark') return pref;
+
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+    ? 'light'
+    : 'dark';
+}
+
+function applyThemeMode() {
+  const mode = getActiveThemeMode();
+  document.documentElement.setAttribute('data-theme', mode);
+  document.body.classList.toggle('theme-light', mode === 'light');
+  document.body.classList.toggle('theme-dark', mode !== 'light');
+  const lightCssEl = document.getElementById('theme-light-css');
+  if (lightCssEl) lightCssEl.disabled = mode !== 'light';
+  updateThemeMetaColor(mode);
+  applyThemeLogos();
+}
+
+function setThemePreference(preference) {
+  const pref = (preference === 'light' || preference === 'dark' || preference === 'system')
+    ? preference
+    : 'system';
+  localStorage.setItem('themePreference', pref);
+  applyThemeMode();
+  if (typeof showToast === 'function') {
+    const label = pref === 'system' ? 'SISTEMA' : (pref === 'light' ? 'CLARO' : 'ESCURO');
+    showToast(`TEMA: ${label}`);
+  }
+}
+
+function updateThemeMetaColor(mode) {
+  const color = mode === 'light' ? '#f3f4f6' : '#050505';
+  const selectors = [
+    'meta[name="theme-color"]',
+    'meta[name="apple-mobile-web-app-status-bar-style"]'
+  ];
+
+  // theme-color
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.setAttribute('content', color);
+
+  // iOS status bar behavior remains stable but we keep it explicit
+  const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if (appleMeta) {
+    appleMeta.setAttribute('content', mode === 'light' ? 'default' : 'black-translucent');
+  }
+}
+
+function applyThemeLogos() {
+  const mode = getActiveThemeMode();
+  document.querySelectorAll('img[data-theme-logo="true"]').forEach(img => {
+    const darkSrc = img.getAttribute('data-logo-dark');
+    const lightSrc = img.getAttribute('data-logo-light');
+    const targetSrc = mode === 'light' ? lightSrc : darkSrc;
+    const safeTargetSrc = safeImageUrl(targetSrc, null);
+    if (safeTargetSrc && img.getAttribute('src') !== safeTargetSrc) {
+      img.setAttribute('src', safeTargetSrc);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', applyThemeMode);
+
+if (window.matchMedia) {
+  const _themeMq = window.matchMedia('(prefers-color-scheme: light)');
+  if (_themeMq.addEventListener) {
+    _themeMq.addEventListener('change', () => {
+      if (getThemePreference() === 'system') applyThemeMode();
+    });
+  } else if (_themeMq.addListener) {
+    _themeMq.addListener(() => {
+      if (getThemePreference() === 'system') applyThemeMode();
+    });
+  }
+}
+
+// --- SeguranÃ§a: sanitizar strings antes de inserir no DOM ---
 function escapeHTML(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -11,6 +98,44 @@ function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+const DEFAULT_SAFE_IMAGE_FALLBACK = 'assets/img/logo-light.png';
+
+function _normalizeSafeImageUrl(rawUrl, { allowDataUrl = false, allowBlobUrl = false } = {}) {
+  if (typeof rawUrl !== 'string') return '';
+
+  const value = rawUrl.trim();
+  if (!value) return '';
+  if (/[\x00-\x1F\x7F]/.test(value)) return '';
+
+  const lower = value.toLowerCase();
+  if (allowDataUrl && lower.startsWith('data:image/')) return value;
+  if (allowBlobUrl && lower.startsWith('blob:')) return value;
+
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('data:')) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(value, window.location.origin);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+    if (parsed.username || parsed.password) return '';
+    return parsed.href;
+  } catch (_) {
+    // URL invalida em input dinamico: fallback silencioso intencional.
+    return '';
+  }
+}
+
+function safeImageUrl(rawUrl, fallbackUrl = DEFAULT_SAFE_IMAGE_FALLBACK, options = {}) {
+  const safeUrl = _normalizeSafeImageUrl(rawUrl, options);
+  if (safeUrl) return safeUrl;
+
+  if (fallbackUrl === null) return '';
+
+  const safeFallback = _normalizeSafeImageUrl(fallbackUrl);
+  return safeFallback || DEFAULT_SAFE_IMAGE_FALLBACK;
 }
 
 function formatCurrency(val) {
@@ -23,21 +148,48 @@ function formatDate(dateString) {
   return d.toLocaleDateString('pt-BR');
 }
 
-// --- Toast com fila (evita sobreposição) ---
+// Retorna label legÃ­vel para um perÃ­odo 'YYYY-MM' ou 'all'
+function formatMonthLabel(yyyymm) {
+  if (!yyyymm || yyyymm === 'all') return 'GERAL';
+  const [y, m] = yyyymm.split('-');
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${months[parseInt(m, 10) - 1]} ${y}`;
+}
+
+function debounce(fn, wait = 180) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+// --- Toast com fila (evita sobreposiÃ§Ã£o) ---
 let _toastQueue   = [];
 let _toastShowing = false;
 
 function showToast(msg) {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  if (!toast || !toastMsg) return;
+
   _toastQueue.push(msg);
   if (!_toastShowing) _processToastQueue();
 }
 
 function _processToastQueue() {
   if (_toastQueue.length === 0) { _toastShowing = false; return; }
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  if (!toast || !toastMsg) {
+    _toastQueue = [];
+    _toastShowing = false;
+    return;
+  }
+
   _toastShowing = true;
   const msg   = _toastQueue.shift();
-  const toast = document.getElementById('toast');
-  document.getElementById('toast-msg').innerText = msg;
+  toastMsg.innerText = msg;
   toast.classList.remove('translate-y-full', 'opacity-0');
   setTimeout(() => {
     toast.classList.add('translate-y-full', 'opacity-0');
@@ -45,7 +197,7 @@ function _processToastQueue() {
   }, 3000);
 }
 
-// --- Modal de confirmação genérico ---
+// --- Modal de confirmaÃ§Ã£o genÃ©rico ---
 function showConfirmModal(message, onConfirm, confirmLabel = 'CONFIRMAR', danger = true) {
   document.getElementById('confirm-modal-msg').innerText = message;
   const btnYes = document.getElementById('btn-confirm-yes');
@@ -62,12 +214,24 @@ function hideConfirmModal() {
 }
 
 // ==========================================
-// ANIMAÇÃO DE CONTADORES
+// ANIMAÃ‡ÃƒO DE CONTADORES
 // ==========================================
 function animateCounters() {
+  const reduceMotion =
+    (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ||
+    window.innerWidth <= 768;
+
   document.querySelectorAll('[data-count]').forEach(el => {
     const target     = parseFloat(el.dataset.count) || 0;
     const isCurrency = el.dataset.countCurrency === 'true';
+
+    if (reduceMotion) {
+      el.textContent = isCurrency
+        ? formatCurrency(target)
+        : target.toLocaleString('pt-BR');
+      return;
+    }
+
     const duration   = 1200;
     const start      = performance.now();
 
@@ -98,7 +262,7 @@ function animateCounters() {
 }
 
 // ==========================================
-// SAUDAÇÃO E INFO DO USUÁRIO
+// SAUDAÃ‡ÃƒO E INFO DO USUÃRIO
 // ==========================================
 function getGreeting() {
   const h = new Date().getHours();
@@ -108,6 +272,8 @@ function getGreeting() {
 }
 
 function getFirstName() {
+  // Prioridade: nome do perfil â†’ user_metadata â†’ email
+  if (state.profile?.nome) return state.profile.nome.split(' ')[0];
   if (!state.currentUser) return '';
   const meta = state.currentUser.user_metadata || {};
   const full  = meta.full_name || meta.name || '';
@@ -122,9 +288,9 @@ function getBadgeStyles(tag) {
   const styles = {
     'MAIS VENDIDO':    'bg-gradient-to-r from-orange-600 to-yellow-500 text-black border-orange-500',
     'PREMIUM':         'bg-neutral-800 text-orange-400 border-orange-500',
-    'CUSTO-BENEFÍCIO': 'bg-green-600 text-white border-green-500',
-    'LANÇAMENTO':      'bg-blue-600 text-white border-blue-500',
-    'ALTA POTÊNCIA':   'bg-red-600 text-white border-red-500',
+    'CUSTO-BENEFÃCIO': 'bg-green-600 text-white border-green-500',
+    'LANÃ‡AMENTO':      'bg-blue-600 text-white border-blue-500',
+    'ALTA POTÃŠNCIA':   'bg-red-600 text-white border-red-500',
     'PROJETO ESPECIAL':'bg-neutral-700 text-neutral-300 border-neutral-600',
   };
   return styles[tag] || styles['PROJETO ESPECIAL'];
@@ -134,22 +300,27 @@ function getStatusColor(status) {
   switch (status) {
     case 'NOVO':              return 'text-blue-400 border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20';
     case 'PROPOSTA ENVIADA':  return 'text-yellow-400 border-yellow-500/50 bg-yellow-500/10 hover:bg-yellow-500/20';
-    case 'EM NEGOCIAÇÃO':     return 'text-orange-500 border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20';
+    case 'EM NEGOCIAÃ‡ÃƒO':     return 'text-orange-500 border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20';
     case 'FECHADO':           return 'text-green-400 border-green-500/50 bg-green-500/10 hover:bg-green-500/20';
     default:                  return 'text-blue-400 border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20';
   }
 }
 
-// Estima geração mensal em kWh
+// Estima geraÃ§Ã£o mensal em kWh
+// Usa hsp_medio da franquia do usuÃ¡rio logado (carregado via fetchFranquia).
+// Fallback: 5.4 HSP (AraÃ§atuba) quando nÃ£o logado (ex: proposta.html pÃºblica).
 function calcularGeracaoEstimada(potencia_kWp, categoria) {
-  const horasSolMesBruto = 153.75;
-  const eficiencia = categoria === 'kitsMicro' ? 0.85 : 0.80;
-  return potencia_kWp * horasSolMesBruto * eficiencia;
+  const hsp        = (typeof state !== 'undefined' && state.franquiaHsp) ? state.franquiaHsp : 5.4;
+  const eficiencia = categoria === 'kitsMicro' ? 0.81 : 0.76;
+  return potencia_kWp * hsp * 30 * eficiencia;
 }
 
 function copiarTextoBlindado(texto) {
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(texto).catch(() => fallbackCopiar(texto));
+    navigator.clipboard.writeText(texto).catch((error) => {
+      console.warn('[copiarTextoBlindado] Clipboard API falhou, usando fallback.', error);
+      fallbackCopiar(texto);
+    });
   } else {
     fallbackCopiar(texto);
   }
@@ -164,7 +335,9 @@ function fallbackCopiar(texto) {
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
-  try { document.execCommand('copy'); } catch (err) {}
+  try { document.execCommand('copy'); } catch (err) {
+    console.warn('[fallbackCopiar] Falha ao copiar via document.execCommand.', err);
+  }
   document.body.removeChild(textArea);
 }
 
@@ -173,7 +346,7 @@ function fallbackCopiar(texto) {
 // ==========================================
 function exportToXLSX(rows, columns, filename) {
   if (typeof XLSX === 'undefined') {
-    showToast('Biblioteca XLSX não carregada. Recarregue a página.');
+    showToast('Biblioteca XLSX nÃ£o carregada. Recarregue a pÃ¡gina.');
     return;
   }
   if (!rows || rows.length === 0) {
@@ -195,32 +368,39 @@ function exportToXLSX(rows, columns, filename) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Dados');
   XLSX.writeFile(wb, `${filename}.xlsx`);
-  // Nota: o caller é responsável pelo toast (evita toast duplo)
+  // Nota: o caller Ã© responsÃ¡vel pelo toast (evita toast duplo)
 }
 
 // ==========================================
-// CELEBRAÇÃO DE VENDA (confetti + som)
+// CELEBRAÃ‡ÃƒO DE VENDA (confetti + som)
 // ==========================================
+let _salesCelebrationAudioWarned = false;
+
 function showSalesCelebration() {
-  // — Som: fanfarra ascendente em C Maior —
+  // â€” Som: sino de notificaÃ§Ã£o elegante â€”
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const actx = new AudioCtx();
-    [[523.25,0],[659.25,0.13],[783.99,0.26],[1046.5,0.39],[1318.5,0.52]].forEach(([freq, delay]) => {
+    [[1046.5, 0, 0.22], [2093, 0, 0.07], [1568, 0.18, 0.12]].forEach(([freq, delay, vol]) => {
       const osc  = actx.createOscillator();
       const gain = actx.createGain();
       osc.connect(gain); gain.connect(actx.destination);
       osc.frequency.value = freq;
-      osc.type = 'triangle';
+      osc.type = 'sine';
       const t = actx.currentTime + delay;
       gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.28, t + 0.04);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-      osc.start(t); osc.stop(t + 0.55);
+      gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+      osc.start(t); osc.stop(t + 1.45);
     });
-  } catch (_) {}
+  } catch (error) {
+    if (!_salesCelebrationAudioWarned) {
+      console.warn('[showSalesCelebration] Nao foi possivel tocar audio de celebracao.', error);
+      _salesCelebrationAudioWarned = true;
+    }
+  }
 
-  // — Confetti canvas —
+  // â€” Confetti canvas â€”
   const canvas = document.getElementById('confetti-canvas');
   if (!canvas) return;
   canvas.width  = window.innerWidth;
@@ -262,3 +442,162 @@ function showSalesCelebration() {
   }
   draw();
 }
+
+// ==========================================
+// AVISO DE NOVA VERSAO PUBLICADA
+// ==========================================
+const VERSION_CHECK_CONFIG = {
+  url: '/version.json',
+  intervalMs: 60000,
+};
+
+let _versionCheckStarted = false;
+let _versionCheckIntervalId = null;
+let _versionVisibilityHandlerBound = false;
+let _initialLoadedVersion = '';
+let _detectedNewVersion = '';
+let _versionFetchErrorWarned = false;
+const _dismissedVersionNotices = new Set();
+
+function _normalizeVersionValue(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+async function _fetchPublishedVersion() {
+  try {
+    const response = await fetch(`${VERSION_CHECK_CONFIG.url}?ts=${Date.now()}`, {
+      cache: 'no-store',
+    });
+    if (!response.ok) return '';
+    const payload = await response.json();
+    _versionFetchErrorWarned = false;
+    return _normalizeVersionValue(payload?.version);
+  } catch (error) {
+    if (!_versionFetchErrorWarned) {
+      console.warn('[version-watcher] Falha ao consultar version.json. Tentando novamente no proximo ciclo.', error);
+      _versionFetchErrorWarned = true;
+    }
+    return '';
+  }
+}
+
+function _ensureVersionUpdateNotice() {
+  let notice = document.getElementById('version-update-notice');
+  if (notice) return notice;
+
+  notice = document.createElement('section');
+  notice.id = 'version-update-notice';
+  notice.className = 'version-update-notice';
+  notice.setAttribute('role', 'status');
+  notice.setAttribute('aria-live', 'polite');
+  notice.setAttribute('aria-hidden', 'true');
+  notice.innerHTML = `
+    <div class="version-update-header">
+      <div class="version-update-icon-wrap">
+        <i data-lucide="refresh-cw" class="version-update-icon"></i>
+      </div>
+      <div class="version-update-copy">
+        <h3 class="version-update-title">Nova atualiza\u00e7\u00e3o dispon\u00edvel</h3>
+        <p class="version-update-text">Recarregue a p\u00e1gina para usar a vers\u00e3o mais recente.</p>
+      </div>
+    </div>
+    <div class="version-update-actions">
+      <button id="version-update-now-btn" type="button" class="version-update-btn version-update-btn-primary">Atualizar agora</button>
+      <button id="version-update-later-btn" type="button" class="version-update-btn version-update-btn-secondary">Depois</button>
+    </div>
+  `;
+  document.body.appendChild(notice);
+
+  const btnUpdateNow = notice.querySelector('#version-update-now-btn');
+  const btnLater = notice.querySelector('#version-update-later-btn');
+
+  if (btnUpdateNow) {
+    btnUpdateNow.addEventListener('click', () => {
+      btnUpdateNow.setAttribute('disabled', 'true');
+      btnUpdateNow.textContent = 'Atualizando...';
+      window.location.reload();
+    });
+  }
+
+  if (btnLater) {
+    btnLater.addEventListener('click', () => {
+      if (_detectedNewVersion) _dismissedVersionNotices.add(_detectedNewVersion);
+      _hideVersionUpdateNotice();
+    });
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  return notice;
+}
+
+function _showVersionUpdateNotice(remoteVersion) {
+  const notice = _ensureVersionUpdateNotice();
+  _detectedNewVersion = remoteVersion;
+  notice.classList.add('is-visible');
+  notice.setAttribute('aria-hidden', 'false');
+}
+
+function _hideVersionUpdateNotice() {
+  const notice = document.getElementById('version-update-notice');
+  if (!notice) return;
+
+  notice.classList.remove('is-visible');
+  notice.setAttribute('aria-hidden', 'true');
+}
+
+async function checkForPublishedVersionUpdate() {
+  if (document.visibilityState === 'hidden') return;
+
+  const remoteVersion = await _fetchPublishedVersion();
+  if (!remoteVersion) return;
+
+  if (!_initialLoadedVersion) {
+    _initialLoadedVersion = remoteVersion;
+    return;
+  }
+
+  if (remoteVersion === _initialLoadedVersion) return;
+  if (_dismissedVersionNotices.has(remoteVersion)) return;
+
+  _showVersionUpdateNotice(remoteVersion);
+}
+
+function _startPublishedVersionPolling() {
+  if (_versionCheckIntervalId) return;
+
+  _versionCheckIntervalId = setInterval(() => {
+    if (document.visibilityState === 'hidden') return;
+    checkForPublishedVersionUpdate();
+  }, VERSION_CHECK_CONFIG.intervalMs);
+}
+
+function _bindPublishedVersionVisibilityHandler() {
+  if (_versionVisibilityHandlerBound) return;
+  _versionVisibilityHandlerBound = true;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    checkForPublishedVersionUpdate();
+  });
+}
+
+async function initPublishedVersionWatcher() {
+  if (_versionCheckStarted) return;
+  _versionCheckStarted = true;
+
+  const initialVersion = await _fetchPublishedVersion();
+  if (initialVersion) _initialLoadedVersion = initialVersion;
+
+  _startPublishedVersionPolling();
+  _bindPublishedVersionVisibilityHandler();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPublishedVersionWatcher, { once: true });
+} else {
+  initPublishedVersionWatcher();
+}
+

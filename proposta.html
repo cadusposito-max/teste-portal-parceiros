@@ -1,31 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src  'self' 'unsafe-inline' cdn.tailwindcss.com unpkg.com cdn.jsdelivr.net;
-      style-src   'self' 'unsafe-inline' fonts.googleapis.com;
-      font-src    fonts.gstatic.com;
-      img-src     'self' data: placehold.co https: images.unsplash.com;
-      connect-src 'self' https://unpkg.com https://tzwjxgprhorqrmpqudgg.supabase.co wss://tzwjxgprhorqrmpqudgg.supabase.co;
+      script-src  'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net;
+      style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src    'self' https://fonts.gstatic.com;
+      img-src     'self' data: blob: https://placehold.co https://tzwjxgprhorqrmpqudgg.supabase.co https://images.unsplash.com https:;
+      connect-src 'self' https://tzwjxgprhorqrmpqudgg.supabase.co wss://tzwjxgprhorqrmpqudgg.supabase.co;
       frame-src   https://www.youtube.com;
       object-src  'none';
+      base-uri    'self';
+      worker-src  'none';
     ">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Proposta - Ágil Solar</title>
-
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/img/icon.png">
-
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#050505">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Agil Solar">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
     <script>
         tailwind.config = {
             theme: {
@@ -49,9 +52,17 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/main.css?v=1.1">
+    <link rel="stylesheet" href="assets/css/theme-light.css?v=1.1" id="theme-light-css" disabled>
 </head>
-<body class="selection:bg-orange-500 selection:text-white min-h-screen flex flex-col items-center relative">
+<body class="selection:bg-orange-500 selection:text-white min-h-screen flex flex-col items-center relative overflow-x-hidden">
+
+<!-- Background Orbs -->
+<div class="hidden lg:block fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[600px] max-h-[600px] bg-orange-600/10 rounded-full blur-[100px] mix-blend-screen orb-float-1"></div>
+    <div class="absolute bottom-[10%] right-[-5%] w-[45vw] h-[45vw] max-w-[700px] max-h-[700px] bg-yellow-500/10 rounded-full blur-[120px] mix-blend-screen orb-float-2"></div>
+    <div class="absolute top-[40%] left-[60%] w-[30vw] h-[30vw] max-w-[400px] max-h-[400px] bg-blue-600/5 rounded-full blur-[80px] mix-blend-screen orb-float-3"></div>
+</div>
 
 <!-- Loading State -->
 <div id="loading" class="fixed inset-0 z-50 bg-[#050505] flex flex-col items-center justify-center">
@@ -67,10 +78,8 @@
 </div>
 
 <!-- Modal de Parcelamento -->
-<div id="modal-parcelamento" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-opacity">
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md md:max-w-2xl overflow-hidden shadow-2xl transform transition-all shadow-[0_0_40px_rgba(234,88,12,0.1)]">
-
-        <!-- Header do Modal -->
+<div id="modal-parcelamento" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-md md:max-w-2xl overflow-hidden shadow-2xl shadow-[0_0_40px_rgba(234,88,12,0.1)]">
         <div class="p-5 border-b border-neutral-800 flex justify-between items-center bg-black/50">
             <div class="flex items-center gap-3">
                 <div class="bg-orange-500/20 p-2 rounded-lg">
@@ -82,24 +91,15 @@
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
         </div>
-
-        <!-- Lista de Parcelas -->
         <div class="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
-            <!-- Aviso Importante sobre +12x -->
-            <div class="mb-4 bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-xl flex items-start gap-3 shadow-[0_0_15px_rgba(234,179,8,0.05)]">
+            <div class="mb-4 bg-yellow-500/10 border border-yellow-500/20 p-3 rounded-xl flex items-start gap-3">
                 <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-500 shrink-0 mt-0.5"></i>
                 <p class="text-xs text-yellow-500/90 leading-relaxed">
-                    <strong class="text-yellow-500 font-bold">Atenção:</strong> Nem todos os cartões de crédito autorizam parcelamentos acima de 12x. Verifique com o seu banco a disponibilidade de dividir em até 18 vezes no seu cartão.
+                    <strong class="text-yellow-500 font-bold">Atenção:</strong> Nem todos os cartões autorizam parcelamentos acima de 12x. Verifique com o seu banco.
                 </p>
             </div>
-
-            <!-- Grid em 2 colunas para o Desktop, 1 coluna no Mobile -->
-            <div id="installments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <!-- Javascript vai preencher aqui -->
-            </div>
+            <div id="installments-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
         </div>
-
-        <!-- Footer do Modal -->
         <div class="p-4 bg-neutral-950 border-t border-neutral-800 text-xs text-neutral-500 text-center flex items-center justify-center gap-2">
             <i data-lucide="info" class="w-4 h-4"></i>
             Valores sujeitos a taxas da operadora do cartão.
@@ -107,401 +107,447 @@
     </div>
 </div>
 
-<!-- Main Proposal Content -->
-<div id="proposal-content" class="hidden w-full max-w-3xl px-4 py-8 md:py-12 pb-28 md:pb-14 flex flex-col gap-8">
+<!-- ===================================================
+     MAIN PROPOSAL CONTENT
+     =================================================== -->
+<div id="proposal-content" class="hidden w-full proposta-page-wrap flex flex-col gap-5 relative z-10">
 
-    <!-- Header / Logo -->
-    <div class="flex justify-center mb-4">
-        <img src="assets/img/logo.png" alt="Ágil Solar" class="w-48 md:w-64 h-auto drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" onerror="this.style.display='none'">
-    </div>
+    <!-- ── 1. HERO BANNER ── -->
+    <div class="proposta-hero-banner w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-neutral-900 to-neutral-950 border border-neutral-800 rounded-2xl p-6 lg:p-7 shadow-2xl relative overflow-hidden stagger-1">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/15 via-transparent to-transparent pointer-events-none"></div>
 
-    <!-- Greeting -->
-    <div class="text-center">
-        <p class="text-orange-500 font-black uppercase tracking-widest text-xs md:text-sm mb-2">PROPOSTA ÁGIL SOLAR</p>
-        <h1 class="text-3xl md:text-4xl font-black text-white leading-tight">
-            Olá, <span id="client-name" class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">...</span>!
-        </h1>
-        <p class="text-neutral-400 mt-3 text-sm md:text-base max-w-lg mx-auto">Aqui está o dimensionamento ideal para a sua casa com as nossas melhores condições.</p>
-    </div>
+        <!-- Left: logo + greeting -->
+        <div class="flex flex-col items-start gap-3 relative z-10">
+            <img src="assets/img/logo.png" alt="Ágil Solar" data-theme-logo="true" data-logo-dark="assets/img/logo.png" data-logo-light="assets/img/logo-light.png" class="w-36 md:w-44 h-auto" onerror="this.style.display='none'">
+            <div>
+                <p class="text-orange-500 font-bold uppercase tracking-widest text-[10px] md:text-xs mb-1">PROPOSTA COMERCIAL</p>
+                <h1 class="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight">
+                    Olá, <span id="client-name" class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">...</span>!
+                </h1>
+                <p class="text-neutral-400 mt-1.5 text-sm max-w-md leading-relaxed">Aqui está a proposta ideal para você economizar com energia solar.</p>
+            </div>
+        </div>
 
-    <!-- URGENCY BANNER -->
-    <div id="urgency-banner" class="hidden bg-gradient-to-r from-red-950/60 to-orange-950/40 border border-orange-500/30 rounded-xl p-4">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="bg-orange-500/20 p-2 rounded-lg shrink-0 animate-pulse-slow">
-                    <i data-lucide="clock" class="w-5 h-5 text-orange-500"></i>
+        <!-- Right: validity + theme toggle -->
+        <div class="flex flex-row lg:flex-col items-center lg:items-end gap-3 relative z-10 shrink-0">
+            <!-- Validade: usa flex inline, não depende de JS para remover hidden+flex -->
+            <div id="urgency-banner" class="urgency-banner-hidden items-center gap-3 px-5 py-3 bg-red-500/10 border border-red-500/25 rounded-xl">
+                <div class="bg-red-500/20 p-2 rounded-lg">
+                    <i data-lucide="timer" class="w-4 h-4 text-red-500"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-0.5">⚡ OFERTA POR TEMPO LIMITADO</p>
-                    <p class="text-white text-sm font-bold">Esta proposta expira em <span id="countdown-timer" class="text-orange-400 font-black live-clock text-base">--:--:--</span></p>
+                    <p class="text-[10px] text-red-400/80 font-bold uppercase tracking-widest leading-none mb-1">Válido até</p>
+                    <p class="text-white text-sm font-black leading-none" id="expiry-date">...</p>
                 </div>
             </div>
-            <div class="hidden sm:block text-right shrink-0">
-                <p class="text-[9px] text-neutral-500 font-bold uppercase tracking-wider">Válida até</p>
-                <p id="expiry-date" class="text-neutral-300 text-xs font-bold"></p>
-            </div>
+            <button id="proposta-theme-btn" onclick="togglePropostaTheme()" title="Alternar tema" class="w-9 h-9 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white rounded-xl transition-all border border-neutral-700 shrink-0">
+                <i data-lucide="sun" id="proposta-theme-icon" class="w-4 h-4"></i>
+            </button>
         </div>
     </div>
 
-    <!-- 1. O KIT PRINCIPAL (Preço e Especificações) -->
-    <div class="gradient-border overflow-hidden shadow-[0_0_40px_rgba(234,88,12,0.15)] relative">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/30 via-transparent to-transparent pointer-events-none"></div>
-        <div class="p-6 md:p-8 relative z-10">
-            <div class="inline-block bg-orange-600/20 border border-orange-500/30 text-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest mb-4">
-                <span id="kit-brand">...</span>
+    <!-- ── DESKTOP GRID ── -->
+    <div class="proposta-grid w-full">
+
+        <!-- ═══════════════════════════════════════════
+             LEFT COLUMN — conteúdo detalhado
+             ═══════════════════════════════════════════ -->
+        <div class="proposta-col-main flex flex-col gap-5 w-full">
+
+            <!-- ── 2. KIT INFO (nome + kWp + geração + fatura ideal) ── -->
+            <div class="proposal-hero-shell rounded-2xl p-6 lg:p-7 relative overflow-hidden stagger-2">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-orange-900/10 via-transparent to-transparent pointer-events-none"></div>
+                <div class="relative z-10 w-full flex flex-col gap-5">
+
+                    <!-- Nome do kit + badge -->
+                    <div class="border-b border-neutral-800/60 pb-4">
+                        <div id="kit-brand-wrapper" class="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full mb-2.5">
+                            <i data-lucide="shield-check" class="w-3 h-3"></i> <span id="kit-brand">...</span>
+                        </div>
+                        <h2 id="kit-name" class="text-xl md:text-3xl font-black text-white uppercase tracking-tight leading-[1.1]">...</h2>
+                    </div>
+
+                    <!-- kWp + Geração + Fatura ideal em linha -->
+                    <div class="flex flex-col sm:flex-row gap-4 items-stretch">
+                        <!-- KPI pills -->
+                        <div class="flex gap-3 shrink-0">
+                            <div class="proposta-kpi-pill bg-black/40 border border-neutral-800/80 px-4 py-3 rounded-xl flex flex-col items-center shadow-sm backdrop-blur-sm min-w-[90px]">
+                                <i data-lucide="zap" class="w-4 h-4 text-orange-500 mb-1"></i>
+                                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potência</span>
+                                <span id="kit-power" class="text-white font-black text-sm mt-0.5">— kWp</span>
+                            </div>
+                            <div class="proposta-kpi-pill bg-yellow-900/10 border border-yellow-900/30 px-4 py-3 rounded-xl flex flex-col items-center shadow-sm backdrop-blur-sm min-w-[90px]">
+                                <i data-lucide="sun" class="w-4 h-4 text-yellow-400 mb-1"></i>
+                                <span class="text-[9px] text-yellow-500/80 font-bold uppercase tracking-widest">Geração</span>
+                                <span id="kit-generation" class="text-yellow-400 font-black text-sm mt-0.5">— kWh</span>
+                            </div>
+                        </div>
+
+                        <!-- Fatura ideal -->
+                        <div class="proposta-bill-card flex-1 bg-gradient-to-br from-orange-900/30 to-yellow-900/10 border border-orange-500/20 rounded-2xl p-4 flex flex-col justify-center gap-1.5 backdrop-blur-sm">
+                            <div class="flex items-center gap-1.5 mb-0.5">
+                                <i data-lucide="receipt" class="w-3.5 h-3.5 text-orange-400 shrink-0"></i>
+                                <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Ideal para faturas de</p>
+                            </div>
+                            <div class="flex items-baseline gap-1 flex-wrap">
+                                <span class="text-xl font-black text-white leading-none">R$</span>
+                                <span id="kit-ideal-bill" class="text-2xl font-black text-orange-400 leading-none">—</span>
+                                <span class="text-sm font-bold text-neutral-400">/mês</span>
+                            </div>
+                            <p class="text-[10px] text-neutral-500 leading-relaxed">Sistema cobre até 85% do consumo estimado.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <h2 id="kit-name" class="text-2xl md:text-3xl font-black text-white uppercase tracking-tight mb-6 leading-none">...</h2>
+            <!-- ── ECONOMIA REAL ── -->
+            <div class="proposta-section-card bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-xl relative overflow-hidden stagger-3">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_var(--tw-gradient-stops))] from-green-900/15 via-transparent to-transparent pointer-events-none"></div>
 
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-black/80 border border-neutral-800 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                    <i data-lucide="zap" class="w-6 h-6 text-orange-500 mb-2"></i>
-                    <span class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Potência do Sistema</span>
-                    <span id="kit-power" class="text-white font-black text-lg md:text-xl mt-1">... kWp</span>
+                <div class="flex items-center gap-3 mb-4 relative z-10">
+                    <div class="bg-green-600/20 p-2 rounded-xl"><i data-lucide="trending-up" class="w-4 h-4 text-green-500"></i></div>
+                    <h3 class="text-base font-black text-white uppercase tracking-tight">Economia Real</h3>
                 </div>
-                <div class="bg-yellow-900/20 border border-yellow-900/40 p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                    <i data-lucide="sun" class="w-6 h-6 text-yellow-400 mb-2"></i>
-                    <span class="text-[10px] text-yellow-400/80 font-bold uppercase tracking-widest">Geração Estimada</span>
-                    <span id="kit-generation" class="text-yellow-400 font-black text-lg md:text-xl mt-1">... kWh/mês</span>
+
+                <div class="flex flex-col gap-2 relative z-10">
+                    <!-- Linha superior: Por mês + Por ano | Em 25 Anos — mesma altura -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 items-stretch">
+                        <div class="flex flex-col gap-2">
+                            <div class="proposta-eco-row flex items-center justify-between bg-black/40 border border-neutral-800/80 px-4 py-3 rounded-xl flex-1">
+                                <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Por mês</p>
+                                <p class="text-lg font-black text-green-500" id="eco-month">...</p>
+                            </div>
+                            <div class="proposta-eco-row flex items-center justify-between bg-black/40 border border-neutral-800/80 px-4 py-3 rounded-xl flex-1">
+                                <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Por ano</p>
+                                <p class="text-lg font-black text-green-500" id="eco-year">...</p>
+                            </div>
+                        </div>
+                        <div class="proposta-eco-highlight bg-green-900/10 border border-green-900/40 p-4 rounded-xl text-center flex flex-col justify-center ring-1 ring-green-500/20">
+                            <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mb-1">Em 25 Anos</p>
+                            <p class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300" id="eco-25years">...</p>
+                        </div>
+                    </div>
+                    <!-- Payback: largura total, abaixo de tudo -->
+                    <div class="proposta-payback-row bg-orange-600/10 border border-orange-500/30 px-4 py-3 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] text-orange-500 font-bold uppercase tracking-widest mb-0.5">Payback</p>
+                            <p class="text-base font-black text-white" id="eco-payback">...</p>
+                        </div>
+                        <div class="bg-orange-500/20 p-2 rounded-xl shrink-0">
+                            <i data-lucide="clock" class="w-4 h-4 text-orange-400"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="mb-8 bg-orange-500/10 border border-orange-500/20 rounded-xl p-3 flex items-center justify-center gap-2">
-                <i data-lucide="receipt" class="w-5 h-5 text-orange-500"></i>
-                <span class="text-xs md:text-sm font-bold text-neutral-300 uppercase tracking-wide">Ideal para faturas em torno de <span id="kit-ideal-bill" class="text-orange-400 font-black text-base">...</span> /mês</span>
-            </div>
-
-            <div class="bg-black/90 p-6 rounded-xl border border-neutral-800 text-center relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 bg-red-600 text-white text-[10px] font-black px-8 py-1 rotate-45 shadow-lg hidden md:block" id="badge-discount">DESCONTO ATIVO</div>
-                <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mb-2 line-through decoration-red-500" id="kit-list-price">De: ...</p>
-                <p class="text-[15px] text-orange-500 font-black uppercase tracking-widest mb-1">Investimento</p>
-                <div class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter" id="kit-price">
-                    ...
+            <!-- ── 3. INCLUSOS ── -->
+            <div class="proposta-section-card bg-neutral-900/80 border border-neutral-800/80 rounded-2xl p-6 shadow-lg relative overflow-hidden stagger-4 backdrop-blur-md">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="bg-blue-600/20 p-2 rounded-xl"><i data-lucide="package-check" class="w-5 h-5 text-blue-500"></i></div>
+                    <div>
+                        <h3 class="text-lg font-black text-white uppercase tracking-tight">O que está incluso</h3>
+                        <p class="text-neutral-400 text-xs mt-0.5">Projeto 100% Chave na Mão, sem dores de cabeça.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="proposta-incluso-item flex items-start gap-3 bg-black/30 p-4 rounded-xl border border-neutral-800/50">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-white font-bold text-sm">Equipamentos Premium</p>
+                            <p class="text-neutral-500 text-xs mt-1 leading-relaxed">Painéis, Inversores e Estruturas das melhores marcas.</p>
+                        </div>
+                    </div>
+                    <div class="proposta-incluso-item flex items-start gap-3 bg-black/30 p-4 rounded-xl border border-neutral-800/50">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-white font-bold text-sm">Instalação Especializada</p>
+                            <p class="text-neutral-500 text-xs mt-1 leading-relaxed">Equipe própria seguindo NR10 e NR35.</p>
+                        </div>
+                    </div>
+                    <div class="proposta-incluso-item flex items-start gap-3 bg-black/30 p-4 rounded-xl border border-neutral-800/50">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-white font-bold text-sm">Homologação Incluída</p>
+                            <p class="text-neutral-500 text-xs mt-1 leading-relaxed">Burocracia com a distribuidora por nossa conta.</p>
+                        </div>
+                    </div>
+                    <div class="proposta-incluso-item flex items-start gap-3 bg-black/30 p-4 rounded-xl border border-neutral-800/50">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="text-white font-bold text-sm">Monitoramento 24h</p>
+                            <p class="text-neutral-500 text-xs mt-1 leading-relaxed">App no celular rastreando sua geração em tempo real.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- BLOCO DE PAGAMENTO E FINANCIAMENTO -->
-            <div class="bg-gradient-to-r from-orange-900/20 to-yellow-900/10 border border-orange-500/30 rounded-xl p-5 shadow-lg flex flex-col gap-4 mt-4 relative">
-                <div class="flex items-center gap-3 border-b border-orange-500/20 pb-3">
-                    <i data-lucide="wallet" class="w-6 h-6 text-orange-400"></i>
-                    <h3 class="text-base font-black text-white uppercase tracking-tight">Facilidades de Pagamento</h3>
-                </div>
+            <!-- ── 4. CREDIBILIDADE + IMPACTO AMBIENTAL ── -->
+            <div class="proposta-credibilidade-card bg-[url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center border border-neutral-800 rounded-2xl shadow-lg relative overflow-hidden stagger-4">
+                <!-- Overlay escuro que prevalece em ambos modos -->
+                <div class="absolute inset-0 bg-neutral-950/90 z-0 proposta-credibilidade-overlay"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-orange-900/40 via-transparent to-transparent z-0"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-yellow-900/20 via-transparent to-transparent z-0"></div>
 
-                <div class="flex flex-col gap-4">
-                    <!-- Cartão de Crédito com Botão de Modal -->
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="credit-card" class="w-5 h-5 text-neutral-400 shrink-0 mt-0.5"></i>
-                        <div class="flex flex-col items-start gap-1">
-                            <p class="text-neutral-300 text-sm"><span class="text-white font-bold">Cartão de Crédito:</span> Parcele o seu sistema no cartão.</p>
-                            <button id="btn-show-installments" class="text-xs font-bold text-orange-500 hover:text-orange-400 transition-colors flex items-center gap-1.5 mt-1 bg-orange-500/10 hover:bg-orange-500/20 py-1.5 px-3 rounded-lg border border-orange-500/20">
-                                <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Ver opções de parcelas
-                            </button>
+                <div class="relative z-10 p-6 lg:p-7">
+                    <!-- Header -->
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="bg-yellow-500/15 border border-yellow-500/20 p-2 rounded-xl"><i data-lucide="award" class="w-5 h-5 text-yellow-500"></i></div>
+                        <div>
+                            <h3 class="text-lg font-black text-white uppercase tracking-tight">Sua parceira de confiança</h3>
+                            <p class="text-yellow-500/80 text-xs mt-0.5 font-medium">Tradição, escala e resultado comprovados.</p>
                         </div>
                     </div>
 
-                    <!-- Financiamento -->
-                    <div class="flex items-start gap-3">
-                        <i data-lucide="landmark" class="w-5 h-5 text-neutral-400 shrink-0 mt-0.5"></i>
-                        <p class="text-neutral-300 text-sm"><span class="text-white font-bold">Financiamento (Boleto):</span> Consulte opções de financiamento de <span class="text-orange-400 font-bold">100%</span> em até <span class="text-orange-400 font-bold">84 meses</span> com carência de <span class="text-orange-400 font-bold">90 dias</span>.</p>
+                    <p class="text-neutral-300 text-sm leading-relaxed mb-5">A Ágil Solar conecta tecnologia solar de ponta com uma equipe capacitada. Milhares de clientes em todo o Brasil já comprovam o resultado.</p>
+
+                    <!-- Stats institucionais -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+                        <div class="proposta-stat-card bg-neutral-900/50 backdrop-blur-sm border border-neutral-800/60 p-4 rounded-xl text-center">
+                            <p class="text-2xl font-black text-yellow-500 leading-none">+4.000</p>
+                            <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-1.5 leading-tight">Obras Realizadas</p>
+                        </div>
+                        <div class="proposta-stat-card bg-neutral-900/50 backdrop-blur-sm border border-neutral-800/60 p-4 rounded-xl text-center">
+                            <p class="text-2xl font-black text-yellow-500 leading-none">+35</p>
+                            <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-1.5 leading-tight">Unidades no Brasil</p>
+                        </div>
+                        <div class="proposta-stat-card bg-neutral-900/50 backdrop-blur-sm border border-neutral-800/60 p-4 rounded-xl text-center">
+                            <p class="text-2xl font-black text-yellow-500 leading-none">+12</p>
+                            <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-1.5 leading-tight">Anos de Mercado</p>
+                        </div>
+                        <div class="proposta-stat-card bg-neutral-900/50 backdrop-blur-sm border border-neutral-800/60 p-4 rounded-xl text-center">
+                            <p class="text-2xl font-black text-yellow-500 leading-none">A+</p>
+                            <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-1.5 leading-tight">Avaliação Clientes</p>
+                        </div>
+                    </div>
+
+                    <!-- Impacto ambiental desta proposta — linguagem simplificada -->
+                    <div class="border-t border-neutral-800/50 pt-4">
+                        <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest mb-3">O que este projeto faz pelo meio ambiente</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="proposta-env-card flex items-center gap-3 bg-emerald-900/15 border border-emerald-900/40 p-3.5 rounded-xl">
+                                <div class="bg-emerald-500/15 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-emerald-500/30">
+                                    <i data-lucide="tree-deciduous" class="w-5 h-5 text-emerald-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-white font-black text-xl leading-none" id="env-trees">...</p>
+                                    <p class="text-[9px] text-emerald-400/80 font-bold uppercase tracking-widest mt-1 leading-tight">Árvores preservadas</p>
+                                </div>
+                            </div>
+                            <div class="proposta-env-card flex items-center gap-3 bg-sky-900/15 border border-sky-900/30 p-3.5 rounded-xl">
+                                <div class="bg-sky-500/15 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-sky-500/30">
+                                    <i data-lucide="wind" class="w-5 h-5 text-sky-400"></i>
+                                </div>
+                                <div>
+                                    <!-- env-co2 agora exibe em kg/ano para ser mais legível -->
+                                    <p class="text-white font-black text-xl leading-none" id="env-co2">...</p>
+                                    <p class="text-[9px] text-sky-400/80 font-bold uppercase tracking-widest mt-1 leading-tight">kg CO₂ evitado/ano</p>
+                                </div>
+                            </div>
+                            <div class="proposta-env-card flex items-center gap-3 bg-yellow-900/15 border border-yellow-900/20 p-3.5 rounded-xl">
+                                <div class="bg-yellow-500/15 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-yellow-500/30">
+                                    <i data-lucide="sun" class="w-5 h-5 text-yellow-400"></i>
+                                </div>
+                                <div>
+                                    <!-- env-kwh-year agora mostra meses de conta de luz gratuita -->
+                                    <p class="text-white font-black text-xl leading-none" id="env-co2-years">...</p>
+                                    <p class="text-[9px] text-yellow-400/80 font-bold uppercase tracking-widest mt-1 leading-tight">Meses de conta "zerada"</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- 2. PROJEÇÃO DE ECONOMIA FINANCEIRA (ROI) -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-green-600/20 p-2 rounded-lg"><i data-lucide="trending-up" class="w-6 h-6 text-green-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Projeção de Economia Real</h3>
-        </div>
-        <p class="text-neutral-400 text-sm mb-6">Baseado numa tarifa média estimada de <span class="text-white font-bold">R$ 0,95/kWh</span>, veja a sua estimativa de economia (já prevendo descontos de taxas mínimas da concessionária):</p>
+            <!-- ── 5. OBRAS (VÍDEO) ── -->
+            <div class="proposta-section-card bg-neutral-900/80 border border-neutral-800/80 rounded-2xl p-5 lg:p-6 shadow-lg relative overflow-hidden stagger-5 backdrop-blur-md">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="bg-red-600/20 p-2 rounded-xl"><i data-lucide="youtube" class="w-4 h-4 text-red-500"></i></div>
+                    <h3 class="text-base font-black text-white uppercase tracking-tight">Obras Reais</h3>
+                </div>
+                <!-- Wrapper com overflow visible para as setas ficarem visíveis -->
+                <div class="relative w-full z-10 px-5">
+                    <div class="relative w-full overflow-hidden rounded-xl pt-[56.25%] bg-black border border-neutral-800 shadow-xl" id="video-wrapper"></div>
+                    <button id="btn-prev-vid" class="vid-nav-btn absolute left-0 top-1/2 -translate-y-1/2 z-50 w-9 h-9 flex items-center justify-center bg-neutral-900 hover:bg-orange-600 border border-neutral-700 hover:border-orange-500 rounded-full transition-all shadow-lg hover:scale-110">
+                        <i data-lucide="chevron-left" class="w-4 h-4 text-white"></i>
+                    </button>
+                    <button id="btn-next-vid" class="vid-nav-btn absolute right-0 top-1/2 -translate-y-1/2 z-50 w-9 h-9 flex items-center justify-center bg-neutral-900 hover:bg-orange-600 border border-neutral-700 hover:border-orange-500 rounded-full transition-all shadow-lg hover:scale-110">
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-white"></i>
+                    </button>
+                </div>
+                <div class="flex items-center justify-center gap-2 mt-4 z-10 relative" id="video-dots"></div>
+            </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-black border border-neutral-800 p-4 rounded-xl text-center">
-                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Em 1 Mês</p>
-                <p class="text-xl font-black text-green-500" id="eco-month">...</p>
-            </div>
-            <div class="bg-black border border-neutral-800 p-4 rounded-xl text-center">
-                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest mb-1">Em 1 Ano</p>
-                <p class="text-2xl font-black text-green-500" id="eco-year">...</p>
-            </div>
-            <div class="bg-green-900/10 border border-green-900/50 p-4 rounded-xl text-center ring-1 ring-green-500/20 shadow-[inset_0_0_20px_rgba(34,197,94,0.05)]">
-                <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest mb-1">Em 25 Anos (Vida Útil)</p>
-                <p class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300" id="eco-25years">...</p>
-            </div>
         </div>
+        <!-- END LEFT COLUMN -->
 
-        <div class="mt-5 bg-orange-600/10 border border-orange-500/30 p-4 md:p-5 rounded-xl flex items-center justify-between shadow-[inset_0_0_20px_rgba(234,88,12,0.05)]">
-            <div>
-                <p class="text-[10px] text-orange-500 font-bold uppercase tracking-widest mb-1">Tempo Estimado de Payback</p>
-                <p class="text-xl md:text-2xl font-black text-white" id="eco-payback">...</p>
-            </div>
-            <div class="bg-orange-500/20 p-3 rounded-full hidden sm:block">
-                <i data-lucide="clock" class="w-6 h-6 text-orange-500"></i>
-            </div>
-        </div>
-    </div>
+        <!-- ═══════════════════════════════════════════
+             RIGHT COLUMN — valor + pagamento + economia + especialista (sticky)
+             ═══════════════════════════════════════════ -->
+        <div class="proposta-col-side flex flex-col gap-5 w-full">
 
-    <!-- 3. PRÓXIMOS PASSOS: O QUE ACONTECE DEPOIS DO SIM? -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="map" class="w-6 h-6 text-orange-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">O que acontece depois do SIM?</h3>
-        </div>
-        <p class="text-neutral-400 text-sm mb-6">Zero burocracia, zero dor de cabeça. Nós cuidamos de tudo enquanto a sua conta de luz já começa a cair:</p>
-        <div class="relative">
-            <div class="absolute left-[22px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-orange-500 via-orange-500/30 to-transparent"></div>
-            <div class="space-y-5">
-                <div class="flex gap-4 items-start">
-                    <div class="shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-sm shadow-[0_0_12px_rgba(249,115,22,0.3)] z-10">1</div>
-                    <div class="pt-1.5">
-                        <p class="text-white font-black text-sm uppercase tracking-wide">Assinatura do Contrato</p>
-                        <p class="text-neutral-500 text-xs mt-0.5">Em até <span class="text-orange-400 font-bold">24 horas</span> após o aceite, o contrato chega no seu e-mail para assinar digitalmente.</p>
+            <!-- ── VALOR + PAGAMENTO ── -->
+            <div class="proposal-hero-shell rounded-2xl p-5 relative overflow-hidden stagger-2">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-orange-900/10 via-transparent to-transparent pointer-events-none"></div>
+                <!-- Badge corner reposicionado para não cortar -->
+                <div class="absolute -right-12 top-4 bg-red-600 border border-red-500 text-white text-[9px] font-black px-12 py-1 rotate-45 shadow-lg hidden z-20" id="badge-discount">DESCONTO</div>
+
+                <div class="relative z-10 flex flex-col gap-4">
+
+                    <!-- Preço principal -->
+                    <div class="proposta-price-card bg-black/60 rounded-2xl px-5 pt-7 pb-5 border border-neutral-800/50 relative overflow-hidden flex flex-col shadow-inner mt-1">
+                        <p class="text-neutral-500 text-[11px] font-bold uppercase tracking-widest mb-1 line-through decoration-red-500/50" id="kit-list-price">De: ...</p>
+                        <p class="text-[10px] text-orange-500 font-black uppercase tracking-widest mb-1.5">Investimento Total</p>
+                        <div class="proposta-price-display text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 tracking-tighter leading-none" id="kit-price">...</div>
+                        <div class="mt-3 pt-3 border-t border-neutral-800/40 flex items-center gap-2">
+                            <i data-lucide="credit-card" class="w-3 h-3 text-neutral-500 shrink-0"></i>
+                            <p class="text-neutral-400 text-[11px]">Até <span class="text-white font-bold">18x</span> no cartão ou <span class="text-white font-bold">84x</span> no financiamento</p>
+                        </div>
+                    </div>
+
+                    <!-- Formas de pagamento -->
+                    <div class="flex flex-col gap-2.5">
+                        <button id="btn-show-installments" class="proposta-payment-btn flex items-center gap-3 bg-black/40 border border-neutral-800 rounded-xl p-3.5 transition-all text-left group">
+                            <div class="bg-orange-500/10 p-2 rounded-lg text-orange-400 shrink-0">
+                                <i data-lucide="credit-card" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-white font-bold text-sm">Cartão de Crédito</p>
+                                <p class="text-neutral-400 text-xs mt-0.5">Parcele em até <span class="text-orange-400 font-bold">18x</span></p>
+                            </div>
+                            <div class="text-[10px] font-black uppercase text-orange-500 flex items-center gap-1 shrink-0">
+                                Ver <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </div>
+                        </button>
+
+                        <div class="proposta-payment-info flex items-center gap-3 bg-black/20 border border-neutral-800/50 rounded-xl p-3.5">
+                            <div class="bg-neutral-800 p-2 rounded-lg text-neutral-300 shrink-0">
+                                <i data-lucide="landmark" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-white font-bold text-sm">Financiamento Bancário</p>
+                                <p class="text-neutral-400 text-xs mt-0.5">Até <span class="text-white font-bold">84x</span> com <span class="text-white font-bold">90 dias</span> de carência</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="custom-payment-note-row" class="hidden items-start gap-3">
+                        <i data-lucide="file-text" class="w-4 h-4 text-orange-400 shrink-0 mt-0.5"></i>
+                        <p class="text-neutral-300 text-xs leading-relaxed"><span class="text-white font-bold">Condições:</span> <span id="custom-payment-note-text"></span></p>
+                    </div>
+                    <div id="custom-commercial-note-row" class="hidden items-start gap-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
+                        <i data-lucide="star" class="w-4 h-4 text-yellow-400 shrink-0 mt-0.5"></i>
+                        <p class="text-neutral-300 text-xs leading-relaxed"><span class="text-yellow-400 font-bold">Nota:</span> <span id="custom-commercial-note-text"></span></p>
                     </div>
                 </div>
-                <div class="flex gap-4 items-start">
-                    <div class="shrink-0 w-11 h-11 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 font-black text-sm z-10">2</div>
-                    <div class="pt-1.5">
-                        <p class="text-white font-black text-sm uppercase tracking-wide">Engenharia e Projeto</p>
-                        <p class="text-neutral-500 text-xs mt-0.5">Nossa equipe técnica elabora o projeto completo em <span class="text-yellow-400 font-bold">3 a 7 dias úteis</span>, com memória de cálculo e layout dos painéis.</p>
+            </div>
+
+            <!-- ── FALE COM ESPECIALISTA ── -->
+            <div id="vendor-card" class="hidden proposta-section-card bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden stagger-4 flex flex-col backdrop-blur-md">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-orange-600/15 rounded-bl-[80px] blur-[20px] pointer-events-none"></div>
+
+                <div class="flex items-center gap-2.5 mb-4 relative z-10">
+                    <div class="bg-orange-600/20 p-2 rounded-xl shrink-0"><i data-lucide="user-check" class="w-4 h-4 text-orange-500"></i></div>
+                    <h3 class="text-base font-black text-white uppercase tracking-tight">Fale com Especialista</h3>
+                </div>
+
+                <!-- Perfil do consultor -->
+                <div class="flex items-center gap-3 relative z-10 mb-4 bg-black/30 border border-neutral-800/80 p-3.5 rounded-xl">
+                    <div id="vendor-avatar" class="shrink-0 w-12 h-12 rounded-full border-2 border-orange-500/30 flex items-center justify-center bg-gradient-to-br from-orange-500 to-yellow-400 overflow-hidden">
+                        <span id="vendor-initials" class="hidden text-black font-black text-lg">?</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p id="vendor-name" class="text-white font-black text-sm uppercase tracking-wide truncate">...</p>
+                        <p class="text-orange-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Consultor · Ágil Solar</p>
                     </div>
                 </div>
-                <div class="flex gap-4 items-start">
-                    <div class="shrink-0 w-11 h-11 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 font-black text-sm z-10">3</div>
-                    <div class="pt-1.5">
-                        <p class="text-white font-black text-sm uppercase tracking-wide">Instalação no seu Imóvel</p>
-                        <p class="text-neutral-500 text-xs mt-0.5">Equipe técnica própria instala o sistema em <span class="text-yellow-400 font-bold">1 a 2 dias</span>. Ambiente limpo, equipamentos de ponta, sem surpresas.</p>
-                    </div>
+
+                <!-- Canais de contato: só email e telefone (sem botão WhatsApp duplicado) -->
+                <div class="flex flex-col gap-2 relative z-10 mb-4">
+                    <a id="vendor-email-link" href="#"
+                        class="proposta-contact-row flex items-center gap-3 bg-black/20 hover:bg-black/40 border border-neutral-800 hover:border-neutral-700 px-3.5 py-3 rounded-xl transition-all group hidden">
+                        <div class="bg-neutral-800 p-1.5 rounded-lg shrink-0">
+                            <i data-lucide="mail" class="w-3.5 h-3.5 text-neutral-300"></i>
+                        </div>
+                        <p id="vendor-email-text" class="text-neutral-300 text-xs font-mono truncate flex-1">...</p>
+                        <i data-lucide="arrow-right" class="w-3 h-3 text-neutral-600 group-hover:text-neutral-400 group-hover:translate-x-0.5 transition-all ml-auto"></i>
+                    </a>
+
+                    <a id="vendor-tel-link" href="#"
+                        class="proposta-contact-row flex items-center gap-3 bg-black/20 hover:bg-black/40 border border-neutral-800 hover:border-neutral-700 px-3.5 py-3 rounded-xl transition-all group hidden">
+                        <div class="bg-neutral-800 p-1.5 rounded-lg shrink-0">
+                            <i data-lucide="phone" class="w-3.5 h-3.5 text-neutral-300"></i>
+                        </div>
+                        <p id="vendor-phone-display" class="text-neutral-300 text-xs font-mono truncate flex-1">...</p>
+                        <i data-lucide="arrow-right" class="w-3 h-3 text-neutral-600 group-hover:text-neutral-400 group-hover:translate-x-0.5 transition-all ml-auto"></i>
+                    </a>
                 </div>
-                <div class="flex gap-4 items-start">
-                    <div class="shrink-0 w-11 h-11 rounded-full bg-green-900/50 border border-green-700/50 flex items-center justify-center text-green-400 font-black text-sm z-10">4</div>
-                    <div class="pt-1.5">
-                        <p class="text-white font-black text-sm uppercase tracking-wide">Homologação e Sistema Ligado 🎉</p>
-                        <p class="text-neutral-500 text-xs mt-0.5">Cuidamos de toda a burocracia junto à distribuidora. Em <span class="text-green-400 font-bold">7 a 30 dias</span> o seu sistema está ativo e gerando economia.</p>
-                    </div>
-                </div>
+
+                <!-- CTA principal — único botão WhatsApp -->
+                <a id="vendor-main-cta" href="#" target="_blank" rel="noopener noreferrer"
+                    class="proposta-cta-btn flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-black px-4 py-3.5 font-black uppercase tracking-wider transition-all active:scale-95 text-sm rounded-xl w-full shadow-[0_0_18px_rgba(37,211,102,0.25)] hover:shadow-[0_0_28px_rgba(37,211,102,0.4)] relative z-10">
+                    <i data-lucide="message-circle" class="w-4 h-4 stroke-[2.5px]"></i> Falar com Consultor
+                </a>
+                <p class="text-neutral-500 text-[9px] text-center uppercase tracking-widest font-bold mt-2 relative z-10">Resposta rápida e atendimento personalizado.</p>
             </div>
+
         </div>
+        <!-- END RIGHT COLUMN -->
+
     </div>
-
-    <!-- 4. QUEM SOMOS E VALIDAÇÃO DA EMPRESA -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-lg">
-        <div class="p-6 md:p-8 text-center border-b border-neutral-800 bg-neutral-950 relative overflow-hidden">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/10 via-transparent to-transparent pointer-events-none"></div>
-            <h3 class="text-2xl md:text-3xl font-black text-blue-500 uppercase tracking-widest mb-4 relative z-10">Quem Somos</h3>
-            <p class="text-neutral-300 text-sm md:text-base leading-relaxed max-w-4xl mx-auto relative z-10">
-                Somos a Ágil Solar, uma empresa especializada em soluções inteligentes em energia. Desde 2020, já atendemos milhares de clientes em todo o Brasil, oferecendo economia, eficiência e segurança por meio de projetos personalizados, tecnologia de ponta e equipe altamente capacitada. Muito além de transformar o sol em energia, nós transformamos vidas: gerando lucros de verdade para os nossos clientes e sustentabilidade para o planeta.
-            </p>
-        </div>
-        <div class="bg-[#0a0a0a] p-6 md:p-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4 text-center">
-                <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-                        <i data-lucide="map-pin" class="w-7 h-7 md:w-8 md:h-8"></i>
-                    </div>
-                    <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Presente em</p>
-                    <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">8 Estados</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-                        <i data-lucide="store" class="w-7 h-7 md:w-8 md:h-8"></i>
-                    </div>
-                    <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+35</p>
-                    <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Unidades</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-                        <i data-lucide="hard-hat" class="w-7 h-7 md:w-8 md:h-8"></i>
-                    </div>
-                    <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+ de 4.000</p>
-                    <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Projetos Instalados</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="bg-yellow-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 text-black shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-                        <i data-lucide="globe" class="w-7 h-7 md:w-8 md:h-8"></i>
-                    </div>
-                    <p class="text-white font-black uppercase text-sm md:text-base mt-0.5">+ de 150</p>
-                    <p class="text-neutral-400 font-bold uppercase text-[10px] md:text-xs">Municípios Atendidos</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. VÍDEO DAS NOSSAS OBRAS (CARROSSEL YOUTUBE) -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-red-600/20 p-2 rounded-lg"><i data-lucide="youtube" class="w-6 h-6 text-red-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Conheça o nosso trabalho</h3>
-        </div>
-
-        <!-- Área do Vídeo -->
-        <div class="relative w-full group">
-            <div class="relative w-full overflow-hidden rounded-xl pt-[56.25%] bg-black border border-neutral-800 shadow-[0_0_20px_rgba(0,0,0,0.5)]" id="video-wrapper">
-                <!-- Iframes serão injetados aqui pelo Javascript para pré-carregamento imediato -->
-            </div>
-
-            <!-- Setas de Navegação (Aparecem no hover ou em mobile) -->
-            <button id="btn-prev-vid" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-orange-600 text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg md:opacity-0 group-hover:opacity-100 z-10 border border-neutral-700">
-                <i data-lucide="chevron-left" class="w-6 h-6"></i>
-            </button>
-            <button id="btn-next-vid" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-orange-600 text-white p-2 rounded-full backdrop-blur-sm transition-all shadow-lg md:opacity-0 group-hover:opacity-100 z-10 border border-neutral-700">
-                <i data-lucide="chevron-right" class="w-6 h-6"></i>
-            </button>
-        </div>
-
-        <!-- Bolinhas Indicadoras (Dots) -->
-        <div class="flex items-center justify-center gap-2 mt-4" id="video-dots">
-            <!-- Injetado pelo JS -->
-        </div>
-    </div>
-
-    <!-- 5. O QUE ESTÁ INCLUSO (Chave na mão) -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="package-check" class="w-6 h-6 text-orange-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Projeto Chave na Mão</h3>
-        </div>
-        <p class="text-neutral-400 text-sm mb-6">Não se preocupe com nada. Nós cuidamos de todas as etapas do processo para você:</p>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="text-white font-bold text-sm">Equipamentos Premium</p>
-                    <p class="text-neutral-500 text-xs mt-1">Painéis, Inversores e Estruturas de fixação das melhores marcas globais.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="text-white font-bold text-sm">Instalação Especializada</p>
-                    <p class="text-neutral-500 text-xs mt-1">Equipe técnica própria e qualificada seguindo rigorosas normas de segurança.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="text-white font-bold text-sm">Homologação</p>
-                    <p class="text-neutral-500 text-xs mt-1">Tratamos de toda a burocracia do projeto junto à distribuidora de energia.</p>
-                </div>
-            </div>
-            <div class="flex items-start gap-3 bg-black/50 p-3 rounded-lg border border-neutral-800/50">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="text-white font-bold text-sm">Aplicativo de Monitoramento</p>
-                    <p class="text-neutral-500 text-xs mt-1">Acompanhe a geração de energia em tempo real direto do seu celular.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- GARANTIAS — Risco zero para o cliente -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-green-600/20 p-2 rounded-lg"><i data-lucide="shield-check" class="w-6 h-6 text-green-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Invista com Total Segurança</h3>
-        </div>
-        <p class="text-neutral-400 text-sm mb-6">Oferecemos uma das melhores coberturas do mercado para que você tenha tranquilidade nos próximos anos:</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="bg-gradient-to-b from-orange-900/20 to-transparent border border-orange-500/20 rounded-xl p-5 text-center">
-                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-yellow-400 mb-1">25</div>
-                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
-                <p class="text-neutral-400 text-xs mt-2">Garantia de performance dos painéis solares</p>
-            </div>
-            <div class="bg-gradient-to-b from-blue-900/20 to-transparent border border-blue-500/20 rounded-xl p-5 text-center">
-                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-blue-400 to-blue-300 mb-1">10</div>
-                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
-                <p class="text-neutral-400 text-xs mt-2">Garantia do inversor / microinversor</p>
-            </div>
-            <div class="bg-gradient-to-b from-green-900/20 to-transparent border border-green-500/20 rounded-xl p-5 text-center">
-                <div class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-green-400 to-emerald-300 mb-1">5</div>
-                <p class="text-white font-black text-sm uppercase tracking-wide">Anos</p>
-                <p class="text-neutral-400 text-xs mt-2">Garantia de mão de obra da instalação</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- CONSULTOR: card de contato -->
-    <div id="vendor-card" class="hidden bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-lg">
-        <div class="flex items-center gap-3 mb-5">
-            <div class="bg-orange-600/20 p-2 rounded-lg"><i data-lucide="user-check" class="w-6 h-6 text-orange-500"></i></div>
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Seu Consultor de Energia Solar</h3>
-        </div>
-        <div class="flex items-center gap-4">
-            <div id="vendor-avatar" class="shrink-0 w-14 h-14 rounded-full bg-gradient-to-br from-orange-600 to-yellow-500 flex items-center justify-center text-black font-black text-2xl shadow-[0_0_20px_rgba(249,115,22,0.25)]">?</div>
-            <div>
-                <p id="vendor-name" class="text-white font-black text-lg uppercase tracking-wide">...</p>
-                <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-0.5">Especialista Ágil Solar</p>
-                <p id="vendor-email-text" class="text-neutral-600 text-xs font-mono mt-1"></p>
-            </div>
-        </div>
-        <div class="mt-5 flex flex-col sm:flex-row gap-3">
-            <a id="vendor-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer"
-                class="flex items-center justify-center gap-2 bg-green-950/40 border border-green-900/40 hover:border-green-600 hover:bg-green-950/60 text-green-400 px-5 py-3 font-black uppercase tracking-wider transition-all active:scale-95 text-sm rounded-xl">
-                <i data-lucide="message-circle" class="w-5 h-5"></i> WhatsApp
-            </a>
-            <p class="text-neutral-600 text-xs self-center">Dúvidas? Fale diretamente com o seu consultor — respondemos em minutos.</p>
-        </div>
-    </div>
-
-    <!-- IMPACTO AMBIENTAL -->
-    <div class="flex flex-col md:flex-row items-center justify-between bg-[url('https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center border border-neutral-800 rounded-2xl p-6 shadow-lg relative overflow-hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
-        <div class="relative z-10 text-center md:text-left mb-6 md:mb-0">
-            <h3 class="text-xl font-black text-white uppercase tracking-tight">Impacto Ambiental</h3>
-            <p class="text-neutral-300 text-sm mt-1 max-w-sm">Ao gerar a sua própria energia limpa, você ajuda a preservar o planeta e reduz a emissão de CO2.</p>
-        </div>
-        <div class="relative z-10 flex gap-6">
-            <div class="text-center">
-                <div class="bg-emerald-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                    <i data-lucide="tree-deciduous" class="w-8 h-8 text-emerald-400"></i>
-                </div>
-                <p class="text-white font-black text-xl mt-3" id="env-trees">...</p>
-                <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">Árvores Salvas</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- FINAL CTA — Fechar negócio -->
-    <div class="relative overflow-hidden rounded-2xl border border-orange-500/30 shadow-[0_0_60px_rgba(234,88,12,0.15)] bg-grid-sm">
-        <div class="absolute inset-0 bg-gradient-to-br from-orange-900/60 via-black/80 to-yellow-900/30 pointer-events-none"></div>
-        <div class="absolute -top-10 -right-10 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="relative z-10 p-8 md:p-10 text-center">
-            <p class="text-orange-400 text-[10px] font-black uppercase tracking-[0.35em] mb-3">
-                <i data-lucide="zap" class="inline w-3 h-3 mr-1"></i>PRONTO PARA ECONOMIZAR?
-            </p>
-            <h3 class="text-2xl md:text-4xl font-black text-white uppercase leading-tight tracking-tighter mb-3">
-                Dê o primeiro passo<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400">rumo à independência energética</span>
-            </h3>
-            <p class="text-neutral-400 text-sm md:text-base max-w-lg mx-auto mb-8">Clique abaixo, fale com o seu consultor e garanta esta proposta especial. Resposta em minutos.</p>
-            <a id="final-cta-btn" href="#"
-                class="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-10 py-5 font-black uppercase tracking-widest transition-all shadow-[0_0_40px_rgba(234,88,12,0.4)] hover:shadow-[0_0_60px_rgba(234,88,12,0.6)] active:scale-95 text-base md:text-lg rounded-xl">
-                <i data-lucide="message-circle" class="w-6 h-6 stroke-[3px]"></i>
-                QUERO ESTE SISTEMA
-            </a>
-            <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-wider mt-5">
-                <i data-lucide="lock" class="inline w-3 h-3 mr-1"></i>Sem compromisso &middot; Sem burocracia &middot; Resposta imediata
-            </p>
-        </div>
-    </div>
+    <!-- END GRID -->
 
 </div>
+<!-- END PROPOSAL CONTENT -->
 
-<script src="assets/js/config.js"></script>
-<script src="assets/js/utils.js"></script>
-<script src="assets/js/proposta.js"></script>
-
-<!-- FLOATING CTA: Sempre visível -->
-<div id="floating-cta" class="hidden fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none">
-    <div class="max-w-3xl mx-auto pointer-events-auto">
-        <a id="floating-whatsapp" href="#"
-            class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black py-4 px-6 font-black uppercase tracking-widest transition-all shadow-[0_0_40px_rgba(234,88,12,0.5)] active:scale-[0.98] text-sm md:text-base rounded-xl">
-            <i data-lucide="message-circle" class="w-5 h-5 stroke-[3px]"></i>
-            QUERO ESTE SISTEMA — FALAR COM CONSULTOR
-        </a>
+<!-- Quick actions PWA -->
+<div id="proposal-quick-actions" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-black/85 border border-neutral-700 rounded-xl px-2 py-2 shadow-[0_0_30px_rgba(0,0,0,0.45)] backdrop-blur-sm">
+    <div class="flex items-center gap-2">
+        <button id="qa-back-btn" class="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar
+        </button>
+        <button id="qa-copy-btn" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-4 h-4"></i> Copiar
+        </button>
+        <button id="qa-open-browser-btn" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Navegador
+        </button>
     </div>
 </div>
+
+<script src="assets/js/config.js?v=1.1"></script>
+<script src="assets/js/utils.js?v=1.1"></script>
+<script src="assets/js/proposta.js?v=1.1"></script>
+<script>
+(function() {
+  const saved = sessionStorage.getItem('proposalTheme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+  applyThemeMode();
+  _updatePropostaThemeBtn();
+})();
+
+function _updatePropostaThemeBtn() {
+  const btn  = document.getElementById('proposta-theme-btn');
+  const icon = document.getElementById('proposta-theme-icon');
+  if (!btn || !icon) return;
+  const isDark = !document.body.classList.contains('theme-light');
+  icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+  btn.className = 'w-9 h-9 flex items-center justify-center border transition-all rounded-xl shrink-0 '
+    + (isDark
+      ? 'border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white'
+      : 'border-blue-300 bg-white hover:bg-blue-50 text-blue-600 hover:text-blue-800');
+  lucide.createIcons();
+}
+
+function togglePropostaTheme() {
+  const isLight = document.body.classList.contains('theme-light');
+  const next = isLight ? 'dark' : 'light';
+  sessionStorage.setItem('proposalTheme', next);
+  document.documentElement.setAttribute('data-theme', next);
+  applyThemeMode();
+  _updatePropostaThemeBtn();
+}
+</script>
 </body>
 </html>

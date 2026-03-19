@@ -5,15 +5,47 @@
 function renderVendas(container) {
   container.className = 'flex flex-col gap-4';
 
-  const vendas = state.vendas || [];
+  // --- Período ---
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  if (!state.vendasPeriod) state.vendasPeriod = currentMonth;
+
+  const allVendas = state.vendas || [];
+
+  // Meses disponíveis com dados (ordem decrescente)
+  const availableMonths = [...new Set(allVendas.map(v => {
+    const d = new Date(v.created_at);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }))].sort().reverse();
+  if (!availableMonths.includes(currentMonth)) availableMonths.unshift(currentMonth);
+
+  // Vendas filtradas pelo período selecionado
+  const vendas = state.vendasPeriod === 'all'
+    ? allVendas
+    : allVendas.filter(v => {
+        const d = new Date(v.created_at);
+        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        return m === state.vendasPeriod;
+      });
+
+  // --- Botões de período pré-calculados (evita template literal aninhado complexo) ---
+  const _geralAtivo = state.vendasPeriod === 'all';
+  const _periodoBtns = availableMonths.map(m => {
+    const ativo   = state.vendasPeriod === m;
+    const ehAtual = m === currentMonth;
+    const cls = ativo
+      ? (ehAtual ? 'bg-green-600 text-black border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-neutral-700 text-white border-neutral-600')
+      : 'bg-transparent border-neutral-800 text-neutral-600 hover:text-neutral-300 hover:border-neutral-700';
+    const label = formatMonthLabel(m) + (ehAtual ? ' ●' : '');
+    return `<button onclick="setVendasPeriod('${m}')" class="${cls} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all whitespace-nowrap">${label}</button>`;
+  }).join('');
 
   // --- Métricas ---
-  const totalVendido   = vendas.reduce((s, v) => s + (Number(v.kit_price) || 0), 0);
-  const qtd            = vendas.length;
-  // Comissão estimada: 5% sobre total vendido (parametrizável)
-  const comissao       = totalVendido * 0.05;
+  const totalVendido = vendas.reduce((s, v) => s + (Number(v.kit_price) || 0), 0);
+  const qtd          = vendas.length;
+  const ticketMedio  = qtd > 0 ? totalVendido / qtd : 0;
 
-  // Última venda
+  // Última venda (do período filtrado)
   const ultima = vendas[0] || null;
 
   let html = `
@@ -43,15 +75,23 @@ function renderVendas(container) {
         </div>
       </div>
 
+      <!-- Filtros de período -->
+      <div class="relative z-10 flex flex-wrap items-center gap-1.5 mt-4 pt-4 border-t border-neutral-800/40">
+        <span class="text-[8px] text-neutral-700 font-black uppercase tracking-widest mr-2">Período:</span>
+        <button onclick="setVendasPeriod('all')"
+          class="${_geralAtivo ? 'bg-neutral-700 text-white border-neutral-600' : 'bg-transparent border-neutral-800 text-neutral-600 hover:text-neutral-300 hover:border-neutral-700'} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all">GERAL</button>
+        ${_periodoBtns}
+      </div>
+
       <!-- Metric cards row -->
-      <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+      <div class="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
         <div class="bg-neutral-900/60 border border-neutral-800 p-4">
           <p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Total Vendido</p>
           <p class="text-2xl font-black text-green-400">${formatCurrency(totalVendido)}</p>
         </div>
         <div class="bg-neutral-900/60 border border-neutral-800 p-4">
-          <p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Comissão Estimada <span class="text-neutral-700">(5%)</span></p>
-          <p class="text-2xl font-black text-yellow-400">${formatCurrency(comissao)}</p>
+          <p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Ticket Médio</p>
+          <p class="text-2xl font-black text-blue-400">${formatCurrency(ticketMedio)}</p>
         </div>
         <div class="bg-neutral-900/60 border border-neutral-800 p-4">
           <p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Negócios Fechados</p>
@@ -62,11 +102,16 @@ function renderVendas(container) {
   `;
 
   if (vendas.length === 0) {
+    const _filtrado = state.vendasPeriod !== 'all' && allVendas.length > 0;
     html += `
       <div class="py-20 text-center border border-dashed border-neutral-800/60 bg-neutral-950/40">
-        <i data-lucide="trophy" class="w-12 h-12 mx-auto mb-4 text-neutral-700"></i>
-        <p class="text-neutral-500 text-xs font-black uppercase tracking-widest mb-1">Nenhuma venda registrada ainda</p>
-        <p class="text-neutral-700 text-[10px] font-bold uppercase">Feche sua primeira venda pelos cards de cliente ou pela modal de proposta</p>
+        <i data-lucide="${_filtrado ? 'calendar-x' : 'trophy'}" class="w-12 h-12 mx-auto mb-4 text-neutral-700"></i>
+        <p class="text-neutral-500 text-xs font-black uppercase tracking-widest mb-1">
+          ${_filtrado ? `Nenhuma venda em ${formatMonthLabel(state.vendasPeriod)}` : 'Nenhuma venda registrada ainda'}
+        </p>
+        <p class="text-neutral-700 text-[10px] font-bold uppercase">
+          ${_filtrado ? 'Selecione outro período ou clique em GERAL para ver tudo' : 'Feche sua primeira venda pelos cards de cliente ou pela modal de proposta'}
+        </p>
       </div>
     `;
     container.innerHTML = html;
@@ -85,7 +130,7 @@ function renderVendas(container) {
       : null;
 
     html += `
-      <div class="metric-card ${stagger} relative border border-neutral-800 hover:border-green-500/25 p-5 group transition-all duration-300">
+      <div class="metric-card venda-metric-card ${stagger} relative border border-neutral-800 hover:border-green-500/25 p-5 group transition-all duration-300">
         <div class="absolute top-0 right-0 w-24 h-24 bg-green-500/3 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
         <div class="relative z-10 flex items-start gap-4">
@@ -109,6 +154,7 @@ function renderVendas(container) {
               <span class="flex items-center gap-1"><i data-lucide="zap" class="w-2.5 h-2.5"></i>${escapeHTML(v.kit_nome || '—')}</span>
               ${v.kit_power ? `<span class="flex items-center gap-1"><i data-lucide="sun" class="w-2.5 h-2.5"></i>${v.kit_power} kWp</span>` : ''}
               <span class="flex items-center gap-1"><i data-lucide="calendar" class="w-2.5 h-2.5"></i>${formatDate(v.created_at)}</span>
+              ${(state.isAdmin && state.adminViewAll && v.vendedor_email) ? `<span class="flex items-center gap-1 text-purple-400 font-bold"><i data-lucide="user" class="w-2.5 h-2.5"></i>${escapeHTML(v.vendedor_email.split('@')[0])}</span>` : ''}
             </div>
 
             <p class="text-green-400 font-black text-lg leading-none">${formatCurrency(v.kit_price)}</p>
@@ -118,9 +164,14 @@ function renderVendas(container) {
           <div class="shrink-0 flex flex-col items-end gap-1">
             ${waLink ? `
             <a href="${waLink}" target="_blank" rel="noopener noreferrer"
-              class="flex items-center gap-1.5 bg-green-950/30 border border-green-900/40 hover:border-green-600 text-green-500 px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
+              class="flex items-center gap-1.5 bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
               <i data-lucide="message-circle" class="w-3 h-3"></i> WhatsApp
             </a>` : ''}
+            ${state.isAdmin ? `
+            <button onclick="deleteVenda('${v.id}')" title="Excluir venda"
+              class="flex items-center gap-1.5 bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Excluir
+            </button>` : ''}
             <p class="text-neutral-700 text-[9px] font-mono uppercase">${escapeHTML(v.kit_brand || '')}</p>
           </div>
         </div>
@@ -131,6 +182,33 @@ function renderVendas(container) {
   html += `</div>`;
   container.innerHTML = html;
   lucide.createIcons();
+}
+
+// --- Filtro de período de vendas ---
+function setVendasPeriod(period) {
+  state.vendasPeriod = period;
+  renderContent();
+}
+
+// --- Excluir venda (somente admin) ---
+function deleteVenda(id) {
+  if (!state.isAdmin) return;
+
+  showConfirmModal(
+    'Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.',
+    async () => {
+      const { error } = await supabaseClient.from('vendas').delete().eq('id', id);
+      if (error) {
+        showToast('ERRO AO EXCLUIR VENDA: ' + error.message);
+        return;
+      }
+
+      state.vendas = (state.vendas || []).filter(v => v.id !== id);
+      showToast('VENDA EXCLUÍDA COM SUCESSO.');
+      renderContent();
+    },
+    'EXCLUIR VENDA'
+  );
 }
 
 // --- Exportar XLSX ---

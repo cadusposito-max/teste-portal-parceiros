@@ -1,0 +1,18 @@
+# Cabeçalhos de segurança HTTP — compatível com Netlify e Cloudflare Pages
+# Estes complementam a CSP do <meta> nos HTMLs com proteções que só funcionam via header HTTP
+
+/*
+  # Evita que o site seja embutido em iframes de outros domínios (clickjacking)
+  X-Frame-Options: DENY
+  # Evita MIME-sniffing pelo navegador (reduz risco de XSS via upload)
+  X-Content-Type-Options: nosniff
+  # Controla informações de referência em links externos
+  Referrer-Policy: strict-origin-when-cross-origin
+  # Ativa proteção XSS legada em navegadores antigos
+  X-XSS-Protection: 1; mode=block
+  # Remove o cabeçalho padrão que revela tecnologia usada
+  X-Powered-By:
+  # Força HTTPS por 1 ano (ative apenas se o domínio for 100% HTTPS)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # Evita que navegadores pré-carreguem recursos de maneira insegura
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
