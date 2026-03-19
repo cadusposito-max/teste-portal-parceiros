@@ -116,6 +116,9 @@ const MATERIAIS_MOCK = [
 // ── Cache em memória — compartilhado entre widget e página ───
 let _materiaisCache = null;
 
+// ── Contador de falhas de thumbnail (cookies bloqueados) ─────
+let _matThumbErrors = 0;
+
 // ── Serviço: busca da API ou usa mock ────────────────────────
 async function materiaisfetchItems() {
   // Retorna cache se já carregado nesta sessão
@@ -184,18 +187,28 @@ function _buildMatCard(item) {
             title="Clique para visualizar">
          <img src="${thumbUrl}" alt="" loading="lazy"
               class="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-105"
-              onerror="this.parentElement.classList.add('hidden');this.parentElement.nextElementSibling.classList.remove('hidden')">
-         <div class="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-all flex items-center justify-center">
+              onerror="this.parentElement.style.display='none';this.parentElement.nextElementSibling.style.display='flex';_matHandleThumbError()">
+         <!-- Hover overlay -->
+         <div class="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/40 transition-all flex items-center justify-center">
            <div class="opacity-0 group-hover/thumb:opacity-100 transition-opacity
-                       bg-black/70 border border-white/10 rounded-full p-2">
+                       bg-black/80 border border-white/10 rounded-full p-2.5">
              <i data-lucide="zoom-in" class="w-4 h-4 text-white"></i>
            </div>
          </div>
-         <span class="absolute top-2 right-2 text-[8px] font-black ${catM.text} ${catM.bg} ${catM.border} border
-                      px-2 py-1 uppercase tracking-widest">${escapeHTML(item.categoria)}</span>
+         <!-- Ícone de tipo — canto inferior esquerdo —-->
+         <div class="absolute bottom-2 left-2 flex items-center gap-1.5
+                     bg-black/70 border border-white/10 px-1.5 py-1">
+           <i data-lucide="${tMeta.icone}" class="w-3 h-3 ${cMeta.text}"></i>
+           <span class="text-[8px] font-black ${cMeta.text} uppercase tracking-wider">${tMeta.label}</span>
+         </div>
+         <!-- Badge categoria — canto superior direito —-->
+         <span class="absolute top-2 right-2 bg-black/70 border border-white/10
+                      text-[8px] font-black text-white px-2 py-0.5 uppercase tracking-widest">
+           ${escapeHTML(item.categoria)}
+         </span>
        </div>
        <!-- Fallback ícone (oculto por padrão, aparece se thumb falhar) -->
-       <div class="hidden px-5 pt-5 pb-4 flex items-start justify-between gap-3">
+       <div style="display:none" class="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
          <div class="${cMeta.bg} ${cMeta.border} border p-3 shrink-0">
            <i data-lucide="${tMeta.icone}" class="w-5 h-5 ${cMeta.text}"></i>
          </div>
@@ -323,6 +336,62 @@ function materiaisClosePreview() {
   if (!modal) return;
   document.removeEventListener('keydown', modal._escHandler);
   modal.remove();
+}
+
+// ── Detecta thumbnails bloqueadas por cookies e exibe aviso ──
+function _matHandleThumbError() {
+  _matThumbErrors++;
+  // Só mostra o aviso uma vez, na primeira falha
+  if (_matThumbErrors > 1) return;
+
+  // Garante que o banner não seja duplicado
+  if (document.getElementById('mat-cookie-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'mat-cookie-banner';
+  banner.className = [
+    'flex items-start gap-3 border border-orange-500/25 bg-orange-500/5',
+    'px-4 py-3 text-xs text-orange-400/80 my-1'
+  ].join(' ');
+  banner.innerHTML = `
+    <i data-lucide="cookie" class="w-4 h-4 shrink-0 mt-0.5 text-orange-400"></i>
+    <div class="flex-1">
+      <p class="font-black text-orange-300 mb-1">Previews bloqueados pelo navegador</p>
+      <p class="text-orange-400/70 leading-relaxed">
+        As miniaturas e o visualizador usam o Google Drive, que precisa de
+        <strong>cookies de terceiros</strong> habilitados no navegador.
+        Você ainda pode baixar os arquivos normalmente.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-2.5">
+        <a href="https://drive.google.com" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
+                  border border-orange-500/30 text-orange-300 hover:bg-orange-500/10 transition-all">
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+          Abrir Drive (ativa cookies)
+        </a>
+        <button onclick="_matDismissCookieBanner()"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
+                 border border-neutral-700 text-neutral-500 hover:text-white hover:border-neutral-500 transition-all">
+          Entendi, fechar
+        </button>
+      </div>
+    </div>
+    <button onclick="_matDismissCookieBanner()"
+      class="shrink-0 text-neutral-600 hover:text-white transition-colors mt-0.5">
+      <i data-lucide="x" class="w-4 h-4"></i>
+    </button>`;
+
+  // Insere antes do grid de cards
+  const grid = document.getElementById('materiais-grid');
+  if (grid) {
+    grid.parentElement.insertBefore(banner, grid);
+    queueAppLucideCreateIcons();
+  }
+}
+
+function _matDismissCookieBanner() {
+  const b = document.getElementById('mat-cookie-banner');
+  if (b) b.remove();
 }
 
 // ── Widget compacto renderizado DENTRO do dashboard ──────────
