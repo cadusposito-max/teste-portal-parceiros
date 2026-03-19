@@ -356,25 +356,12 @@ function _matHandleThumbError() {
   banner.innerHTML = `
     <i data-lucide="cookie" class="w-4 h-4 shrink-0 mt-0.5 text-orange-400"></i>
     <div class="flex-1">
-      <p class="font-black text-orange-300 mb-1">Previews bloqueados pelo navegador</p>
+      <p class="font-black text-orange-300 mb-0.5">Previews bloqueados pelo navegador</p>
       <p class="text-orange-400/70 leading-relaxed">
-        As miniaturas e o visualizador usam o Google Drive, que precisa de
-        <strong>cookies de terceiros</strong> habilitados no navegador.
+        As miniaturas usam o Google Drive, que precisa de
+        <strong>cookies de terceiros</strong> habilitados.
         Você ainda pode baixar os arquivos normalmente.
       </p>
-      <div class="flex flex-wrap gap-2 mt-2.5">
-        <a href="https://drive.google.com" target="_blank" rel="noopener"
-           class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
-                  border border-orange-500/30 text-orange-300 hover:bg-orange-500/10 transition-all">
-          <i data-lucide="external-link" class="w-3 h-3"></i>
-          Abrir Drive (ativa cookies)
-        </a>
-        <button onclick="_matDismissCookieBanner()"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
-                 border border-neutral-700 text-neutral-500 hover:text-white hover:border-neutral-500 transition-all">
-          Entendi, fechar
-        </button>
-      </div>
     </div>
     <button onclick="_matDismissCookieBanner()"
       class="shrink-0 text-neutral-600 hover:text-white transition-colors mt-0.5">
