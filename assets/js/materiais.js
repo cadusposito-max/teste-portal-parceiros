@@ -169,31 +169,57 @@ function _buildMatCard(item) {
   const catM   = _matCorMeta(catCor);
   const dataFmt= _matFmtDate(item.atualizadoEm);
   const isMock = item.viewUrl === '#' || !item.viewUrl;
+  const dlAttr = isMock ? 'aria-disabled="true" tabindex="-1"' : `href="${escapeHTML(item.downloadUrl)}" target="_blank" rel="noopener"`;
+  const dlCls  = isMock ? 'opacity-40 cursor-not-allowed' : '';
 
-  // Links desabilitados se ainda for placeholder
-  const viewAttr = isMock ? 'aria-disabled="true" tabindex="-1"' : `href="${escapeHTML(item.viewUrl)}" target="_blank" rel="noopener"`;
-  const dlAttr   = isMock ? 'aria-disabled="true" tabindex="-1"' : `href="${escapeHTML(item.downloadUrl)}" target="_blank" rel="noopener"`;
-  const disabledCls = isMock ? 'opacity-40 cursor-not-allowed' : '';
+  // Thumbnail do Drive (funciona para PDF, imagem, Office, etc.)
+  const thumbUrl = isMock
+    ? ''
+    : `https://drive.google.com/thumbnail?id=${encodeURIComponent(item.id)}&sz=w400`;
+
+  // Área superior: thumbnail se disponível, senão ícone
+  const topoHTML = thumbUrl
+    ? `<div class="relative w-full h-36 bg-neutral-900 overflow-hidden cursor-pointer group/thumb"
+            onclick="materiaisOpenPreview('${escapeHTML(item.id)}','${escapeHTML(item.nome).replace(/'/g,'&#39;')}')"
+            title="Clique para visualizar">
+         <img src="${thumbUrl}" alt="" loading="lazy"
+              class="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-105"
+              onerror="this.parentElement.classList.add('hidden');this.parentElement.nextElementSibling.classList.remove('hidden')">
+         <div class="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/30 transition-all flex items-center justify-center">
+           <div class="opacity-0 group-hover/thumb:opacity-100 transition-opacity
+                       bg-black/70 border border-white/10 rounded-full p-2">
+             <i data-lucide="zoom-in" class="w-4 h-4 text-white"></i>
+           </div>
+         </div>
+         <span class="absolute top-2 right-2 text-[8px] font-black ${catM.text} ${catM.bg} ${catM.border} border
+                      px-2 py-1 uppercase tracking-widest">${escapeHTML(item.categoria)}</span>
+       </div>
+       <!-- Fallback ícone (oculto por padrão, aparece se thumb falhar) -->
+       <div class="hidden px-5 pt-5 pb-4 flex items-start justify-between gap-3">
+         <div class="${cMeta.bg} ${cMeta.border} border p-3 shrink-0">
+           <i data-lucide="${tMeta.icone}" class="w-5 h-5 ${cMeta.text}"></i>
+         </div>
+         <span class="text-[8px] font-black ${catM.text} ${catM.bg} ${catM.border} border
+                      px-2 py-1 uppercase tracking-widest whitespace-nowrap mt-0.5">${escapeHTML(item.categoria)}</span>
+       </div>`
+    : `<div class="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
+         <div class="${cMeta.bg} ${cMeta.border} border p-3 shrink-0">
+           <i data-lucide="${tMeta.icone}" class="w-5 h-5 ${cMeta.text}"></i>
+         </div>
+         <span class="text-[8px] font-black ${catM.text} ${catM.bg} ${catM.border} border
+                      px-2 py-1 uppercase tracking-widest whitespace-nowrap mt-0.5">${escapeHTML(item.categoria)}</span>
+       </div>`;
 
   return `
     <div class="materiais-card flex flex-col border border-neutral-800/60 bg-[#0d0d0d] overflow-hidden
                 transition-all duration-200 hover:border-neutral-700/70 hover:-translate-y-px"
          data-cat="${escapeHTML(item.categoria)}">
 
-      <!-- Cabeçalho: ícone tipo + badge categoria -->
-      <div class="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
-        <div class="${cMeta.bg} ${cMeta.border} border p-3 shrink-0">
-          <i data-lucide="${tMeta.icone}" class="w-5 h-5 ${cMeta.text}"></i>
-        </div>
-        <span class="text-[8px] font-black ${catM.text} ${catM.bg} ${catM.border} border
-                     px-2 py-1 uppercase tracking-widest whitespace-nowrap mt-0.5">
-          ${escapeHTML(item.categoria)}
-        </span>
-      </div>
+      ${topoHTML}
 
       <!-- Título e descrição -->
-      <div class="px-5 pb-4 flex flex-col gap-1.5 flex-1">
-        <p class="text-sm font-black text-white leading-snug group-hover:text-orange-400 transition-colors line-clamp-2">
+      <div class="px-4 pt-3 pb-3 flex flex-col gap-1.5 flex-1">
+        <p class="text-sm font-black text-white leading-snug line-clamp-2">
           ${escapeHTML(item.nome)}
         </p>
         ${item.descricao
@@ -202,7 +228,7 @@ function _buildMatCard(item) {
       </div>
 
       <!-- Meta: tipo + tamanho + data -->
-      <div class="px-5 pb-4 flex items-center flex-wrap gap-2">
+      <div class="px-4 pb-3 flex items-center flex-wrap gap-2">
         <span class="${cMeta.bg} ${cMeta.text} ${cMeta.border} border
                      text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5">
           ${tMeta.label}
@@ -213,20 +239,90 @@ function _buildMatCard(item) {
 
       <!-- Ações: Visualizar / Baixar -->
       <div class="border-t border-neutral-800/60 grid grid-cols-2 divide-x divide-neutral-800/60">
-        <a ${viewAttr}
-           class="flex items-center justify-center gap-1.5 px-3 py-3
-                  text-[9px] font-black uppercase tracking-widest
-                  text-neutral-500 hover:text-white hover:bg-white/[0.03] transition-all ${disabledCls}">
+        <button
+          ${isMock ? 'disabled' : `onclick="materiaisOpenPreview('${escapeHTML(item.id)}','${escapeHTML(item.nome).replace(/'/g,'&#39;')}')"`}
+          class="flex items-center justify-center gap-1.5 px-3 py-3
+                 text-[9px] font-black uppercase tracking-widest
+                 text-neutral-500 hover:text-white hover:bg-white/[0.03] transition-all
+                 ${isMock ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}">
           <i data-lucide="eye" class="w-3 h-3"></i> Visualizar
-        </a>
+        </button>
         <a ${dlAttr}
            class="flex items-center justify-center gap-1.5 px-3 py-3
                   text-[9px] font-black uppercase tracking-widest
-                  text-neutral-500 hover:text-orange-400 hover:bg-orange-500/[0.04] transition-all ${disabledCls}">
+                  text-neutral-500 hover:text-orange-400 hover:bg-orange-500/[0.04] transition-all ${dlCls}">
           <i data-lucide="download" class="w-3 h-3"></i> Baixar
         </a>
       </div>
     </div>`;
+}
+
+// ── Modal de preview inline ───────────────────────────────────
+function materiaisOpenPreview(id, nome) {
+  // Remove modal anterior se existir
+  const existing = document.getElementById('mat-preview-modal');
+  if (existing) existing.remove();
+
+  const previewUrl = `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+
+  const modal = document.createElement('div');
+  modal.id = 'mat-preview-modal';
+  modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4';
+  modal.innerHTML = `
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="materiaisClosePreview()"></div>
+
+    <!-- Painel -->
+    <div class="relative z-10 w-full max-w-4xl h-[85vh] flex flex-col
+                border border-neutral-700/60 bg-[#0d0d0d] shadow-2xl">
+
+      <!-- Header do modal -->
+      <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800/60 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <i data-lucide="file-text" class="w-4 h-4 text-neutral-500 shrink-0"></i>
+          <span class="text-xs font-black text-white truncate">${escapeHTML(nome)}</span>
+        </div>
+        <div class="flex items-center gap-1 shrink-0 ml-3">
+          <a href="https://drive.google.com/file/d/${encodeURIComponent(id)}/view"
+             target="_blank" rel="noopener"
+             class="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
+                    text-neutral-500 hover:text-white border border-neutral-800 hover:border-neutral-600 transition-all">
+            <i data-lucide="external-link" class="w-3 h-3"></i> Abrir no Drive
+          </a>
+          <button onclick="materiaisClosePreview()"
+            class="flex items-center justify-center w-8 h-8 border border-neutral-800
+                   text-neutral-500 hover:text-white hover:border-neutral-600 transition-all ml-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- iFrame de preview -->
+      <div class="flex-1 relative bg-neutral-950">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="flex items-center gap-2 text-neutral-700 text-xs">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            Carregando...
+          </div>
+        </div>
+        <iframe src="${previewUrl}" class="absolute inset-0 w-full h-full border-0 z-10"
+                allow="autoplay" loading="lazy"></iframe>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  queueAppLucideCreateIcons();
+
+  // Fechar com Esc
+  modal._escHandler = (e) => { if (e.key === 'Escape') materiaisClosePreview(); };
+  document.addEventListener('keydown', modal._escHandler);
+}
+
+function materiaisClosePreview() {
+  const modal = document.getElementById('mat-preview-modal');
+  if (!modal) return;
+  document.removeEventListener('keydown', modal._escHandler);
+  modal.remove();
 }
 
 // ── Widget compacto renderizado DENTRO do dashboard ──────────
