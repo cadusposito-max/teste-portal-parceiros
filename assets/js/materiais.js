@@ -253,7 +253,7 @@ function _buildMatCard(item) {
       <!-- Ações: Visualizar / Baixar -->
       <div class="border-t border-neutral-800/60 grid grid-cols-2 divide-x divide-neutral-800/60">
         <button
-          ${isMock ? 'disabled' : `onclick="materiaisOpenPreview('${escapeHTML(item.id)}','${escapeHTML(item.nome).replace(/'/g,'&#39;')}')"`}
+        ${isMock ? 'disabled' : `onclick="materiaisOpenPreview('${escapeHTML(item.id)}','${escapeHTML(item.nome).replace(/'/g,'&#39;')}','${tipo}')"` }
           class="flex items-center justify-center gap-1.5 px-3 py-3
                  text-[9px] font-black uppercase tracking-widest
                  text-neutral-500 hover:text-white hover:bg-white/[0.03] transition-all
@@ -271,33 +271,50 @@ function _buildMatCard(item) {
 }
 
 // ── Modal de preview inline ───────────────────────────────────
-function materiaisOpenPreview(id, nome) {
-  // Remove modal anterior se existir
+function materiaisOpenPreview(id, nome, tipo) {
   const existing = document.getElementById('mat-preview-modal');
   if (existing) existing.remove();
 
-  const previewUrl = `https://drive.google.com/file/d/${encodeURIComponent(id)}/preview`;
+  const isImage   = ['imagem', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes((tipo || '').toLowerCase());
+  const driveUrl  = `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+  const thumbBig  = `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w1600`;
+
+  // Conteúdo: imagem direta OU thumbnail grande + botão abrir
+  const bodyHTML = isImage
+    ? `<div class="flex-1 relative bg-neutral-950 flex items-center justify-center overflow-auto p-4">
+         <img src="${thumbBig}" alt="${escapeHTML(nome)}"
+              class="max-w-full max-h-full object-contain"
+              onerror="this.parentElement.innerHTML='<p class=\'text-neutral-600 text-xs\'>Imagem não disponível.</p>'">
+       </div>`
+    : `<div class="flex-1 flex flex-col items-center justify-center gap-6 bg-neutral-950 p-8">
+         <img src="${thumbBig}" alt=""
+              class="max-h-64 max-w-full object-contain opacity-80 border border-neutral-800"
+              onerror="this.style.display='none'">
+         <div class="flex flex-col items-center gap-2 text-center">
+           <p class="text-xs text-neutral-500">O preview deste tipo de arquivo só está disponível no Google Drive.</p>
+           <a href="${driveUrl}" target="_blank" rel="noopener"
+              class="flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400
+                     text-[10px] font-black text-white uppercase tracking-widest transition-colors">
+             <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir no Drive
+           </a>
+         </div>
+       </div>`;
 
   const modal = document.createElement('div');
   modal.id = 'mat-preview-modal';
   modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4';
   modal.innerHTML = `
-    <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="materiaisClosePreview()"></div>
-
-    <!-- Painel -->
     <div class="relative z-10 w-full max-w-4xl h-[85vh] flex flex-col
                 border border-neutral-700/60 bg-[#0d0d0d] shadow-2xl">
-
-      <!-- Header do modal -->
+      <!-- Header -->
       <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800/60 shrink-0">
         <div class="flex items-center gap-2.5 min-w-0">
           <i data-lucide="file-text" class="w-4 h-4 text-neutral-500 shrink-0"></i>
           <span class="text-xs font-black text-white truncate">${escapeHTML(nome)}</span>
         </div>
         <div class="flex items-center gap-1 shrink-0 ml-3">
-          <a href="https://drive.google.com/file/d/${encodeURIComponent(id)}/view"
-             target="_blank" rel="noopener"
+          <a href="${driveUrl}" target="_blank" rel="noopener"
              class="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest
                     text-neutral-500 hover:text-white border border-neutral-800 hover:border-neutral-600 transition-all">
             <i data-lucide="external-link" class="w-3 h-3"></i> Abrir no Drive
@@ -309,24 +326,11 @@ function materiaisOpenPreview(id, nome) {
           </button>
         </div>
       </div>
-
-      <!-- iFrame de preview -->
-      <div class="flex-1 relative bg-neutral-950">
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class="flex items-center gap-2 text-neutral-700 text-xs">
-            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-            Carregando...
-          </div>
-        </div>
-        <iframe src="${previewUrl}" class="absolute inset-0 w-full h-full border-0 z-10"
-                allow="autoplay" loading="lazy"></iframe>
-      </div>
+      ${bodyHTML}
     </div>`;
 
   document.body.appendChild(modal);
   queueAppLucideCreateIcons();
-
-  // Fechar com Esc
   modal._escHandler = (e) => { if (e.key === 'Escape') materiaisClosePreview(); };
   document.addEventListener('keydown', modal._escHandler);
 }
