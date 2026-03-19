@@ -101,7 +101,7 @@ const TABS = [
 
 // URL do Web App do Google Apps Script (ver scripts/gas_materiais.js).
 // Deixe vazio ('') para usar dados mockados localmente.
-const MATERIAIS_API_URL = 'https://script.google.com/macros/s/AKfycbzXY5YiEgUrXX4E1CsHWoDHRRqZMomTPzbNaY8M8CljI3MRneF6LT5bORvKj2VbiUZGMQ/exec'; // Cole aqui a URL do deploy do Google Apps Script
+const MATERIAIS_API_URL = '/api/materiais'; // Proxy Vercel → Google Apps Script (evita CORS)
 
 
 
