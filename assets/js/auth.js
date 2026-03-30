@@ -32,6 +32,18 @@ function onTurnstileExpiry() {
   _captchaToken = null;
 }
 
+function onTurnstileError() {
+  _captchaToken = null;
+  const errorEl  = document.getElementById('login-error');
+  const btnSubmit = document.getElementById('btn-submit-login');
+  if (errorEl) {
+    errorEl.innerText = 'Falha na verificação de segurança. Recarregue a página e tente novamente.';
+    errorEl.classList.remove('hidden');
+  }
+  // Desabilita o botão até o usuário recarregar — impede envio sem captchaToken
+  if (btnSubmit) btnSubmit.disabled = true;
+}
+
 // Detecta evento PASSWORD_RECOVERY (fluxo PKCE / magic-link do Supabase)
 supabaseClient.auth.onAuthStateChange((event) => {
   if (event === 'PASSWORD_RECOVERY') {
