@@ -36,6 +36,77 @@ function queueAppLucideCreateIcons() {
   });
 }
 
+const ADMIN_PREFS_KEY = 'admin_qol_prefs_v1';
+
+function userCanAccessAdminPanel() {
+  return Boolean(state.isAdmin || state.isGestor);
+}
+
+function _buildAdminPrefsSnapshot() {
+  return {
+    adminViewAll: Boolean(state.adminViewAll),
+    adminScopeFranquiaId: state.adminScopeFranquiaId || 'all',
+    adminClientesViewMode: state.adminClientesViewMode || 'list',
+    adminClientesFilters: { ...(state.adminClientesFilters || {}) },
+    adminVendasFilters: { ...(state.adminVendasFilters || {}) },
+  };
+}
+
+function persistAdminPreferences() {
+  if (!state.isAdmin) return;
+  try {
+    localStorage.setItem(ADMIN_PREFS_KEY, JSON.stringify(_buildAdminPrefsSnapshot()));
+  } catch (error) {
+    console.warn('[persistAdminPreferences] Falha ao salvar preferencias.', error);
+  }
+}
+
+function hydrateAdminPreferences() {
+  if (!state.isAdmin || state.adminPrefsLoaded) return;
+
+  try {
+    const raw = localStorage.getItem(ADMIN_PREFS_KEY);
+    if (!raw) {
+      state.adminPrefsLoaded = true;
+      return;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      state.adminPrefsLoaded = true;
+      return;
+    }
+
+    if (typeof parsed.adminViewAll === 'boolean') {
+      state.adminViewAll = parsed.adminViewAll;
+    }
+
+    state.adminScopeFranquiaId = String(parsed.adminScopeFranquiaId || 'all');
+
+    const viewMode = String(parsed.adminClientesViewMode || 'list');
+    state.adminClientesViewMode = viewMode === 'kanban' ? 'kanban' : 'list';
+
+    const persistedClientFilters = parsed.adminClientesFilters;
+    if (persistedClientFilters && typeof persistedClientFilters === 'object') {
+      state.adminClientesFilters = {
+        ...state.adminClientesFilters,
+        ...persistedClientFilters,
+      };
+    }
+
+    const persistedSalesFilters = parsed.adminVendasFilters;
+    if (persistedSalesFilters && typeof persistedSalesFilters === 'object') {
+      state.adminVendasFilters = {
+        ...state.adminVendasFilters,
+        ...persistedSalesFilters,
+      };
+    }
+  } catch (error) {
+    console.warn('[hydrateAdminPreferences] Falha ao carregar preferencias.', error);
+  } finally {
+    state.adminPrefsLoaded = true;
+  }
+}
 
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-menu');
@@ -87,6 +158,8 @@ function renderHeaderUser() {
   if (roleEl)   roleEl.textContent = state.isAdmin ? 'Administrador' : state.isGestor ? 'Gestor' : 'Vendedor';
   if (wrapEl)   wrapEl.classList.replace('hidden', 'flex');
 
+  if (state.isAdmin) hydrateAdminPreferences();
+
   // Botão de alternância de visão (somente admin)
   const existingToggle = document.getElementById('admin-view-toggle-btn');
   if (existingToggle) existingToggle.remove();
@@ -100,13 +173,15 @@ function renderHeaderUser() {
     const btn = document.createElement('button');
     btn.id = 'admin-view-toggle-btn';
     btn.onclick = toggleAdminViewMode;
-    btn.title = state.adminViewAll ? 'Clique para ver só sua franquia' : 'Clique para ver todas as franquias';
+    btn.title = state.adminViewAll
+      ? 'Clique para ver apenas a sua unidade (franquia)'
+      : 'Clique para voltar para a visão consolidada de franquias';
     btn.className = state.adminViewAll
       ? 'view-scope-toggle is-consolidated p-3 border transition-all duration-300 bg-purple-600 border-purple-500 text-white hover:bg-purple-700 hover:border-purple-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest'
       : 'view-scope-toggle is-unit p-3 border transition-all duration-300 bg-blue-600 border-blue-500 text-white hover:bg-blue-700 hover:border-blue-400 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest';
     btn.innerHTML = state.adminViewAll
       ? '<i data-lucide="layers" class="w-4 h-4"></i><span class="hidden sm:inline">CONSOLIDADO</span>'
-      : '<i data-lucide="user" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>';
+      : '<i data-lucide="building-2" class="w-4 h-4"></i><span class="hidden sm:inline">MINHA UNIDADE</span>';
     if (adminBtn && adminBtn.parentNode) {
       adminBtn.parentNode.insertBefore(btn, adminBtn);
     }
@@ -136,9 +211,19 @@ function renderHeaderUser() {
 
 async function toggleAdminViewMode() {
   state.adminViewAll = !state.adminViewAll;
+  if (!state.adminViewAll) {
+    state.adminScopeFranquiaId = 'all';
+  }
+  persistAdminPreferences();
   showToast(state.adminViewAll ? 'VISÃO: TODAS AS FRANQUIAS' : 'VISÃO: MINHA UNIDADE');
   await Promise.all([fetchClientes(), fetchPropostas(), fetchVendas()]);
   renderHeaderUser();
+  renderContent();
+}
+
+function setAdminScopeFranquia(scopeId) {
+  state.adminScopeFranquiaId = String(scopeId || 'all');
+  persistAdminPreferences();
   renderContent();
 }
 
@@ -193,6 +278,7 @@ async function refreshData() {
   const icon = document.getElementById('refresh-data-icon');
   if (icon) icon.classList.add('animate-spin');
   await Promise.all([
+    fetchFranquiasCatalog(),
     fetchClientes(),
     fetchPropostas(),
     fetchVendas(),
@@ -253,6 +339,11 @@ function renderTabs() {
 }
 
 function setTab(tabId) {
+  if (tabId === 'admin' && !userCanAccessAdminPanel()) {
+    showToast('Acesso restrito.');
+    return;
+  }
+
   closeMobileMenu();
   if (typeof chatHandleAppTabChange === 'function') chatHandleAppTabChange();
   stopDashboardClock();
@@ -272,6 +363,20 @@ function setViewMode(mode) {
   renderContent();
 }
 
+function syncSearchToolbarForActiveTab() {
+  const searchInput = document.getElementById('search-input');
+  if (!searchInput) return;
+
+  if (state.activeTab === 'clientes' && state.isAdmin) {
+    searchInput.value = String(state.adminClientesFilters?.search || '');
+    searchInput.placeholder = 'BUSCAR CLIENTE, CIDADE, TELEFONE OU VENDEDOR...';
+    return;
+  }
+
+  searchInput.value = String(state.searchTerm || '');
+  searchInput.placeholder = 'BUSCAR CLIENTE...';
+}
+
 function renderContent() {
   const container       = document.getElementById('main-container');
   const toggleContainer = document.getElementById('view-toggle-container');
@@ -288,7 +393,11 @@ function renderContent() {
     renderDashboard(container);
   } else if (state.activeTab === 'clientes') {
     stopDashboardClock();
-    mainToolbar.classList.remove('hidden');
+    if (state.isAdmin) {
+      mainToolbar.classList.add('hidden');
+    } else {
+      mainToolbar.classList.remove('hidden');
+    }
     toggleContainer.classList.add('hidden');
     if (adminBar) adminBar.classList.add('hidden');
     renderClientesList(container);
@@ -298,17 +407,22 @@ function renderContent() {
     toggleContainer.classList.add('hidden');
     if (adminBar) adminBar.classList.add('hidden');
     renderVendas(container);
-  } else if (state.activeTab === 'materiais') {
-    stopDashboardClock();
-    mainToolbar.classList.add('hidden');
-    toggleContainer.classList.add('hidden');
-    if (adminBar) adminBar.classList.add('hidden');
-    renderMateriais(container);
   } else if (state.activeTab === 'admin') {
     stopDashboardClock();
     mainToolbar.classList.add('hidden');
     toggleContainer.classList.add('hidden');
     if (adminBar) adminBar.classList.add('hidden');
+
+    if (!userCanAccessAdminPanel()) {
+      state.activeTab = 'dashboard';
+      renderTabs();
+      renderDashboard(container);
+      syncSearchToolbarForActiveTab();
+      queueAppLucideCreateIcons();
+      showToast('Acesso restrito.');
+      return;
+    }
+
     state.isEditMode = true;
     renderAdminPanel(container);
   } else {
@@ -322,12 +436,20 @@ function renderContent() {
     }
     renderProductsList(container);
   }
+  syncSearchToolbarForActiveTab();
   queueAppLucideCreateIcons();
 }
 
 // --- Event Listeners Globais ---
 const _onSearchInput = debounce((value) => {
-  state.searchTerm = value;
+  if (state.isAdmin && state.activeTab === 'clientes') {
+    state.adminClientesFilters.search = String(value || '');
+    persistAdminPreferences();
+    renderContent();
+    return;
+  }
+
+  state.searchTerm = String(value || '');
   renderContent();
 }, 180);
 
@@ -340,4 +462,10 @@ document.getElementById('client-telefone').addEventListener('input', formatarTel
 // --- Inicialização ---
 queueAppLucideCreateIcons();
 checkAuth();
+
+
+
+
+
+
 

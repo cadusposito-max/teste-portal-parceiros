@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // LÓGICA DA PÁGINA DE PROPOSTA (proposta.html)
 // ==========================================
 
@@ -48,19 +48,9 @@ function initProposalQuickActions() {
   const btnOpen = document.getElementById('qa-open-browser-btn');
   if (!quickWrap || !btnBack || !btnCopy || !btnOpen) return;
 
-  const syncQuickActionsVisibility = () => {
-    const showQuickActions = isStandaloneDisplayMode();
-    quickWrap.classList.toggle('hidden', !showQuickActions);
-    document.body.classList.toggle('proposal-qa-visible', showQuickActions);
-  };
-
-  // Exibe apenas em modo app/standalone.
-  syncQuickActionsVisibility();
-  window.addEventListener('resize', syncQuickActionsVisibility, { passive: true });
-
-  const standaloneDisplayMql = window.matchMedia('(display-mode: standalone)');
-  if (typeof standaloneDisplayMql.addEventListener === 'function') {
-    standaloneDisplayMql.addEventListener('change', syncQuickActionsVisibility);
+  // Exibe sempre em telas menores e no modo app.
+  if (window.innerWidth < 1024 || isStandaloneDisplayMode()) {
+    quickWrap.classList.remove('hidden');
   }
 
   btnBack.addEventListener('click', () => {
@@ -105,11 +95,7 @@ function startCountdown(createdAt) {
     });
   }
 
-  // Mostra o banner corretamente (sem conflito hidden + flex)
-  if (banner) {
-    banner.classList.remove('urgency-banner-hidden');
-    banner.classList.add('urgency-banner-visible');
-  }
+  if (banner) banner.classList.remove('hidden');
 }
 
 // ==========================================
@@ -217,29 +203,19 @@ function gerarOpcoesParcelamento(valorBase) {
 const urlParams  = new URLSearchParams(window.location.search);
 const propostaId = urlParams.get('id');
 
+function isValidProposalId(value) {
+  const raw = String(value || '').trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(raw);
+}
+
 async function carregarProposta() {
-  if (!propostaId) { showError(); return; }
+  if (!propostaId || !isValidProposalId(propostaId)) { showError(); return; }
   try {
     const { data, error } = await supabaseClient
-      .from('propostas')
-      .select('*')
-      .eq('id', propostaId)
+      .rpc('get_public_proposta', { p_id: propostaId })
       .single();
 
     if (error || !data) { showError(); return; }
-
-    // Se a proposta não tem telefone salvo, busca em outra proposta do mesmo vendedor
-    if (!data.vendedor_telefone && data.vendedor_email) {
-      const { data: outra } = await supabaseClient
-        .from('propostas')
-        .select('vendedor_telefone')
-        .eq('vendedor_email', data.vendedor_email)
-        .not('vendedor_telefone', 'is', null)
-        .neq('vendedor_telefone', '')
-        .limit(1)
-        .maybeSingle();
-      if (outra?.vendedor_telefone) data.vendedor_telefone = outra.vendedor_telefone;
-    }
 
     renderData(data);
     const priceForParcelas = (data.proposal_mode === 'PERSONALIZADA' || data.proposal_mode === 'EQUIPAMENTOS')
@@ -260,7 +236,7 @@ function renderData(data) {
   const isCustomMode    = isPersonalizada || isEquipamentos;
   const displayPrice = isCustomMode ? (data.custom_total_price || data.kit_price || 0) : (data.kit_price || 0);
   const displayPower = isCustomMode ? (data.custom_system_power_kwp || data.kit_power || 0) : (data.kit_power || 0);
-  const displayName  = isCustomMode ? 'Proposta Personalizada' : (data.kit_nome || '');
+  const displayName  = isCustomMode ? (data.kit_nome || 'Proposta Personalizada') : (data.kit_nome || '');
   const displayBrand = isCustomMode ? '' : (data.kit_brand || '');
 
   // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
@@ -275,10 +251,6 @@ function renderData(data) {
   const economia25Anos   = economiaAnual * 25;
   const contaPosSistema  = Math.max(0, valorFaturaIdeal - economiaMensal);
   const arvoresPlantadas = Math.round(displayPower * 3);
-  // CO2 evitado em kg/ano (mais legível para o cliente leigo)
-  const co2KgAno         = Math.round(estGeneration * 12 * 0.0817);
-  // Meses com conta zerada em 25 anos (geração total / consumo médio mensal)
-  const mesesContaZerada = economiaMensal > 0 ? Math.round((estGeneration * 12 * 25) / (estGeneration)) : 0;
 
   const mesesTotaisPayback= economiaMensal > 0 ? Math.ceil(displayPrice / economiaMensal) : 0;
   const anosPayback       = Math.floor(mesesTotaisPayback / 12);
@@ -322,16 +294,15 @@ function renderData(data) {
   if (heroSystemMetaEl) heroSystemMetaEl.innerText = heroSystemMeta;
 
   // Para EQUIPAMENTOS: oculta potência e geração apenas se não houver dados de sistema
-  const powerGenPills = document.querySelectorAll('#kit-power, #kit-generation');
-  const idealBillContainer = document.querySelector('#kit-ideal-bill')?.closest('.proposta-bill-card');
+  const powerGenGrid = document.querySelector('#kit-power')?.closest('.grid');
+  const idealBillRow = document.querySelector('#kit-ideal-bill')?.closest('.mb-8');
   if (isCustomMode && displayPower <= 0) {
-    powerGenPills.forEach(el => el.closest('.proposta-kpi-pill')?.classList.add('hidden'));
-    if (idealBillContainer) idealBillContainer.classList.add('hidden');
+    if (powerGenGrid) powerGenGrid.classList.add('hidden');
+    if (idealBillRow) idealBillRow.classList.add('hidden');
   } else {
     document.getElementById('kit-power').innerText      = displayPower + ' kWp';
     document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
-    const kitIdealEl = document.getElementById('kit-ideal-bill');
-    if (kitIdealEl) kitIdealEl.innerText = formatter.format(valorFaturaIdeal).replace('R$', '').trim();
+    if (idealBillRow) document.getElementById('kit-ideal-bill').innerText = formatter.format(valorFaturaIdeal);
   }
 
   const listPriceEl = document.getElementById('kit-list-price');
@@ -353,8 +324,8 @@ function renderData(data) {
   `;
 
   // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potência
-  const ecoSection = document.getElementById('eco-month')?.closest('.proposta-section-card');
-  const envSection = document.getElementById('env-trees')?.closest('.proposta-credibilidade-card');
+  const ecoSection = document.querySelector('#eco-month')?.closest('.bg-neutral-900.border');
+  const envSection = document.querySelector('#env-trees')?.closest('.flex.flex-col.md\\:flex-row');
   const ecoCurrentBillEl = document.getElementById('eco-current-bill');
   const ecoPostBillEl = document.getElementById('eco-post-bill');
   const paymentCardBestEl = document.getElementById('payment-card-best');
@@ -369,11 +340,7 @@ function renderData(data) {
     document.getElementById('eco-payback').innerText  = textoPayback;
     if (ecoCurrentBillEl) ecoCurrentBillEl.innerText = formatter.format(valorFaturaIdeal);
     if (ecoPostBillEl) ecoPostBillEl.innerText = formatter.format(contaPosSistema);
-    // Indicadores ambientais em linguagem acessível
-    const envCo2El      = document.getElementById('env-co2');
-    const envCo2YearsEl = document.getElementById('env-co2-years');
-    if (envCo2El)      envCo2El.innerText      = co2KgAno > 0 ? co2KgAno + ' kg' : '—';
-    if (envCo2YearsEl) envCo2YearsEl.innerText = mesesContaZerada > 0 ? '+' + mesesContaZerada : '—';
+
   }
   if (paymentCardBestEl) paymentCardBestEl.innerText = melhorPagamento;
 
@@ -394,57 +361,22 @@ function renderData(data) {
   const heroCta     = document.getElementById('hero-cta-btn');
   const ecoCta      = document.getElementById('eco-cta-btn');
   const floatWa     = document.getElementById('floating-whatsapp');
+  const vendorWaBtn = document.getElementById('vendor-whatsapp-btn');
   if (finalCta)    finalCta.href    = waLink;
   if (heroCta)     heroCta.href     = waLink;
   if (ecoCta)      ecoCta.href      = waLink;
   if (floatWa)     floatWa.href     = waLink;
+  if (vendorWaBtn) vendorWaBtn.href = waLink;
 
   // --- Vendor card ---
-  const vendorCard        = document.getElementById('vendor-card');
-  const vendorAvatarEl    = document.getElementById('vendor-avatar');
-  const vendorNameEl      = document.getElementById('vendor-name');
-  const vendorEmailTextEl = document.getElementById('vendor-email-text');
-  const vendorEmailLinkEl = document.getElementById('vendor-email-link');
-  const vendorTelLinkEl   = document.getElementById('vendor-tel-link');
-  const vendorPhoneDispEl = document.getElementById('vendor-phone-display');
-  const vendorPhoneTextEl = document.getElementById('vendor-phone-text');
-  const vendorMainCtaEl   = document.getElementById('vendor-main-cta');
-
-  // Avatar: iniciais
-  if (vendorAvatarEl) {
-    const initials = vendorNome.split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
-    const initialsEl = document.getElementById('vendor-initials');
-    if (initialsEl) { initialsEl.innerText = initials; initialsEl.classList.remove('hidden'); }
-    vendorAvatarEl.style.backgroundImage = '';
-  }
-  if (vendorNameEl) vendorNameEl.innerText = vendorNome.toUpperCase();
-
-  // Email
-  if (data.vendedor_email) {
-    if (vendorEmailTextEl) vendorEmailTextEl.innerText = data.vendedor_email;
-    if (vendorEmailLinkEl) {
-      vendorEmailLinkEl.href = `mailto:${data.vendedor_email}?subject=Interesse na proposta solar`;
-      vendorEmailLinkEl.classList.remove('hidden');
-    }
-  }
-
-  // Telefone
-  if (vendorTel) {
-    const telFormatted = vendorTel.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3')
-      || vendorTel.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3')
-      || vendorTel;
-    if (vendorPhoneDispEl) vendorPhoneDispEl.innerText = telFormatted;
-    if (vendorPhoneTextEl) vendorPhoneTextEl.innerText = telFormatted;
-    if (vendorTelLinkEl) {
-      vendorTelLinkEl.href = `tel:+55${vendorTel.replace(/\D/g,'')}`;
-      vendorTelLinkEl.classList.remove('hidden');
-    }
-    if (vendorPhoneTextEl) vendorPhoneTextEl.classList.remove('hidden');
-  }
-
-  // Sync main CTA com whatsapp btn
-  if (vendorMainCtaEl) vendorMainCtaEl.href = waLink;
-  if (vendorCard) vendorCard.classList.remove('hidden');
+  const vendorCard     = document.getElementById('vendor-card');
+  const vendorAvatarEl = document.getElementById('vendor-avatar');
+  const vendorNameEl   = document.getElementById('vendor-name');
+  const vendorEmailEl  = document.getElementById('vendor-email-text');
+  if (vendorAvatarEl) vendorAvatarEl.innerText = vendorNome.charAt(0).toUpperCase();
+  if (vendorNameEl)   vendorNameEl.innerText   = vendorNome.toUpperCase();
+  if (vendorEmailEl && data.vendedor_email) vendorEmailEl.innerText = data.vendedor_email;
+  if (vendorCard)     vendorCard.classList.remove('hidden');
 
   // --- Custom notes for PERSONALIZADA and EQUIPAMENTOS ---
   const payNoteRow  = document.getElementById('custom-payment-note-row');

@@ -156,6 +156,52 @@ function formatMonthLabel(yyyymm) {
   return `${months[parseInt(m, 10) - 1]} ${y}`;
 }
 
+function toMonthKey(dateString) {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function isSameDayDate(dateString, baseDate = new Date()) {
+  if (!dateString) return false;
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return false;
+  return d.getFullYear() === baseDate.getFullYear()
+    && d.getMonth() === baseDate.getMonth()
+    && d.getDate() === baseDate.getDate();
+}
+
+function isDateInLastDays(dateString, days, baseDate = new Date()) {
+  if (!dateString || !Number.isFinite(days) || days <= 0) return false;
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return false;
+  const start = new Date(baseDate);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  return d >= start && d <= baseDate;
+}
+
+function normalizeFilterText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getFranquiaNameById(franquiaId) {
+  if (!franquiaId) return 'Sem franquia';
+  const normalized = String(franquiaId);
+  const found = (state.franquiasCatalog || []).find(f => String(f.id) === normalized);
+  if (found?.nome) return found.nome;
+  return `Franquia ${normalized.slice(0, 8)}`;
+}
+
+function applyAdminGlobalScope(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!state?.isAdmin || !state?.adminViewAll) return list;
+  const scopeId = String(state.adminScopeFranquiaId || 'all');
+  if (scopeId === 'all') return list;
+  return list.filter((item) => String(item?.franquia_id || '') === scopeId);
+}
+
 function debounce(fn, wait = 180) {
   let timer = null;
   return (...args) => {
@@ -600,4 +646,5 @@ if (document.readyState === 'loading') {
 } else {
   initPublishedVersionWatcher();
 }
+
 

@@ -17,6 +17,194 @@ const PB_PROPOSAL_MODES = {
   PERSONALIZADA: 'PERSONALIZADA',
   EQUIPAMENTOS: 'EQUIPAMENTOS'
 };
+function canUsePersonalizada() {
+  return Boolean(state.isAdmin || state.isGestor);
+}
+
+function updatePBPersonalizadaRoleBadge() {
+  const panel = document.getElementById('pb-equip-panel');
+  if (!panel) return;
+
+  const badge = document.getElementById('pb-personalizada-role-badge')
+    || panel.querySelector('.border-b span.shrink-0');
+  if (!badge) return;
+
+  const label = document.getElementById('pb-personalizada-role-badge-label');
+  if (label) {
+    label.textContent = 'ADMIN/GESTOR';
+    return;
+  }
+
+  const textNodes = Array.from(badge.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE);
+  if (textNodes.length > 0) {
+    textNodes[textNodes.length - 1].textContent = ' ADMIN/GESTOR';
+    return;
+  }
+
+  badge.appendChild(document.createTextNode(' ADMIN/GESTOR'));
+}
+const _pbSellerNameCache = new Map();
+const _pbSellerPhoneCache = new Map();
+const _pbSellerNamePending = new Map();
+const _pbSellerPhonePending = new Map();
+
+function _pbNormalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function _pbEmailPrefix(email) {
+  const normalized = _pbNormalizeEmail(email);
+  if (!normalized) return 'Consultor';
+  const prefix = normalized.split('@')[0] || '';
+  return prefix || 'Consultor';
+}
+
+function _pbCurrentUserName() {
+  const meta = state.currentUser?.user_metadata || {};
+  const profileName = String(state.profile?.nome || '').trim();
+  const metaName = String(meta.full_name || meta.name || '').trim();
+  return profileName || metaName || _pbEmailPrefix(state.currentUser?.email);
+}
+
+function _pbCurrentUserPhone() {
+  const meta = state.currentUser?.user_metadata || {};
+  return String(state.profile?.telefone || meta.phone || state.currentUser?.phone || '').trim();
+}
+
+async function _pbResolveSellerNameByEmail(email) {
+  const normalizedEmail = _pbNormalizeEmail(email);
+  if (!normalizedEmail) return 'Consultor';
+
+  if (_pbSellerNameCache.has(normalizedEmail)) {
+    return _pbSellerNameCache.get(normalizedEmail) || _pbEmailPrefix(normalizedEmail);
+  }
+  if (_pbSellerNamePending.has(normalizedEmail)) {
+    return _pbSellerNamePending.get(normalizedEmail);
+  }
+
+  const pending = (async () => {
+    const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
+    if (normalizedEmail === currentEmail) {
+      const currentName = _pbCurrentUserName();
+      _pbSellerNameCache.set(normalizedEmail, currentName);
+      return currentName;
+    }
+
+    let resolvedName = '';
+    try {
+      const { data, error } = await supabaseClient.rpc('chat_list_directory', {
+        p_search: normalizedEmail,
+        p_limit: 80,
+      });
+      if (error) throw error;
+
+      const rows = Array.isArray(data) ? data : [];
+      const match = rows.find((row) => _pbNormalizeEmail(row?.email) === normalizedEmail);
+      resolvedName = String(match?.nome || '').trim();
+    } catch (err) {
+      console.warn('[proposta-builder] Falha ao buscar nome do vendedor via chat_list_directory:', normalizedEmail, err);
+    }
+
+    if (!resolvedName) {
+      resolvedName = _pbEmailPrefix(normalizedEmail);
+      console.warn('[proposta-builder] Fallback de nome para vendedor:', normalizedEmail);
+    }
+
+    _pbSellerNameCache.set(normalizedEmail, resolvedName);
+    return resolvedName;
+  })().finally(() => {
+    _pbSellerNamePending.delete(normalizedEmail);
+  });
+
+  _pbSellerNamePending.set(normalizedEmail, pending);
+  return pending;
+}
+
+async function _pbResolveSellerPhoneByEmail(email) {
+  const normalizedEmail = _pbNormalizeEmail(email);
+  if (!normalizedEmail) return '';
+
+  if (_pbSellerPhoneCache.has(normalizedEmail)) {
+    return _pbSellerPhoneCache.get(normalizedEmail) || '';
+  }
+  if (_pbSellerPhonePending.has(normalizedEmail)) {
+    return _pbSellerPhonePending.get(normalizedEmail);
+  }
+
+  const pending = (async () => {
+    const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
+    if (normalizedEmail === currentEmail) {
+      const currentPhone = _pbCurrentUserPhone();
+      _pbSellerPhoneCache.set(normalizedEmail, currentPhone);
+      return currentPhone;
+    }
+
+    let resolvedPhone = '';
+    try {
+      const { data, error } = await supabaseClient
+        .from('propostas')
+        .select('vendedor_telefone')
+        .eq('vendedor_email', normalizedEmail)
+        .not('vendedor_telefone', 'is', null)
+        .neq('vendedor_telefone', '')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      resolvedPhone = String(data?.vendedor_telefone || '').trim();
+    } catch (err) {
+      console.warn('[proposta-builder] Falha ao buscar telefone do vendedor em propostas:', normalizedEmail, err);
+    }
+
+    _pbSellerPhoneCache.set(normalizedEmail, resolvedPhone);
+    return resolvedPhone;
+  })().finally(() => {
+    _pbSellerPhonePending.delete(normalizedEmail);
+  });
+
+  _pbSellerPhonePending.set(normalizedEmail, pending);
+  return pending;
+}
+
+function canOperateClientProposalFlow(client) {
+  if (!client || !state.currentUser) return false;
+  if (state.isAdmin || state.isGestor) return true;
+
+  const currentEmail = _pbNormalizeEmail(state.currentUser.email);
+  const ownerEmail = _pbNormalizeEmail(client.vendedor_email);
+
+  if (!currentEmail) return false;
+  if (!ownerEmail) return true;
+  return ownerEmail === currentEmail;
+}
+
+async function resolveEffectiveSellerForClient(client) {
+  const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
+  const ownerEmail = _pbNormalizeEmail(client?.vendedor_email);
+  const canManageOthers = Boolean(state.isAdmin || state.isGestor);
+
+  const sellerEmail = canManageOthers
+    ? (ownerEmail || currentEmail)
+    : currentEmail;
+
+  if (!sellerEmail) {
+    throw new Error('Nao foi possivel identificar o vendedor responsavel pelo cliente.');
+  }
+  if (!canManageOthers && ownerEmail && ownerEmail !== currentEmail) {
+    throw new Error('Nao autorizado para operar cliente de outro vendedor.');
+  }
+
+  const [sellerName, sellerPhone] = await Promise.all([
+    _pbResolveSellerNameByEmail(sellerEmail),
+    _pbResolveSellerPhoneByEmail(sellerEmail),
+  ]);
+
+  return {
+    vendedor_email: sellerEmail,
+    vendedor_nome: sellerName || _pbEmailPrefix(sellerEmail),
+    vendedor_telefone: sellerPhone || '',
+  };
+}
 
 function getPBDefaultEquipDraft() {
   return {
@@ -37,6 +225,10 @@ function openProposalBuilder(clientId) {
 
   if (!client) {
     showToast('Cliente nao encontrado.');
+    return;
+  }
+  if (!canOperateClientProposalFlow(client)) {
+    showToast('Acesso restrito ao cliente selecionado.');
     return;
   }
 
@@ -67,6 +259,7 @@ function openProposalBuilder(clientId) {
   setPBMainTab('kits');
   updatePBTabsUI();
   setPBProposalMode(PB_PROPOSAL_MODES.PROMOCIONAL);
+  updatePBPersonalizadaRoleBadge();
 
   document.getElementById('proposal-builder-modal').classList.remove('hidden');
   lucide.createIcons();
@@ -223,7 +416,7 @@ function renderHistorico() {
         <div class="metric-card border ${isVendido ? 'border-green-900/40' : isPersonalizada ? 'border-orange-900/40' : 'border-neutral-800'} p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 group">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap mb-1">
-              <span class="text-white font-black text-sm uppercase truncate group-hover:text-orange-400 transition-colors">${isPersonalizada ? 'Proposta Personalizada' : escapeHTML(p.kit_nome)}</span>
+              <span class="text-white font-black text-sm uppercase truncate group-hover:text-orange-400 transition-colors">${escapeHTML(p.kit_nome) || 'Proposta Personalizada'}</span>
               ${isVendido ? '<span class="text-[8px] bg-green-500/15 text-green-400 border border-green-500/30 px-2 py-0.5 font-black uppercase tracking-widest">VENDIDO</span>' : ''}
               ${isPersonalizada ? '<span class="text-[8px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-2 py-0.5 font-black uppercase tracking-widest">PERSONALIZADA</span>' : ''}
             </div>
@@ -285,7 +478,7 @@ function updatePBTabsUI() {
 function setPBProposalMode(mode) {
   const wantsPersonalizada = mode === PB_PROPOSAL_MODES.PERSONALIZADA || mode === PB_PROPOSAL_MODES.EQUIPAMENTOS;
 
-  if (wantsPersonalizada && !state.isAdmin) return;
+  if (wantsPersonalizada && !canUsePersonalizada()) return;
 
   state.pbProposalMode = wantsPersonalizada
     ? PB_PROPOSAL_MODES.PERSONALIZADA
@@ -323,7 +516,7 @@ function updatePBModeUI() {
   if (btnPromo)  btnPromo.className  = (mode === 'PROMOCIONAL') ? ACTIVE : INACTIVE;
   if (btnCustom) {
     btnCustom.className = isPersonalizada ? ACTIVE_BL : INACTIVE;
-    btnCustom.classList.toggle('hidden', !state.isAdmin);
+    btnCustom.classList.toggle('hidden', !canUsePersonalizada());
   }
 
   if (helperText) {
@@ -338,6 +531,7 @@ function updatePBModeUI() {
   if (productsContainer) productsContainer.classList.toggle('hidden', hidePromo);
   if (emptyEl && hidePromo) emptyEl.classList.add('hidden');
 
+  updatePBPersonalizadaRoleBadge();
   lucide.createIcons();
 }
 
@@ -358,7 +552,7 @@ function bindPBSearchInputEvent() {
 
 bindPBSearchInputEvent();
 // ==========================================
-// MODO: PERSONALIZADA (Admin only)
+// MODO: PERSONALIZADA (Admin/Gestor only)
 // ==========================================
 
 function syncEquipInputsFromState() {
@@ -426,6 +620,12 @@ async function handleEquipamentosProposalSubmit(event) {
   const client = state.pbActiveClient;
   if (!client) return showToast('Nenhum cliente em atendimento!');
 
+  if (!canUsePersonalizada()) {
+    console.warn('[proposta-builder] Tentativa bloqueada de gerar proposta personalizada sem permissao (admin/gestor).');
+    showToast('Apenas administrador ou gestor pode gerar proposta personalizada.');
+    return;
+  }
+
   const submitBtn    = document.getElementById('pb-equip-submit');
   const originalText = submitBtn ? submitBtn.innerHTML : '';
   if (submitBtn) {
@@ -437,16 +637,14 @@ async function handleEquipamentosProposalSubmit(event) {
   const shouldUsePopup = !isStandaloneDisplayMode();
   const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
   try {
-    const vendedorMeta = state.currentUser.user_metadata || {};
-    const vendedorNome = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel  = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
-    const descricao    = (draft.descricao || '').trim() || 'Proposta Personalizada';
+    const seller    = await resolveEffectiveSellerForClient(client);
+    const descricao = (draft.descricao || '').trim() || 'Proposta Personalizada';
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
       proposal_mode:           'PERSONALIZADA',
-      vendedor_email:          state.currentUser.email,
-      vendedor_nome:           vendedorNome,
-      vendedor_telefone:       vendedorTel,
+      vendedor_email:          seller.vendedor_email,
+      vendedor_nome:           seller.vendedor_nome,
+      vendedor_telefone:       seller.vendedor_telefone,
       cliente_nome:            client.nome,
       cliente_telefone:        client.telefone,
       cliente_cidade:          client.cidade,
@@ -646,14 +844,12 @@ async function copyProposalLink(kit, event) {
   const popupRef = shouldUsePopup ? window.open('', '_blank') : null;
 
   try {
-    const vendedorMeta  = state.currentUser.user_metadata || {};
-    const vendedorNome  = vendedorMeta.full_name || vendedorMeta.name || state.currentUser.email.split('@')[0];
-    const vendedorTel   = state.profile?.telefone || vendedorMeta.phone || state.currentUser.phone || '';
+    const seller = await resolveEffectiveSellerForClient(client);
 
     const { data, error } = await supabaseClient.from('propostas').insert([{
-      vendedor_email:    state.currentUser.email,
-      vendedor_nome:     vendedorNome,
-      vendedor_telefone: vendedorTel,
+      vendedor_email:    seller.vendedor_email,
+      vendedor_nome:     seller.vendedor_nome,
+      vendedor_telefone: seller.vendedor_telefone,
       cliente_nome:      client.nome,
       cliente_telefone:  client.telefone,
       cliente_cidade:    client.cidade,
@@ -858,19 +1054,23 @@ async function confirmarFechaVenda() {
     errEl.classList.remove('hidden');
     return;
   }
+  if (!canOperateClientProposalFlow(client)) {
+    errEl.innerText = 'Acesso restrito ao cliente selecionado.';
+    errEl.classList.remove('hidden');
+    return;
+  }
 
   const originalHTML = btn.innerHTML;
   btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline mr-2"></i>REGISTRANDO...';
   btn.disabled  = true;
   lucide.createIcons();
 
-  const meta         = state.currentUser.user_metadata || {};
-  const vendedorNome = meta.full_name || meta.name || state.currentUser.email.split('@')[0];
-
   try {
+    const seller = await resolveEffectiveSellerForClient(client);
+
     const { error: insertError } = await supabaseClient.from('vendas').insert([{
-      vendedor_email:    state.currentUser.email,
-      vendedor_nome:     vendedorNome,
+      vendedor_email:    seller.vendedor_email,
+      vendedor_nome:     seller.vendedor_nome,
       cliente_id:        client.id,
       cliente_nome:      client.nome,
       cliente_telefone:  client.telefone || '',
@@ -913,6 +1113,11 @@ async function confirmarFechaVenda() {
     lucide.createIcons();
   }
 }
+
+
+
+
+
 
 
 

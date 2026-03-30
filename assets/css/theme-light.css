@@ -107,8 +107,7 @@ body.theme-light .dash-pipeline,
 body.theme-light .dash-comunicados-panel,
 body.theme-light .dash-materials-panel,
 body.theme-light .dash-quick-panel,
-body.theme-light .tab-content,
-body.theme-light .materiais-card {
+body.theme-light .tab-content {
   background: #ffffff !important;
 }
 
@@ -160,10 +159,10 @@ body.theme-light [class*="to-black"] {
   --tw-gradient-via: transparent !important;
   --tw-gradient-to: transparent !important;
 }
-/* Decorative blur blobs — excluir pills funcionais */
-body.theme-light [class*="bg-orange-"][class*="blur-"]:not(.proposta-kpi-pill),
-body.theme-light [class*="bg-yellow-"][class*="blur-"]:not(.proposta-kpi-pill),
-body.theme-light [class*="bg-blue-"][class*="blur-"]:not(.proposta-kpi-pill) {
+/* Decorative blur blobs */
+body.theme-light [class*="bg-orange-"][class*="blur-"],
+body.theme-light [class*="bg-yellow-"][class*="blur-"],
+body.theme-light [class*="bg-blue-"][class*="blur-"] {
   opacity: 0.05 !important;
 }
 
@@ -361,9 +360,9 @@ body.theme-light #video-wrapper {
   border-color: #222222 !important;
 }
 body.theme-light .vid-nav-btn {
-  background: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
+  background: rgba(20,20,20,0.85) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+  color: #ffffff !important;
 }
 body.theme-light .vid-nav-btn:hover {
   background: #2563eb !important;
@@ -451,9 +450,9 @@ body.theme-light [class*="bg-yellow-900/"] {
   background-color: rgba(202,138,4,0.1) !important;
   border-color: rgba(202,138,4,0.35) !important;
 }
-body.theme-light [class*="text-yellow-4"] { color: #b45309 !important; }
-body.theme-light [class*="text-yellow-5"] { color: #92400e !important; }
-body.theme-light [id="kit-generation"]    { color: #d97706 !important; }
+body.theme-light [class*="text-yellow-4"] { color: #a16207 !important; }
+body.theme-light [class*="text-yellow-5"] { color: #854d0e !important; }
+body.theme-light [id="kit-generation"]    { color: #a16207 !important; }
 
 /* overlay bg-black/80 sobre foto → muito mais claro */
 body.theme-light [class*="bg-cover"] > .absolute.inset-0[class*="bg-black\/8"],
@@ -581,139 +580,36 @@ body.theme-light [class*="border-dashed"][class*="border-orange-5"] {
 body.theme-light #admin-kits-grid [class*="bg-black\/5"],
 body.theme-light #admin-kits-grid [class*="bg-black\/4"] { background-color: #f1f5f9 !important; }
 body.theme-light #admin-kits-grid [class*="text-neutral-5"] { color: #64748b !important; }
-/* ─── 20b. PROPOSTA LAYOUT + PREMIUM (hero/cards/cta) ────────── */
-
-/* Background da página proposta no light */
-body.theme-light .proposta-page-wrap {
-  background: transparent;
-}
-
-/* Hero banner */
-body.theme-light #proposal-content > div:first-child {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
-  border-color: #dde3ed !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
-}
-
-/* Todos os cards principais da proposta */
-body.theme-light .proposta-col-main > div,
-body.theme-light .proposta-col-side > div {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04) !important;
-}
-
-/* Kit hero shell */
+/* ─── 20b. PROPOSTA PREMIUM (hero/cards/cta) ─────────── */
 body.theme-light .proposal-hero-shell {
   border-color: rgba(37, 99, 235, 0.28) !important;
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 52%),
-    radial-gradient(90% 100% at 100% 0%, rgba(96, 165, 250, 0.14) 0%, rgba(96, 165, 250, 0) 50%),
+    radial-gradient(120% 140% at 0% 0%, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 58%),
+    radial-gradient(90% 100% at 100% 0%, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0) 55%),
     linear-gradient(170deg, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%) !important;
-  box-shadow: 0 0 40px rgba(37, 99, 235, 0.14), 0 2px 16px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 0 40px rgba(37, 99, 235, 0.16) !important;
 }
 
 body.theme-light .proposal-hero-shell::before {
-  background: linear-gradient(115deg, rgba(37, 99, 235, 0.22), rgba(96, 165, 250, 0.1), transparent 60%) !important;
-  opacity: 0.8 !important;
+  background: linear-gradient(115deg, rgba(37, 99, 235, 0.28), rgba(96, 165, 250, 0.12), transparent 65%) !important;
 }
 
-/* Price block no kit */
-body.theme-light .proposal-hero-shell [class*="bg-black\/60"] {
-  background: linear-gradient(145deg, #f0f4f8, #e8eef5) !important;
-  border-color: #d4dce8 !important;
-}
-
-/* Ideal bill block */
-body.theme-light .proposal-hero-shell [class*="from-orange-900"] {
-  background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(96,165,250,0.1)) !important;
-  border-color: rgba(37,99,235,0.22) !important;
-}
-
-/* Formas de pagamento */
-body.theme-light .proposal-hero-shell [class*="bg-neutral-900\/50"] {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Payment buttons */
-body.theme-light #btn-show-installments {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-body.theme-light #btn-show-installments:hover {
-  border-color: rgba(37,99,235,0.4) !important;
-  background: #f8fafc !important;
-}
-
-/* Seção Economia Real (2º filho da col-main) */
-body.theme-light .proposta-col-main > div:nth-child(2) {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Seção inclusos (3º filho da col-main) */
-body.theme-light .proposta-col-main > div:nth-child(3) {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Cards de inclusos individuais */
-body.theme-light .proposta-col-main > div:nth-child(3) [class*="bg-black\/30"] {
-  background: #f8fafc !important;
-  border-color: #e8eef5 !important;
-}
-
-/* Seção quem somos — overlay mais claro no light */
-body.theme-light [class*="bg-neutral-950\/90"].backdrop-blur-sm {
-  background-color: rgba(10, 18, 38, 0.72) !important;
-}
-
-/* Seção vídeo (5º filho da col-main) */
-body.theme-light .proposta-col-main > div:nth-child(5) {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Rows de economia (scoped por classe, sem restrição de coluna) */
-body.theme-light .proposta-col-main [class*="bg-black\/40"],
-body.theme-light .proposta-col-side [class*="bg-black\/40"] {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Bloco 25 anos */
-body.theme-light [class*="bg-green-900\/10"] {
-  background: rgba(21,128,61,0.06) !important;
-  border-color: rgba(21,128,61,0.22) !important;
-}
-
-/* Payback block */
-body.theme-light [class*="bg-orange-600\/10"] {
-  background: rgba(37,99,235,0.05) !important;
-  border-color: rgba(37,99,235,0.18) !important;
-}
-
-/* Vendor card */
-body.theme-light #vendor-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.03) !important;
-}
-
-/* Vendor row interno */
-body.theme-light #vendor-card [class*="bg-black\/30"] {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Kit items */
 body.theme-light .proposal-kpi-card {
   border-color: #dbe3ee !important;
   background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
 }
 
-body.theme-light .proposal-kpi-label { color: #64748b !important; }
-body.theme-light .proposal-kpi-value { color: #0f172a !important; }
-body.theme-light .proposal-kpi-note  { color: #64748b !important; }
+body.theme-light .proposal-kpi-label {
+  color: #64748b !important;
+}
+
+body.theme-light .proposal-kpi-value {
+  color: #0f172a !important;
+}
+
+body.theme-light .proposal-kpi-note {
+  color: #64748b !important;
+}
 
 body.theme-light .proposal-inline-cta {
   border-color: rgba(37, 99, 235, 0.35) !important;
@@ -727,222 +623,6 @@ body.theme-light .proposal-inline-cta.is-secondary {
   color: #1e293b !important;
   box-shadow: none !important;
 }
-
-/* ─── Novos elementos da proposta (ajuste fino) ──────── */
-
-/* Hero banner light */
-body.theme-light .proposta-hero-banner {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%) !important;
-  border-color: #dde3ed !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important;
-}
-body.theme-light .proposta-hero-banner:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important;
-}
-
-/* Validade (urgency banner) light */
-body.theme-light #urgency-banner {
-  background-color: #fff1f2 !important;
-  border-color: rgba(220,38,38,0.2) !important;
-}
-body.theme-light #urgency-banner [class*="bg-red-"] {
-  background-color: rgba(220,38,38,0.1) !important;
-}
-body.theme-light #urgency-banner [class*="text-red-"],
-body.theme-light #urgency-banner [class*="text-white"] {
-  color: #b91c1c !important;
-}
-
-/* Price card light — fundo contrastado para enquadrar bem o valor */
-body.theme-light .proposta-price-card {
-  background: linear-gradient(145deg, #dbeafe, #bfdbfe) !important;
-  border-color: #93c5fd !important;
-  border-width: 2px !important;
-  box-shadow: 0 0 0 1px rgba(37,99,235,0.15), 0 4px 16px rgba(37,99,235,0.12) !important;
-}
-body.theme-light .proposta-price-card:hover {
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.25), 0 6px 24px rgba(37,99,235,0.16) !important;
-}
-
-/* Bill card light */
-body.theme-light .proposta-bill-card {
-  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(96,165,250,0.1)) !important;
-  border-color: rgba(37,99,235,0.2) !important;
-}
-body.theme-light .proposta-bill-card:hover {
-  border-color: rgba(37,99,235,0.38) !important;
-  box-shadow: 0 0 18px rgba(37,99,235,0.08) !important;
-}
-
-/* KPI pills light */
-body.theme-light .proposta-kpi-pill {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-/* Pill de geração (amarelo) — tinta âmbar sutil */
-body.theme-light .proposta-kpi-pill[class*="bg-yellow-"] {
-  background: #fffbeb !important;
-  border-color: #fde68a !important;
-  opacity: 1 !important;
-}
-body.theme-light .proposta-kpi-pill:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
-}
-body.theme-light .proposta-kpi-pill i {
-  color: #ea580c !important; /* text-orange-600 */
-}
-body.theme-light .proposta-kpi-pill .text-\[9px\] {
-  color: #64748b !important; /* text-slate-500 */
-}
-body.theme-light .proposta-kpi-pill #kit-power {
-  color: #0f172a !important; /* text-slate-900 */
-}
-body.theme-light .proposta-kpi-pill #kit-generation {
-  color: #b45309 !important; /* amber-700 */
-}
-body.theme-light .proposta-kpi-pill i.text-yellow-400 {
-  color: #ca8a04 !important; /* yellow-600 */
-}
-/* Label "Geração" dentro do pill amarelo */
-body.theme-light .proposta-kpi-pill[class*="bg-yellow-"] .text-\[9px\] {
-  color: #92400e !important;
-}
-
-/* Seção credibilidade light — overlay branco em vez de preto com opacidade */
-body.theme-light .proposta-credibilidade-card {
-  border-color: #d6dde8 !important;
-}
-body.theme-light .proposta-credibilidade-overlay {
-  background-color: rgba(255,255,255,0.82) !important;
-}
-
-/* Textos dentro da credibilidade no light — agora sobre fundo claro */
-body.theme-light .proposta-credibilidade-card .relative.z-10 h3,
-body.theme-light .proposta-credibilidade-card .relative.z-10 p,
-body.theme-light .proposta-credibilidade-card .relative.z-10 [class*="text-white"],
-body.theme-light .proposta-credibilidade-card .relative.z-10 [class*="text-neutral-3"],
-body.theme-light .proposta-credibilidade-card .relative.z-10 [class*="text-neutral-4"] {
-  color: #1e293b !important;  /* slate-800: legível sobre fundo branco */
-}
-body.theme-light .proposta-credibilidade-card .relative.z-10 [class*="text-yellow-5"] {
-  color: #92400e !important;
-}
-body.theme-light .proposta-credibilidade-card .relative.z-10 [class*="text-neutral-400"] {
-  color: #475569 !important;
-}
-/* Stat cards dentro da credibilidade — fundo sólido claro */
-body.theme-light .proposta-stat-card {
-  background: rgba(255,255,255,0.75) !important;
-  border-color: rgba(0,0,0,0.1) !important;
-}
-body.theme-light .proposta-stat-card:hover {
-  background: rgba(255,255,255,0.9) !important;
-  border-color: rgba(37,99,235,0.25) !important;
-}
-/* Env cards dentro da credibilidade */
-body.theme-light .proposta-env-card {
-  background: rgba(255,255,255,0.6) !important;
-  border-color: rgba(0,0,0,0.1) !important;
-}
-/* Gradiente decorativo da credibilidade — suavizar no light */
-body.theme-light .proposta-credibilidade-card [class*="from-orange-900\/40"],
-body.theme-light .proposta-credibilidade-card [class*="from-yellow-900\/20"] {
-  opacity: 0.15 !important;
-}
-
-/* Eco section light */
-body.theme-light .proposta-eco-row {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-body.theme-light .proposta-eco-row:hover {
-  background: #eef6ee !important;
-  border-color: rgba(21,128,61,0.25) !important;
-}
-
-/* Eco highlight light */
-body.theme-light .proposta-eco-highlight {
-  background: rgba(21,128,61,0.06) !important;
-  border-color: rgba(21,128,61,0.22) !important;
-}
-
-/* Payback row light */
-body.theme-light .proposta-payback-row {
-  background: rgba(37,99,235,0.05) !important;
-  border-color: rgba(37,99,235,0.18) !important;
-}
-body.theme-light .proposta-payback-row:hover {
-  border-color: rgba(37,99,235,0.3) !important;
-}
-
-/* Payment button light */
-body.theme-light .proposta-payment-btn {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-}
-body.theme-light .proposta-payment-btn:hover {
-  border-color: rgba(37,99,235,0.35) !important;
-  background: #f8fafc !important;
-  box-shadow: 0 0 14px rgba(37,99,235,0.06) !important;
-}
-
-/* Payment info light */
-body.theme-light .proposta-payment-info {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* Incluso items light */
-body.theme-light .proposta-incluso-item {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-body.theme-light .proposta-incluso-item:hover {
-  border-color: rgba(37,99,235,0.3) !important;
-  background: rgba(37,99,235,0.04) !important;
-}
-
-/* Vendor card light */
-body.theme-light #vendor-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07) !important;
-}
-body.theme-light #vendor-card [class*="bg-black\/30"] {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-
-/* WhatsApp CTA light */
-body.theme-light .proposta-cta-wa {
-  background: rgba(37,211,102,0.08) !important;
-  border-color: rgba(37,211,102,0.28) !important;
-}
-body.theme-light .proposta-cta-wa:hover {
-  background: rgba(37,211,102,0.14) !important;
-  box-shadow: 0 0 16px rgba(37,211,102,0.14) !important;
-}
-
-/* Contact rows light */
-body.theme-light .proposta-contact-row {
-  background: #f8fafc !important;
-  border-color: #e2e8f0 !important;
-}
-body.theme-light .proposta-contact-row:hover {
-  background: #f0f4f8 !important;
-  border-color: #cbd5e1 !important;
-}
-
-/* Section cards generic border light */
-body.theme-light .proposta-section-card {
-  background: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05) !important;
-}
-body.theme-light .proposta-section-card:hover {
-  border-color: #c8d4e3 !important;
-}
-
 
 
 

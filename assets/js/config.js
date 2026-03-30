@@ -1,5 +1,5 @@
 ﻿// ==========================================
-// CONFIGURAÇÃO SUPABASE + ESTADO GLOBAL
+// CONFIGURACAO SUPABASE + ESTADO GLOBAL
 // ==========================================
 
 const SUPABASE_URL = 'https://tzwjxgprhorqrmpqudgg.supabase.co';
@@ -7,68 +7,108 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- CONSTANTES DE NEGÓCIO ---
+// --- CONSTANTES DE NEGOCIO ---
 const COMISSAO_POR_VENDA    = 2500;   // R$ por venda fechada (alterar conforme acordo)
-const SESSION_TIMEOUT_HOURS = 6;      // Logout automático após N horas sem atividade
+const SESSION_TIMEOUT_HOURS = 6;      // Logout automatico apos N horas sem atividade
 const MAX_LOGIN_ATTEMPTS    = 3;      // Tentativas antes de bloquear login
-const LOGIN_LOCKOUT_SECONDS = 30;     // Segundos de bloqueio após exceder tentativas
+const LOGIN_LOCKOUT_SECONDS = 30;     // Segundos de bloqueio apos exceder tentativas
+const TURNSTILE_SITE_KEY    = '0x4AAAAAACyD0uPARxpOHPqH'; // Cloudflare Turnstile Site Key (publica, seguro expor)
 
-// --- ESTADO GLOBAL DA APLICAÇÃO ---
+// --- ESTADO GLOBAL DA APLICACAO ---
 let state = {
   data: [],
   clientes: [],
   propostas: [],
+  vendas: [],
+  franquiasCatalog: [],
+
   activeTab: 'dashboard',
   searchTerm: '',
   viewMode: 'grid',
   isEditMode: false,
   currentUser: null,
 
-  clienteFilter: 'TODOS',   // Filtro de status na aba clientes
-  clienteSort:   'recent',  // Ordenação: 'recent' | 'alpha'
+  // Clientes
+  clienteFilter: 'TODOS',   // Filtro de status na aba clientes (vendedor/gestor)
+  clienteSort:   'recent',  // Ordenacao: 'recent' | 'alpha' (vendedor/gestor)
+  adminClientesViewMode: 'list', // 'list' | 'kanban'
+  adminClientesFilters: {
+    search: '',
+    status: 'TODOS',
+    vendedor_email: 'all',
+    franquia_id: 'all',
+    cidade: 'all',
+    mes: 'all',
+    preset: 'all',
+  },
 
+  // Proposta builder
   pbActiveClient: null,
   pbProposalMode: 'PROMOCIONAL', // 'PROMOCIONAL' | 'PERSONALIZADA' (EQUIPAMENTOS legado)
   pbCategory: 'kitsInversor',
   pbSearch: '',
   pbViewMode: 'list',
   pbMainTab: 'kits',        // 'kits' | 'financiamento' | 'historico'
-  componentes: [],           // módulos e inversores (sem preço)
+  componentes: [],          // modulos e inversores (sem preco)
   pbEquipDraft: {
-    descricao:      '',       // Descricao da proposta personalizada
-    valorEquip:     '',       // Valor numerico da proposta (R$)
-    potencia:       '',       // Potencia do sistema (kWp)
+    descricao:      '',
+    valorEquip:     '',
+    potencia:       '',
     paymentNote:    '',
     commercialNote: '',
   },
 
-  vendas: [],               // Vendas fechadas
-  vendasPeriod: '',         // Período filtro vendas: '' = mês atual, 'all' = geral, 'YYYY-MM' = mês específico
-  dashPeriod:   '',         // Período filtro dashboard (mesmas regras)
-  dashComunicadosPage: 0,     // Paginacao do bloco de comunicados na home
+  // Vendas / dashboard
+  vendasPeriod: '',         // Filtro de periodo legado para vendedor/gestor
+  adminVendasFilters: {
+    search: '',
+    vendedor_email: 'all',
+    franquia_id: 'all',
+    period: 'all', // 'all' | 'today' | 'month' | '30d' | 'YYYY-MM'
+    min_price: '',
+    max_price: '',
+    sort: 'recent', // 'recent' | 'oldest' | 'value_desc' | 'value_asc'
+    preset: 'all',
+  },
+  dashPeriod: '',           // Periodo filtro dashboard (legado)
+  dashComunicadosPage: 0,
   dashComunicadoModalOpen: false,
   dashComunicadoModalId: null,
 
-  isAdmin:      false,      // Usuário com role:admin no app_metadata (detectado via JWT)
-  adminSection: 'produtos', // Sub-aba ativa no painel admin
+  // Permissoes
+  isAdmin: false,
+  isGestor: false,
+
+  // Admin
+  adminSection: 'produtos',
   adminComunicadosSearch: '',
   adminComunicadosStatus: 'all',
-  adminKitsFranquia: null,  // Franquia selecionada na aba KITS do admin (null = não iniciado)
-  adminViewAll: true,       // Admin: true = ver tudo (consolidado), false = ver só própria franquia
-  gestorViewAll: true,      // Gestor: true = ver toda a unidade, false = ver só os próprios clientes
+  adminKitsFranquia: null,
+  adminScopeFranquiaId: 'all', // Drill-down global quando adminViewAll = true
+  adminViewAll: true,          // true = consolidado | false = minha unidade (franquia)
+  adminPrefsLoaded: false,
+
+  // Gestor
+  gestorViewAll: true,      // true = unidade inteira | false = apenas carteira propria
 
   // Multi-franquia
-  franquiaId:   null,       // UUID da franquia do usuário logado (de app_metadata.franquia_id)
-  franquiaNome: '',         // Nome da franquia (carregado no boot)
+  franquiaId: null,
+  franquiaNome: '',
+  franquiaHsp: 5.4,
 
-  comissaoPct:  5,          // % de comissão do vendedor logado (carregado de vendedores_stats)
+  // Indicadores pessoais
+  comissaoPct: 5,
 
-  // Perfil do usuário (carregado de profiles no login)
+  // Perfil
   profile: {
-    nome:       '',
-    telefone:   '',
+    nome: '',
+    telefone: '',
     avatar_url: '',
   },
+
+  // Resultados filtrados para exportacao respeitar UI
+  lastFilteredClientes: [],
+  lastFilteredVendas: [],
 
   // Chat interno
   chat: {
@@ -95,19 +135,5 @@ let state = {
 const TABS = [
   { id: 'dashboard', label: 'DASHBOARD',      icon: 'layout-dashboard' },
   { id: 'clientes',  label: 'MEUS CLIENTES',  icon: 'users' },
-  { id: 'vendas',    label: 'VENDAS',         icon: 'trophy'          },
-  { id: 'materiais', label: 'MATERIAIS',       icon: 'library'         },
+  { id: 'vendas',    label: 'VENDAS',         icon: 'trophy' }
 ];
-
-// URL do Web App do Google Apps Script (ver scripts/gas_materiais.js).
-// Deixe vazio ('') para usar dados mockados localmente.
-const MATERIAIS_API_URL = '/api/materiais'; // Proxy Vercel → Google Apps Script (evita CORS)
-
-
-
-
-
-
-
-
-

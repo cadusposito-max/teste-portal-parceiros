@@ -1,42 +1,214 @@
-// ==========================================
+﻿// ==========================================
 // RENDERIZADOR: DASHBOARD
 // ==========================================
 
+function getDashboardScopedRows(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  return state.isAdmin ? applyAdminGlobalScope(list) : list;
+}
+
+function getDashboardMonthRange(monthKey) {
+  const now = new Date();
+  const [yearRaw, monthRaw] = String(monthKey || '').split('-');
+  const year = Number(yearRaw) || now.getFullYear();
+  const month = Number(monthRaw) || (now.getMonth() + 1);
+
+  const start = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  const end = new Date(year, month, 0, 23, 59, 59, 999);
+  const prevStart = new Date(year, month - 2, 1, 0, 0, 0, 0);
+  const prevEnd = new Date(year, month - 1, 0, 23, 59, 59, 999);
+
+  return { start, end, prevStart, prevEnd };
+}
+
+function isDateWithinDashboardRange(dateString, start, end) {
+  const date = new Date(dateString || 0);
+  if (Number.isNaN(date.getTime())) return false;
+  return date >= start && date <= end;
+}
+
+function pctDelta(current, previous) {
+  if (!previous && !current) return 0;
+  if (!previous) return 100;
+  return ((current - previous) / previous) * 100;
+}
+
+function getDashboardScopeSelectorHTML(baseRows) {
+  if (!state.isAdmin || !state.adminViewAll) return '';
+
+  const ids = [...new Set(
+    (Array.isArray(baseRows) ? baseRows : [])
+      .map((item) => String(item?.franquia_id || '').trim())
+      .filter(Boolean)
+      .concat((state.franquiasCatalog || []).map((item) => String(item?.id || '').trim()).filter(Boolean))
+  )].sort((a, b) => getFranquiaNameById(a).localeCompare(getFranquiaNameById(b)));
+
+  return `
+    <label class="ml-2">
+      <select onchange="setAdminScopeFranquia(this.value)" class="bg-black border border-neutral-800 text-neutral-300 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest">
+        <option value="all">TODAS FRANQUIAS</option>
+        ${ids.map((id) => `<option value="${id}" ${String(state.adminScopeFranquiaId || 'all') === String(id) ? 'selected' : ''}>${escapeHTML(getFranquiaNameById(id))}</option>`).join('')}
+      </select>
+    </label>
+  `;
+}
+
+function buildDashboardAdminMetrics(monthKey, clientesRows, propostasRows, vendasRows) {
+  const range = getDashboardMonthRange(monthKey);
+
+  const clientesPeriodo = clientesRows.filter((item) => isDateWithinDashboardRange(item?.created_at, range.start, range.end));
+  const propostasPeriodo = propostasRows.filter((item) => isDateWithinDashboardRange(item?.created_at, range.start, range.end));
+  const vendasPeriodo = vendasRows.filter((item) => isDateWithinDashboardRange(item?.created_at, range.start, range.end));
+
+  const propostasPrev = propostasRows.filter((item) => isDateWithinDashboardRange(item?.created_at, range.prevStart, range.prevEnd));
+  const vendasPrev = vendasRows.filter((item) => isDateWithinDashboardRange(item?.created_at, range.prevStart, range.prevEnd));
+
+  const receita = vendasPeriodo.reduce((sum, item) => sum + (Number(item?.kit_price) || 0), 0);
+  const receitaPrev = vendasPrev.reduce((sum, item) => sum + (Number(item?.kit_price) || 0), 0);
+  const ticket = vendasPeriodo.length > 0 ? receita / vendasPeriodo.length : 0;
+  const ticketPrev = vendasPrev.length > 0 ? receitaPrev / vendasPrev.length : 0;
+
+  const propostaToVenda = propostasPeriodo.length > 0
+    ? Math.round((vendasPeriodo.length / propostasPeriodo.length) * 100)
+    : 0;
+
+  const topSellerMap = new Map();
+  const topFranchiseMap = new Map();
+
+  vendasPeriodo.forEach((sale) => {
+    const email = String(sale?.vendedor_email || '').trim().toLowerCase();
+    const franquiaId = String(sale?.franquia_id || '').trim() || 'sem_franquia';
+    const value = Number(sale?.kit_price) || 0;
+
+    if (email) {
+      const prev = topSellerMap.get(email) || { email, total: 0, qtd: 0 };
+      prev.total += value;
+      prev.qtd += 1;
+      topSellerMap.set(email, prev);
+    }
+
+    const prevFr = topFranchiseMap.get(franquiaId) || { franquiaId, total: 0, qtd: 0 };
+    prevFr.total += value;
+    prevFr.qtd += 1;
+    topFranchiseMap.set(franquiaId, prevFr);
+  });
+
+  const topSellers = [...topSellerMap.values()]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3)
+    .map((item) => ({
+      ...item,
+      nome: item.email.split('@')[0] || item.email,
+      ticket: item.qtd > 0 ? item.total / item.qtd : 0,
+    }));
+
+  const topFranchises = [...topFranchiseMap.values()]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3)
+    .map((item) => ({
+      ...item,
+      nome: item.franquiaId === 'sem_franquia' ? 'Sem franquia' : getFranquiaNameById(item.franquiaId),
+    }));
+
+  const now = new Date();
+  const agingConfig = [
+    { status: 'NOVO', limit: 7 },
+    { status: 'PROPOSTA ENVIADA', limit: 10 },
+    { status: 'EM NEGOCIAÇÃO', limit: 14 },
+  ];
+
+  const aging = agingConfig.map((entry) => {
+    const qty = clientesRows.filter((client) => {
+      if ((client?.status || 'NOVO') !== entry.status) return false;
+      const created = new Date(client?.created_at || 0);
+      if (Number.isNaN(created.getTime())) return false;
+      const diffDays = Math.floor((now.getTime() - created.getTime()) / 86400000);
+      return diffDays > entry.limit;
+    }).length;
+
+    return { ...entry, qty };
+  });
+
+  return {
+    monthKey,
+    receita,
+    propostas: propostasPeriodo.length,
+    vendas: vendasPeriodo.length,
+    clientes: clientesPeriodo.length,
+    propostaToVenda,
+    ticket,
+    receitaDelta: pctDelta(receita, receitaPrev),
+    ticketDelta: pctDelta(ticket, ticketPrev),
+    topSellers,
+    topFranchises,
+    aging,
+  };
+}
+
+function renderDashboardAdminSection(metrics) {
+  const receitaDeltaLabel = `${metrics.receitaDelta >= 0 ? '+' : ''}${metrics.receitaDelta.toFixed(1)}%`;
+  const ticketDeltaLabel = `${metrics.ticketDelta >= 0 ? '+' : ''}${metrics.ticketDelta.toFixed(1)}%`;
+
+  const topSellersHTML = metrics.topSellers.length > 0
+    ? metrics.topSellers.map((item, idx) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas · ticket ${formatCurrency(item.ticket)}</p></div><p class="text-[10px] font-black text-green-400">${formatCurrency(item.total)}</p></div>`).join('')
+    : '<p class="text-[10px] text-neutral-600 font-bold uppercase">Sem vendas no período.</p>';
+
+  const topFranchisesHTML = metrics.topFranchises.length > 0
+    ? metrics.topFranchises.map((item, idx) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas</p></div><p class="text-[10px] font-black text-cyan-300">${formatCurrency(item.total)}</p></div>`).join('')
+    : '<p class="text-[10px] text-neutral-600 font-bold uppercase">Sem franquias com vendas no período.</p>';
+
+  const agingHTML = metrics.aging
+    .map((item) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><span class="text-[10px] font-black uppercase tracking-widest text-neutral-300">${escapeHTML(item.status)}</span><span class="text-[10px] font-black ${item.qty > 0 ? 'text-red-400' : 'text-green-400'}">${item.qty}</span></div>`)
+    .join('');
+
+  return `
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 stagger-4">
+      <section class="xl:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-2 border border-neutral-800/60 p-4" style="background: linear-gradient(135deg, #0d0d0d 0%, #080808 100%);">
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Receita no período</p><p class="text-lg font-black text-green-400">${formatCurrency(metrics.receita)}</p><p class="text-[9px] font-bold ${metrics.receitaDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${receitaDeltaLabel} vs período anterior</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Propostas no período</p><p class="text-lg font-black text-orange-400">${metrics.propostas}</p><p class="text-[9px] text-neutral-600 font-bold">Base temporal coerente</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Taxa proposta-venda</p><p class="text-lg font-black text-purple-400">${metrics.propostaToVenda}%</p><p class="text-[9px] text-neutral-600 font-bold">${metrics.vendas} vendas / ${metrics.propostas} propostas</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Ticket médio</p><p class="text-lg font-black text-blue-400">${formatCurrency(metrics.ticket)}</p><p class="text-[9px] font-bold ${metrics.ticketDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${ticketDeltaLabel} vs período anterior</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Clientes no período</p><p class="text-lg font-black text-white">${metrics.clientes}</p><p class="text-[9px] text-neutral-600 font-bold">cadastros no mesmo período</p></article>
+      </section>
+
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top vendedores</h3><div class="flex flex-col gap-2">${topSellersHTML}</div></section>
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top franquias</h3><div class="flex flex-col gap-2">${topFranchisesHTML}</div></section>
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Alertas de aging</h3><div class="flex flex-col gap-2">${agingHTML}</div></section>
+    </div>
+  `;
+}
 function renderDashboard(container) {
   container.className = 'flex flex-col gap-5 w-full';
 
   // --- Dados ---
-  const totalClientes  = state.clientes.length;
-  const propostasReais = state.propostas.length;
+  const clientesDash = getDashboardScopedRows(state.clientes || []);
+  const propostasDash = getDashboardScopedRows(state.propostas || []);
+  const allVendasDash = getDashboardScopedRows(state.vendas || []);
+
+  const totalClientes = clientesDash.length;
+  const propostasReais = propostasDash.length;
 
   const funil = { 'NOVO': 0, 'PROPOSTA ENVIADA': 0, 'EM NEGOCIAÇÃO': 0, 'FECHADO': 0 };
-  state.clientes.forEach(c => {
+  clientesDash.forEach((c) => {
     const s = c.status || 'NOVO';
     if (funil[s] !== undefined) funil[s]++;
-    else funil['NOVO']++;
+    else funil.NOVO++;
   });
 
-  const vendasFechadas = funil['FECHADO'];
-
-  // --- Período das métricas de venda ---
-  const nowDash      = new Date();
+  const nowDash = new Date();
   const dashCurrMonth = `${nowDash.getFullYear()}-${String(nowDash.getMonth() + 1).padStart(2, '0')}`;
   if (!state.dashPeriod) state.dashPeriod = dashCurrMonth;
 
-  const allVendasDash = state.vendas || [];
-  const availMonthsDash = [...new Set(allVendasDash.map(v => {
-    const d = new Date(v.created_at);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }))].sort().reverse();
+  const availMonthsDash = [...new Set(allVendasDash.map((v) => toMonthKey(v.created_at)).filter(Boolean))].sort().reverse();
   if (!availMonthsDash.includes(dashCurrMonth)) availMonthsDash.unshift(dashCurrMonth);
 
   const vendasDashFilt = state.dashPeriod === 'all'
     ? allVendasDash
-    : allVendasDash.filter(v => {
-        const d = new Date(v.created_at);
-        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        return m === state.dashPeriod;
-      });
+    : allVendasDash.filter((v) => toMonthKey(v.created_at) === state.dashPeriod);
+
+  const clientesDashFiltForConv = state.dashPeriod === 'all'
+    ? clientesDash
+    : clientesDash.filter((c) => toMonthKey(c.created_at) === state.dashPeriod);
 
   // Botões de período pré-calculados
   const _dashGeralAtivo = state.dashPeriod === 'all';
@@ -49,11 +221,13 @@ function renderDashboard(container) {
     const label = formatMonthLabel(m) + (ehAtual ? ' ●' : '');
     return `<button onclick="setDashPeriod('${m}')" class="${cls} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all whitespace-nowrap">${label}</button>`;
   }).join('');
+  const dashScopeSelectorHTML = getDashboardScopeSelectorHTML([...clientesDash, ...propostasDash, ...allVendasDash]);
 
-  const totalVendido   = vendasDashFilt.reduce((s, v) => s + (Number(v.kit_price) || 0), 0);
-  const qtdVendas      = vendasDashFilt.length;
-  const ticketMedio    = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
-  const taxaConversao  = totalClientes > 0 ? Math.round((qtdVendas / totalClientes) * 100) : 0;
+  const totalVendido = vendasDashFilt.reduce((s, v) => s + (Number(v.kit_price) || 0), 0);
+  const qtdVendas = vendasDashFilt.length;
+  const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
+  const baseConversao = clientesDashFiltForConv.length;
+  const taxaConversao = baseConversao > 0 ? Math.round((qtdVendas / baseConversao) * 100) : 0;
 
   // Percentuais do funil (relativo ao total de clientes)
   const maxF   = totalClientes || 1;
@@ -62,9 +236,13 @@ function renderDashboard(container) {
 
   // Taxa de avanço entre etapas
   const toNum = (a, b) => funil[a] > 0 ? Math.round((funil[b] / funil[a]) * 100) : 0;
-  const convProp = toNum('NOVO',             'PROPOSTA ENVIADA');
-  const convNeg  = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO');
-  const convFech = toNum('EM NEGOCIAÇÃO',    'FECHADO');
+  const convProp = toNum('NOVO', 'PROPOSTA ENVIADA');
+  const convNeg = toNum('PROPOSTA ENVIADA', 'EM NEGOCIAÇÃO');
+  const convFech = toNum('EM NEGOCIAÇÃO', 'FECHADO');
+
+  const adminDashMetrics = state.isAdmin
+    ? buildDashboardAdminMetrics(state.dashPeriod === 'all' ? dashCurrMonth : state.dashPeriod, clientesDash, propostasDash, allVendasDash)
+    : null;
 
   // Saudação
   const greeting  = getGreeting();
@@ -135,7 +313,7 @@ function renderDashboard(container) {
       </div>`;
   } else {
     comunicadosHTML = comunicadosRecentes.map(item => {
-      const titulo = escapeHTML(item.title || 'Comunicado sem titulo');
+      const titulo = escapeHTML(item.title || 'Comunicado sem título');
       const resumo = escapeHTML(item.summary || '');
       const tipo = escapeHTML(String(item.type || 'comunicado').toUpperCase());
       const dataRaw = item.publishedAt || item.createdAt || '';
@@ -167,7 +345,7 @@ function renderDashboard(container) {
 
   container.innerHTML = `
     <!-- ════════════════════════════════════════
-         HERO HEADER — saudação + relógio
+         HERO HEADER - saudação + relógio
          ════════════════════════════════════════ -->
     <div class="dash-hero stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
       <div class="absolute inset-0 bg-grid opacity-50 pointer-events-none"></div>
@@ -186,8 +364,8 @@ function renderDashboard(container) {
           ${state.isAdmin
             ? `<div class="flex items-center gap-2 mt-3">
                 <span class="text-[8px] px-2 py-1 border ${state.adminViewAll ? 'border-purple-500/40 bg-purple-500/10 text-purple-400' : 'border-orange-500/40 bg-orange-500/10 text-orange-400'} font-black uppercase tracking-widest flex items-center gap-1.5">
-                  <i data-lucide="${state.adminViewAll ? 'layers' : 'user'}" class="w-3 h-3"></i>
-                  ${state.adminViewAll ? 'VISÃO CONSOLIDADA — TODAS AS FRANQUIAS' : 'VISÃO: MINHA FRANQUIA — ' + escapeHTML(state.franquiaNome)}
+                  <i data-lucide="${state.adminViewAll ? 'layers' : 'building-2'}" class="w-3 h-3"></i>
+                  ${state.adminViewAll ? 'VISÃO CONSOLIDADA - TODAS AS FRANQUIAS' : 'VISÃO: MINHA UNIDADE - ' + escapeHTML(state.franquiaNome)}
                 </span>
               </div>`
             : state.franquiaNome
@@ -217,6 +395,7 @@ function renderDashboard(container) {
         <button onclick="setDashPeriod('all')"
           class="${_dashGeralAtivo ? 'bg-neutral-700 text-white border-neutral-600' : 'bg-transparent border-neutral-800 text-neutral-600 hover:text-neutral-300 hover:border-neutral-700'} border px-2.5 py-1 font-black uppercase text-[8px] tracking-widest transition-all">GERAL</button>
         ${_dashBtns}
+        ${dashScopeSelectorHTML}
         <button onclick="refreshData()" title="Atualizar dados"
           class="border border-neutral-800 text-neutral-600 hover:text-white hover:border-neutral-600 px-2 py-1 transition-all flex items-center gap-1 text-[8px] font-black uppercase tracking-widest ml-1">
           <i id="refresh-data-icon" data-lucide="refresh-cw" class="w-3 h-3 transition-transform"></i>
@@ -415,6 +594,7 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          COMUNICADOS + LATERAL
          ════════════════════════════════════════ -->
+    ${state.isAdmin && adminDashMetrics ? renderDashboardAdminSection(adminDashMetrics) : ''}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger-4">
 
       <!-- Comunicados -->
@@ -438,8 +618,36 @@ function renderDashboard(container) {
       <!-- Coluna lateral -->
       <div class="flex flex-col gap-3">
 
-        <!-- Materiais Úteis — widget dinâmico (renderMateriaisWidget de materiais.js) -->
-        ${renderMateriaisWidget()}
+        <!-- Materiais Úteis -->
+        <div class="dash-materials-panel border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
+          <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+            <div class="p-1.5 bg-blue-500/10 border border-blue-500/20">
+              <i data-lucide="folder-down" class="w-3 h-3 text-blue-400"></i>
+            </div>
+            Materiais Úteis
+          </h3>
+          <a href="#" class="flex items-center justify-between p-3 border border-neutral-800/50 hover:border-red-500/40 hover:bg-red-500/4 transition-all group">
+            <div class="flex items-center gap-2.5">
+              <div class="p-1.5 bg-red-500/10 shrink-0"><i data-lucide="file-text" class="w-3.5 h-3.5 text-red-400"></i></div>
+              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">Apresentação Ágil</span>
+            </div>
+            <i data-lucide="download" class="w-3 h-3 text-neutral-700 group-hover:text-red-400 shrink-0 transition-colors"></i>
+          </a>
+          <a href="#" class="flex items-center justify-between p-3 border border-neutral-800/50 hover:border-green-500/40 hover:bg-green-500/4 transition-all group">
+            <div class="flex items-center gap-2.5">
+              <div class="p-1.5 bg-green-500/10 shrink-0"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-green-400"></i></div>
+              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">Tabela de Juros</span>
+            </div>
+            <i data-lucide="download" class="w-3 h-3 text-neutral-700 group-hover:text-green-400 shrink-0 transition-colors"></i>
+          </a>
+          <a href="#" class="flex items-center justify-between p-3 border border-neutral-800/50 hover:border-orange-500/40 hover:bg-orange-500/4 transition-all group">
+            <div class="flex items-center gap-2.5">
+              <div class="p-1.5 bg-orange-500/10 shrink-0"><i data-lucide="file-check-2" class="w-3.5 h-3.5 text-orange-400"></i></div>
+              <span class="text-[10px] font-bold text-neutral-400 group-hover:text-white uppercase tracking-wider transition-colors">Ficha Inversores</span>
+            </div>
+            <i data-lucide="download" class="w-3 h-3 text-neutral-700 group-hover:text-orange-400 shrink-0 transition-colors"></i>
+          </a>
+        </div>
 
         <!-- CTA Ação Rápida -->
         <div class="dash-quick-panel relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
@@ -538,7 +746,7 @@ function openDashComunicadoModalById(encodedId) {
 
   const service = window.comunicadosService;
   if (!service) {
-    showToast('Servico de comunicados indisponivel.');
+    showToast('Serviço de comunicados indisponível.');
     return;
   }
 
@@ -627,3 +835,15 @@ function closeDashComunicadoModal() {
   }
   _dashComunicadoLastFocusedEl = null;
 }
+
+
+
+
+
+
+
+
+
+
+
+
