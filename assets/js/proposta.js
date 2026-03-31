@@ -313,16 +313,16 @@ function renderData(data) {
   }
 
   const listPriceEl = document.getElementById('kit-list-price');
-  const hasDiscount = !isCustomMode && data.kit_list_price && data.kit_list_price > displayPrice;
-  if (isCustomMode || !hasDiscount) {
+  if (isCustomMode) {
     if (listPriceEl) listPriceEl.classList.add('hidden');
   } else {
-    if (listPriceEl) listPriceEl.innerText = 'De: ' + formatter.format(data.kit_list_price);
+    if (listPriceEl) listPriceEl.innerText = 'De: ' + formatter.format(data.kit_list_price || displayPrice);
   }
 
   const badgeDiscountEl = document.getElementById('badge-discount');
-  if (badgeDiscountEl && hasDiscount) {
-    badgeDiscountEl.classList.remove('hidden');
+  if (badgeDiscountEl) {
+    const hasDiscount = !isCustomMode && data.kit_list_price && data.kit_list_price > displayPrice;
+    if (hasDiscount) badgeDiscountEl.classList.remove('hidden');
   }
 
   const priceParts = formatter.format(displayPrice).split(',');
