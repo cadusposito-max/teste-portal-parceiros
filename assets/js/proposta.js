@@ -1,5 +1,5 @@
 ﻿// ==========================================
-// LÓGICA DA PÁGINA DE PROPOSTA (proposta.html)
+// L�GICA DA P�GINA DE PROPOSTA (proposta.html)
 // ==========================================
 
 const VIDEOS_YOUTUBE = [
@@ -84,7 +84,7 @@ function initProposalQuickActions() {
 }
 
 // ==========================================
-// VALIDADE DA PROPOSTA — 72h from created_at
+// VALIDADE DA PROPOSTA � 72h from created_at
 // ==========================================
 function startCountdown(createdAt) {
   const EXPIRY_HOURS = 72;
@@ -103,7 +103,7 @@ function startCountdown(createdAt) {
 }
 
 // ==========================================
-// CARROSSEL DE VÍDEOS
+// CARROSSEL DE V�DEOS
 // ==========================================
 let videoAtual = 0;
 const playerContainer = document.getElementById('video-wrapper');
@@ -246,7 +246,7 @@ function renderData(data) {
   const displayName  = isCustomMode ? (data.kit_nome || 'Proposta Personalizada') : (data.kit_nome || '');
   const displayBrand = isCustomMode ? '' : (data.kit_brand || '');
 
-  // Geração: usa valor salvo no banco (imutável, calculado com HSP da franquia na criação)
+  // Gera��o: usa valor salvo no banco (imut�vel, calculado com HSP da franquia na cria��o)
   // Fallback para propostas antigas sem geracao_estimada salva
   const estGeneration = data.geracao_estimada
     ? Number(data.geracao_estimada)
@@ -266,8 +266,8 @@ function renderData(data) {
   let textoPayback = '';
   if (anosPayback > 0)                    textoPayback += `${anosPayback} ano${anosPayback > 1 ? 's' : ''}`;
   if (anosPayback > 0 && mesesRestantes > 0) textoPayback += ' e ';
-  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'mês'}`;
-  if (textoPayback === '')                textoPayback = 'Menos de 1 mês';
+  if (mesesRestantes > 0)                 textoPayback += `${mesesRestantes} ${mesesRestantes > 1 ? 'meses' : 'm�s'}`;
+  if (textoPayback === '')                textoPayback = 'Menos de 1 m�s';
 
   const taxa18x = TAXAS_CARTAO[MAX_PARCELAS] || 0;
   const totalCartao18x = displayPrice > 0 ? displayPrice / (1 - (taxa18x / 100)) : 0;
@@ -300,7 +300,7 @@ function renderData(data) {
   if (heroSystemNameEl) heroSystemNameEl.innerText = displayName;
   if (heroSystemMetaEl) heroSystemMetaEl.innerText = heroSystemMeta;
 
-  // Para EQUIPAMENTOS: oculta potência e geração apenas se não houver dados de sistema
+  // Para EQUIPAMENTOS: oculta pot�ncia e gera��o apenas se n�o houver dados de sistema
   const powerGenGrid = document.querySelector('#kit-power')?.closest('.grid');
   const idealBillRow = document.querySelector('#kit-ideal-bill')?.closest('.mb-8');
   if (isCustomMode && displayPower <= 0) {
@@ -308,7 +308,7 @@ function renderData(data) {
     if (idealBillRow) idealBillRow.classList.add('hidden');
   } else {
     document.getElementById('kit-power').innerText      = displayPower + ' kWp';
-    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/mês';
+    document.getElementById('kit-generation').innerText = estGeneration.toFixed(0) + ' kWh/m�s';
     if (idealBillRow) document.getElementById('kit-ideal-bill').innerText = formatter.format(valorFaturaIdeal);
   }
 
@@ -330,7 +330,7 @@ function renderData(data) {
     <span class="text-xl align-top text-neutral-500 mr-1">R$</span>${priceParts[0].replace('R$', '').trim()}<span class="text-xl align-top text-neutral-500">,${priceParts[1]}</span>
   `;
 
-  // Oculta seção ambiental e de economia/ROI para EQUIPAMENTOS sem dados de potência
+  // Oculta se��o ambiental e de economia/ROI para EQUIPAMENTOS sem dados de pot�ncia
   const ecoSection = document.querySelector('#eco-month')?.closest('.bg-neutral-900.border');
   const envSection = document.querySelector('#env-trees')?.closest('.flex.flex-col.md\\:flex-row');
   const ecoCurrentBillEl = document.getElementById('eco-current-bill');
@@ -355,13 +355,13 @@ function renderData(data) {
   if (data.created_at) startCountdown(data.created_at);
 
   // --- WhatsApp CTA links ---
-  // Usa apenas vendedor_nome — vendedor_email não deve ser retornado pela RPC pública
+  // Usa apenas vendedor_nome � vendedor_email n�o deve ser retornado pela RPC p�blica
   const vendorNome = data.vendedor_nome || 'Consultor';
   const vendorTel  = data.vendedor_telefone || '';
   const waMsg      = encodeURIComponent(
-    `Olá ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome é ${clientePrimeiroNome}.`
+    `Ol� ${vendorNome.split(' ')[0]}! Vi a proposta "${displayName}" (${formatter.format(displayPrice)}) e quero saber mais. Pode me ajudar? Meu nome � ${clientePrimeiroNome}.`
   );
-  // Se não houver telefone, não gera link inválido: oculta os CTAs
+  // Se n�o houver telefone, n�o gera link inv�lido: oculta os CTAs
   const waLink = vendorTel
     ? `https://wa.me/55${vendorTel.replace(/\D/g, '')}?text=${waMsg}`
     : null;
@@ -378,7 +378,7 @@ function renderData(data) {
     if (floatWa)     floatWa.href     = waLink;
     if (vendorWaBtn) vendorWaBtn.href = waLink;
   } else {
-    // Sem telefone: oculta botões de contato para não deixar href vazio ou apontando para '#'
+    // Sem telefone: oculta bot�es de contato para n�o deixar href vazio ou apontando para '#'
     if (finalCta)    finalCta.style.display    = 'none';
     if (heroCta)     heroCta.style.display     = 'none';
     if (ecoCta)      ecoCta.style.display      = 'none';
@@ -427,5 +427,3 @@ function showError() {
 
 carregarProposta();
 initProposalQuickActions();
-
-

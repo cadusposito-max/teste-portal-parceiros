@@ -1292,3 +1292,166 @@ body.theme-light {
     width: 100%;
   }
 }
+
+
+/* ==============================================
+   PREMIUM DESIGN UPGRADE v2.0 — Agil Solar Portal
+   Glassmorphism / Glow / Depth / Modern Aesthetics
+   ============================================== */
+
+/* ---- 1. BACKGROUND — subtle color blooms ---- */
+body:not(.theme-light) {
+  background-color: #060608;
+  background-image:
+    radial-gradient(ellipse 80% 45% at 8% -8%,  rgba(249,115,22,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 92% 108%, rgba(234,179,8,0.055) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 55%,  rgba(20,20,40,0.12) 0%, transparent 65%);
+}
+
+/* ---- 2. HEADER — glass + stronger shadow ---- */
+#app-content > header {
+  background: rgba(5,5,8,0.93) !important;
+  border-bottom-color: rgba(255,255,255,0.065) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.65), 0 12px 48px rgba(0,0,0,0.3) !important;
+}
+
+/* ---- 3. NAV TABS CONTAINER ---- */
+#tab-container {
+  background: rgba(15,15,18,0.75) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---- 4. METRIC CARD — glassmorphism upgrade ---- */
+.metric-card {
+  background: linear-gradient(145deg, rgba(255,255,255,0.048) 0%, rgba(255,255,255,0.02) 50%, rgba(5,5,8,0.6) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.085) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.25) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.metric-card:hover {
+  border-color: rgba(249,115,22,0.22) !important;
+  box-shadow: 0 14px 44px rgba(0,0,0,0.52), 0 0 0 1px rgba(249,115,22,0.12), inset 0 1px 0 rgba(255,255,255,0.09) !important;
+}
+
+/* ---- 5. SEARCH INPUT ---- */
+#search-input {
+  background: rgba(10,10,13,0.97) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+}
+#search-input:focus {
+  border-color: rgba(249,115,22,0.75) !important;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+}
+
+/* ---- 6. ALL DARK-MODE INPUTS focus glow ---- */
+body:not(.theme-light) input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+body:not(.theme-light) select:focus,
+body:not(.theme-light) textarea:focus {
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.13), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+  outline: none !important;
+}
+
+/* ---- 7. NEON GLOW TEXT — stronger bloom ---- */
+.neon-orange {
+  text-shadow: 0 0 8px rgba(249,115,22,0.75), 0 0 18px rgba(249,115,22,0.42), 0 0 36px rgba(249,115,22,0.18);
+}
+.neon-green {
+  text-shadow: 0 0 8px rgba(34,197,94,0.75), 0 0 18px rgba(34,197,94,0.42), 0 0 36px rgba(34,197,94,0.18);
+}
+
+/* ---- 8. AVATAR PULSE — more dramatic ring ---- */
+@keyframes avatar-ring-v3 {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(249,115,22,0.6),  0 0 0 0   rgba(249,115,22,0.2); }
+  35%       { box-shadow: 0 0 0 4px rgba(249,115,22,0.22), 0 0 0 9px rgba(249,115,22,0.08); }
+  65%       { box-shadow: 0 0 0 5px rgba(249,115,22,0),    0 0 0 14px rgba(249,115,22,0); }
+}
+.avatar-pulse {
+  animation: avatar-ring-v3 3.6s ease-in-out infinite !important;
+}
+
+/* ---- 9. CHAT FAB — stronger glow ---- */
+.chat-fab-btn {
+  box-shadow: 0 0 22px rgba(249,115,22,0.50), 0 0 50px rgba(249,115,22,0.18), 0 4px 20px rgba(0,0,0,0.55) !important;
+}
+.chat-fab-btn:hover {
+  box-shadow: 0 0 32px rgba(249,115,22,0.65), 0 0 70px rgba(249,115,22,0.25), 0 6px 28px rgba(0,0,0,0.65) !important;
+}
+
+/* ---- 10. TABLE ROW HOVER — richer gradient ---- */
+.table-row-hover:hover {
+  background: linear-gradient(90deg, rgba(249,115,22,0.08) 0%, rgba(249,115,22,0.03) 45%, transparent 85%) !important;
+  border-left-color: rgba(249,115,22,0.55) !important;
+}
+
+/* ---- 11. MODAL BACKDROPS — deeper blur + saturation ---- */
+#proposal-builder-modal,
+#modal-overlay,
+#client-modal-overlay,
+#confirm-modal-overlay,
+#fecha-venda-modal {
+  backdrop-filter: blur(22px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
+}
+
+/* ---- 12. PROPOSAL BUILDER MODAL CARD ---- */
+#proposal-builder-modal > div {
+  border-color: rgba(255,255,255,0.075) !important;
+  box-shadow: 0 0 90px rgba(234,88,12,0.22), 0 0 180px rgba(234,88,12,0.08), 0 0 0 1px rgba(255,255,255,0.05) !important;
+}
+
+/* ---- 13. TOAST — rounded + stronger glow ---- */
+#toast {
+  border-radius: 14px !important;
+  border-width: 1px !important;
+  border-color: rgba(249,115,22,0.55) !important;
+  box-shadow: 0 0 40px rgba(234,88,12,0.45), 0 0 80px rgba(234,88,12,0.15), 0 8px 32px rgba(0,0,0,0.55) !important;
+}
+
+/* ---- 14. HOVER LIFT — slightly more bounce ---- */
+.hover-lift:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.45) !important;
+}
+
+/* ---- 15. MOBILE MENU — glass ---- */
+#mobile-menu {
+  background: rgba(3,3,5,0.97) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* ---- 16. VERSION NOTICE — stronger backdrop ---- */
+#version-update-notice {
+  backdrop-filter: blur(24px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.3) !important;
+  border-color: rgba(249,115,22,0.45) !important;
+}
+
+/* ---- 17. SCROLLBAR — gradient thumb ---- */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2a2a2e, #1c1c20);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f97316, #ea580c);
+}
+
+/* ---- 18. ANIMATED STRIPE — subtle opacity ---- */
+.animated-stripe {
+  opacity: 0.88;
+}
+
+/* ---- REDUCED MOTION OVERRIDE ---- */
+@media (prefers-reduced-motion: reduce) {
+  body:not(.theme-light) {
+    background-image: none;
+  }
+  .metric-card, .chat-fab-btn {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

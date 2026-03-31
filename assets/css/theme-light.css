@@ -626,3 +626,106 @@ body.theme-light .proposal-inline-cta.is-secondary {
 
 
 
+
+
+/* ==============================================
+   LIGHT THEME PREMIUM UPGRADE v2.0
+   ============================================== */
+
+/* ---- 1. BACKGROUND — warm light gradient ---- */
+body.theme-light {
+  background-color: #eef2f7 !important;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 5% -5%,   rgba(37,99,235,0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 35% at 95% 108%,  rgba(96,165,250,0.05) 0%, transparent 50%) !important;
+}
+
+/* ---- 2. METRIC CARD — depth upgrade ---- */
+body.theme-light .metric-card {
+  background: linear-gradient(145deg, #ffffff 0%, #fafbfc 60%, #f4f6f9 100%) !important;
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.04),
+    0 8px 24px rgba(0,0,0,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+body.theme-light .metric-card:hover {
+  border-color: rgba(37,99,235,0.2) !important;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.07),
+    0 12px 32px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(37,99,235,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+/* ---- 3. HEADER ---- */
+body.theme-light header.sticky {
+  background: rgba(255,255,255,0.97) !important;
+  border-bottom-color: rgba(0,0,0,0.07) !important;
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.04),
+    0 4px 16px rgba(0,0,0,0.06),
+    0 12px 40px rgba(0,0,0,0.03) !important;
+}
+
+/* ---- 4. SEARCH INPUT ---- */
+body.theme-light #search-input {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.12) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,1) !important;
+  color: #0f172a !important;
+}
+body.theme-light #search-input:focus {
+  border-color: rgba(37,99,235,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1), 0 1px 4px rgba(0,0,0,0.05) !important;
+}
+
+/* ---- 5. TABLE ROW HOVER ---- */
+body.theme-light .table-row-hover:hover {
+  background: linear-gradient(90deg, rgba(37,99,235,0.06) 0%, rgba(37,99,235,0.02) 45%, transparent 85%) !important;
+  border-left-color: rgba(37,99,235,0.45) !important;
+}
+
+/* ---- 6. NEON in light mode ---- */
+body.theme-light .neon-orange {
+  text-shadow: 0 0 8px rgba(37,99,235,0.6), 0 0 16px rgba(37,99,235,0.3), 0 0 32px rgba(37,99,235,0.12) !important;
+}
+body.theme-light .neon-green {
+  text-shadow: 0 0 8px rgba(21,128,61,0.5), 0 0 16px rgba(21,128,61,0.25) !important;
+}
+
+/* ---- 7. AVATAR PULSE — blue in light ---- */
+body.theme-light .avatar-pulse {
+  animation: avatar-ring-light-v2 3.5s ease-in-out infinite !important;
+}
+@keyframes avatar-ring-light-v2 {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(37,99,235,0.5),  0 0 0 0   rgba(37,99,235,0.2); }
+  35%       { box-shadow: 0 0 0 4px rgba(37,99,235,0.18), 0 0 0 9px rgba(37,99,235,0.07); }
+  65%       { box-shadow: 0 0 0 5px rgba(37,99,235,0),    0 0 0 14px rgba(37,99,235,0); }
+}
+
+/* ---- 8. TOAST in light mode ---- */
+body.theme-light #toast {
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(37,99,235,0.4) !important;
+  box-shadow: 0 0 32px rgba(37,99,235,0.35), 0 8px 24px rgba(0,0,0,0.15) !important;
+}
+
+/* ---- 9. EMPTY STATE ---- */
+body.theme-light #empty-state {
+  background: rgba(255,255,255,0.6) !important;
+  border-color: rgba(0,0,0,0.07) !important;
+}
+
+/* ---- 10. MODAL BACKDROPS in light ---- */
+body.theme-light #proposal-builder-modal,
+body.theme-light #modal-overlay,
+body.theme-light #client-modal-overlay,
+body.theme-light #confirm-modal-overlay,
+body.theme-light #fecha-venda-modal {
+  backdrop-filter: blur(18px) saturate(1.6) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.6) !important;
+  background-color: rgba(15,23,42,0.45) !important;
+}
