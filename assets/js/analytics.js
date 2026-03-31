@@ -92,15 +92,8 @@
         continue;
       }
 
-      if (key.startsWith('$')) {
-        nextProps[key] = value;
-        continue;
-      }
-
-      if (isSensitiveKey(key)) continue;
-
-      const safeValue = sanitizePrimitive(value);
-      if (typeof safeValue !== 'undefined') nextProps[key] = safeValue;
+      // Não filtra campos internos do SDK para evitar quebrar autenticação/ingestão.
+      nextProps[key] = value;
     }
 
     output.properties = nextProps;
