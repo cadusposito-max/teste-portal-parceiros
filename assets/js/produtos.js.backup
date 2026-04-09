@@ -27,7 +27,7 @@ function renderProductsList(container) {
   }
 
   document.getElementById('empty-state-icon').innerHTML = '<i data-lucide="search" class="w-10 h-10"></i>';
-  document.getElementById('empty-state-icon').className = 'inline-flex items-center justify-center w-20 h-20 glass-surface mb-6 text-warning border-stitch-border/30';
+  document.getElementById('empty-state-icon').className = 'inline-flex items-center justify-center w-20 h-20 bg-neutral-900 mb-6 text-neutral-700 border border-neutral-800';
 
   let list = state.activeTab === 'admin'
     ? [...state.data]

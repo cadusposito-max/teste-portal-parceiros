@@ -454,7 +454,7 @@ function renderAdminClientesToolbar(baseRows, filteredRows) {
             <button onclick="setAdminClientesViewMode('list')" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest border ${state.adminClientesViewMode === 'list' ? 'bg-neutral-700 text-white border-neutral-600' : 'bg-black border-neutral-800 text-neutral-500 hover:text-white'}">Lista</button>
             <button onclick="setAdminClientesViewMode('kanban')" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest border ${state.adminClientesViewMode === 'kanban' ? 'bg-orange-600 text-black border-orange-500' : 'bg-black border-neutral-800 text-neutral-500 hover:text-white'}">Kanban</button>
           </div>
-          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
             <i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX
           </button>
           <button onclick="openClientModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
@@ -550,7 +550,7 @@ function renderRegularClientesToolbar(filteredRows) {
           <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-widest mt-1">${filteredRows.length} exibindo · ${state.clienteFilter !== 'TODOS' ? escapeHTML(state.clienteFilter) : 'Todos os status'}</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
+          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
           <button onclick="openClientModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> NOVO CLIENTE</button>
         </div>
       </div>
@@ -623,7 +623,7 @@ function renderClientesList(container) {
 
   if (filteredRows.length === 0) {
     html += `
-      <div class="py-16 text-center text-neutral-600 font-bold uppercase tracking-widest text-xs border border-dashed border-neutral-800/60 glass-surface border-stitch-border/30">
+      <div class="py-16 text-center text-neutral-600 font-bold uppercase tracking-widest text-xs border border-dashed border-neutral-800/60 bg-neutral-950/40">
         <i data-lucide="filter-x" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
         Nenhum cliente com os filtros atuais
       </div>
