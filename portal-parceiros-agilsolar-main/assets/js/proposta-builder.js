@@ -166,32 +166,11 @@ async function _pbResolveSellerPhoneByEmail(email) {
   return pending;
 }
 
-function canOperateClientProposalFlow(client) {
-  if (!client || !state.currentUser) return false;
-  if (state.isAdmin || state.isGestor) return true;
-
-  const currentEmail = _pbNormalizeEmail(state.currentUser.email);
-  const ownerEmail = _pbNormalizeEmail(client.vendedor_email);
-
-  if (!currentEmail) return false;
-  if (!ownerEmail) return true;
-  return ownerEmail === currentEmail;
-}
-
 async function resolveEffectiveSellerForClient(client) {
-  const currentEmail = _pbNormalizeEmail(state.currentUser?.email);
-  const ownerEmail = _pbNormalizeEmail(client?.vendedor_email);
-  const canManageOthers = Boolean(state.isAdmin || state.isGestor);
-
-  const sellerEmail = canManageOthers
-    ? (ownerEmail || currentEmail)
-    : currentEmail;
-
+  const ownerEmail = _pbNormalizeEmail(client?.vendedor_email) || _pbNormalizeEmail(state.currentUser?.email);
+  const sellerEmail = ownerEmail || _pbNormalizeEmail(state.currentUser?.email);
   if (!sellerEmail) {
     throw new Error('Nao foi possivel identificar o vendedor responsavel pelo cliente.');
-  }
-  if (!canManageOthers && ownerEmail && ownerEmail !== currentEmail) {
-    throw new Error('Nao autorizado para operar cliente de outro vendedor.');
   }
 
   const [sellerName, sellerPhone] = await Promise.all([
@@ -225,10 +204,6 @@ function openProposalBuilder(clientId) {
 
   if (!client) {
     showToast('Cliente nao encontrado.');
-    return;
-  }
-  if (!canOperateClientProposalFlow(client)) {
-    showToast('Acesso restrito ao cliente selecionado.');
     return;
   }
 
@@ -665,15 +640,12 @@ async function handleEquipamentosProposalSubmit(event) {
 
     if (error) throw error;
 
-    const baseUrl   = window.location.origin;
+    const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = baseUrl + '/proposta.html?id=' + data[0].id;
     handleProposalLinkOpen(linkFinal, popupRef);
 
     if (!client.status || client.status === 'NOVO') await cycleClientStatus(client.id, 'NOVO');
     await fetchPropostas();
-    if (typeof captureEvent === 'function') {
-      captureEvent('proposal_created', { source: 'portal', mode: 'personalizada' });
-    }
 
     if (submitBtn) {
       submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 inline mr-1"></i> GERADO E COPIADO!';
@@ -823,7 +795,7 @@ function copiarLinkExistente(id, btnElement) {
   btnElement.innerHTML = '<i class="w-3 h-3 inline" data-lucide="check"></i> Copiado!';
   lucide.createIcons();
 
-  const baseUrl   = window.location.origin;
+  const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
   const linkFinal = `${baseUrl}/proposta.html?id=${id}`;
   copiarTextoBlindado(linkFinal);
   showToast('LINK DA PROPOSTA COPIADO!');
@@ -867,7 +839,7 @@ async function copyProposalLink(kit, event) {
 
     if (error) throw error;
 
-    const baseUrl   = window.location.origin;
+    const baseUrl   = window.location.href.split('index.html')[0].replace(/\/$/, '');
     const linkFinal = `${baseUrl}/proposta.html?id=${data[0].id}`;
 
     handleProposalLinkOpen(linkFinal, popupRef);
@@ -877,9 +849,6 @@ async function copyProposalLink(kit, event) {
     }
 
     await fetchPropostas();
-    if (typeof captureEvent === 'function') {
-      captureEvent('proposal_created', { source: 'portal', mode: 'promocional' });
-    }
 
     btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> GERADO E COPIADO!';
     btnCopiar.classList.remove('bg-blue-600', 'hover:bg-blue-500');
@@ -1060,11 +1029,6 @@ async function confirmarFechaVenda() {
     errEl.classList.remove('hidden');
     return;
   }
-  if (!canOperateClientProposalFlow(client)) {
-    errEl.innerText = 'Acesso restrito ao cliente selecionado.';
-    errEl.classList.remove('hidden');
-    return;
-  }
 
   const originalHTML = btn.innerHTML;
   btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline mr-2"></i>REGISTRANDO...';
@@ -1102,9 +1066,6 @@ async function confirmarFechaVenda() {
 
     // Atualiza lista de vendas (silencioso se der erro)
     await fetchVendas();
-    if (typeof captureEvent === 'function') {
-      captureEvent('sale_closed', { source: 'portal' });
-    }
 
     closeFechaVenda();
     showSalesCelebration();

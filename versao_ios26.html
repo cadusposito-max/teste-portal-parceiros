@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Configuração do Tailwind para cores específicas do design -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            bg: '#09090b',       /* Fundo da tela */
+                            app: '#121214',      /* Fundo do app */
+                            card: '#1c1c1f',     /* Fundo dos cards */
+                            border: '#27272a',   /* Bordas sutis */
+                        },
+                        brand: {
+                            orange: '#ff5c00',
+                            yellow: '#ffb800',
+                            green: '#22c55e',
+                            red: '#ef4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados para os gráficos e efeitos de brilho */
+        .glass-main-container {
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 
+                0 0 50px rgba(0, 0, 0, 0.6),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15), /* Reflexo de vidro no topo */
+                inset 1px 0 1px rgba(255, 255, 255, 0.05), /* Reflexo sutil na esquerda */
+                inset -1px -1px 1px rgba(0, 0, 0, 0.3);    /* Volume escuro na base */
+        }
+
+        .glass-card {
+            background: linear-gradient(145deg, rgba(30, 30, 34, 0.8) 0%, rgba(20, 20, 22, 0.4) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),  /* Reflexo principal de luz no vidro */
+                inset 1px 0 1px rgba(255, 255, 255, 0.08), /* Reflexo secundário */
+                inset -1px -1px 1px rgba(0, 0, 0, 0.3);    /* Sombra simulando espessura do material */
+        }
+        
+        .glow-bar-active {
+            background: linear-gradient(180deg, #ffb800 0%, #ff5c00 100%);
+            box-shadow: 0 0 25px rgba(255, 92, 0, 0.5);
+            position: relative;
+        }
+
+        .glow-bar-inactive {
+            background: linear-gradient(180deg, #3f3f46 0%, #27272a 100%);
+        }
+
+        .donut-ring-bg {
+            stroke: #27272a;
+        }
+        .donut-ring-orange {
+            stroke: url(#orangeGradient);
+            stroke-dasharray: 60 100; /* Preenchimento parcial */
+            stroke-dashoffset: 25;
+            stroke-linecap: round;
+        }
+        .donut-ring-yellow {
+            stroke: #a3e635; /* Verde limão/Amarelo */
+            stroke-dasharray: 25 100;
+            stroke-dashoffset: -40;
+            stroke-linecap: round;
+        }
+
+        /* Efeito de brilho de fundo global */
+        .bg-glow-tl {
+            position: absolute;
+            top: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 160, 60, 0.15) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Novas animações e scrollbar customizada */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .page-enter {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        /* Custom Scrollbar para os quadros horizontais */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-gray-300 min-h-screen flex items-center justify-center p-4 md:p-8 antialiased selection:bg-brand-orange selection:text-white">
+
+    <!-- Container Principal do App -->
+    <div class="w-full max-w-[1400px] h-[90vh] min-h-[800px] bg-dark-app rounded-[2rem] flex overflow-hidden relative glass-main-container">
+        
+        <!-- Efeito de Brilho Superior Esquerdo -->
+        <div class="bg-glow-tl"></div>
+
+        <!-- ================= SIDEBAR ================= -->
+        <aside class="w-64 border-r border-dark-border flex flex-col justify-between relative z-10 hidden md:flex">
+            <div>
+                <!-- Logo -->
+                <div class="h-24 flex items-center px-8">
+                    <div class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-white bg-white/5 backdrop-blur-sm">
+                        <i data-lucide="infinity" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Menu de Navegação -->
+                <nav class="px-4 space-y-8 mt-4">
+                    
+                    <!-- Bloco: Menu Principal -->
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">Menu Principal</h4>
+                        <ul class="space-y-1" id="nav-menu">
+                            <li>
+                                <a href="#" onclick="switchPage('dashboard')" id="nav-dashboard" class="nav-item flex items-center gap-3 px-4 py-2.5 bg-white/10 text-white rounded-xl border border-white/5 shadow-inner transition-colors">
+                                    <i data-lucide="layout-dashboard" class="w-5 h-5 text-gray-300"></i>
+                                    <span class="font-medium text-sm">Painel</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="switchPage('leads')" id="nav-leads" class="nav-item flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="users" class="w-5 h-5"></i>
+                                        <span class="font-medium text-sm">Leads</span>
+                                    </div>
+                                    <div class="w-5 h-5 rounded bg-brand-orange/20 text-brand-orange flex items-center justify-center text-[10px] font-bold">3</div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="switchPage('projects')" id="nav-projects" class="nav-item flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="folder-kanban" class="w-5 h-5"></i>
+                                        <span class="font-medium text-sm">Projetos</span>
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="nav-item flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Mensagens</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="package" class="w-5 h-5"></i>
+                                        <span class="font-medium text-sm">Produtos</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Vendas</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Bloco: Registros -->
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">Registros</h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="#" class="flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="briefcase" class="w-5 h-5"></i>
+                                        <span class="font-medium text-sm">Negócios</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Empresas</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="contact" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Pessoas</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Bloco: Insights -->
+                    <div>
+                        <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">Insights</h4>
+                        <ul class="space-y-1">
+                            <li>
+                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="activity" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Atividades</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                                        <span class="font-medium text-sm">Relatórios</span>
+                                    </div>
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                                    <i data-lucide="help-circle" class="w-5 h-5"></i>
+                                    <span class="font-medium text-sm">Suporte</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Botão Sair -->
+            <div class="p-6">
+                <a href="#" class="flex items-center gap-3 px-2 py-2 text-gray-400 hover:text-white transition-colors">
+                    <span class="font-medium text-sm">Sair</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="flex-1 flex flex-col h-full overflow-y-auto relative z-10">
+            
+            <!-- Header (Topo) -->
+            <header class="h-24 px-8 flex items-center justify-between shrink-0">
+                <!-- Breadcrumbs -->
+                <div class="flex items-center gap-2 text-sm text-gray-400">
+                    <i data-lucide="home" class="w-4 h-4"></i>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    <span id="header-title" class="text-white font-medium">Visão Geral</span>
+                </div>
+
+                <!-- Buscador e Perfil -->
+                <div class="flex items-center gap-6">
+                    <!-- Campo de Busca -->
+                    <div class="relative hidden sm:block">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        <input type="text" placeholder="Buscar..." class="bg-dark-app border border-dark-border text-sm rounded-full pl-10 pr-4 py-2 w-64 focus:outline-none focus:border-gray-500 text-white placeholder-gray-500 transition-colors">
+                    </div>
+
+                    <!-- Perfil do Usuário -->
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <div class="w-10 h-10 rounded-full bg-[#3f200d] border border-brand-orange/30 flex items-center justify-center text-brand-orange font-semibold shadow-[0_0_10px_rgba(255,92,0,0.2)]">
+                            BS
+                        </div>
+                        <div class="hidden md:block text-sm">
+                            <p class="text-white font-medium">Broklyn Simmons</p>
+                            <p class="text-gray-500 text-xs">@greenwood</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Conteúdo Principal -->
+            <div id="main-content-area" class="px-8 pb-8 flex-1 overflow-y-auto">
+                
+                <!-- ================= PÁGINA: DASHBOARD ================= -->
+                <div id="page-dashboard" class="page-view space-y-6 block page-enter">
+                    
+                    <!-- 4 Cards de Resumo -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Card 1: Renda -->
+                        <div class="glass-card rounded-2xl p-5 flex flex-col justify-between h-36">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center gap-1.5 text-gray-400 text-sm">
+                                    <span>Renda</span>
+                                    <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
+                                    <i data-lucide="wallet" class="w-4 h-4 text-gray-300"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-3xl font-semibold text-white mb-1">$32,064</h3>
+                                <div class="flex items-center gap-2 text-xs">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Vendas -->
+                    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between h-36">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-1.5 text-gray-400 text-sm">
+                                <span>Vendas Ativas</span>
+                                <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
+                                <i data-lucide="clock" class="w-4 h-4 text-gray-300"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-semibold text-white mb-1">$24,758</h3>
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="text-gray-500">Mês passado</span>
+                                <span class="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white">
+                                    <i data-lucide="arrow-up" class="w-3 h-3 text-brand-orange"></i> 32.5%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Negócios -->
+                    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between h-36">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-1.5 text-gray-400 text-sm">
+                                <span>Total de Negócios</span>
+                                <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
+                                <i data-lucide="users-2" class="w-4 h-4 text-gray-300"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-semibold text-white mb-1">927</h3>
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="text-gray-500">Mês passado</span>
+                                <span class="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white">
+                                    <i data-lucide="arrow-down" class="w-3 h-3 text-red-400"></i> 19.6%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Taxa de Resposta -->
+                    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between h-36">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-1.5 text-gray-400 text-sm">
+                                <span>Taxa de Resposta</span>
+                                <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                            </div>
+                            <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
+                                <i data-lucide="zap" class="w-4 h-4 text-gray-300"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-semibold text-white mb-1">86,7%</h3>
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="text-gray-500">Mês passado</span>
+                                <span class="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-white">
+                                    <i data-lucide="arrow-up" class="w-3 h-3 text-brand-orange"></i> 15.2%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção do Meio: Gráficos -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Gráfico de Barras: Análises -->
+                    <div class="glass-card rounded-2xl p-6 lg:col-span-2 flex flex-col relative overflow-hidden">
+                        
+                        <!-- Header do Gráfico -->
+                        <div class="flex justify-between items-center mb-8 relative z-10">
+                            <h3 class="text-lg font-medium text-white">Análises</h3>
+                            <div class="flex items-center gap-4">
+                                <div class="flex bg-dark-bg/50 rounded-full p-1 border border-white/5">
+                                    <button class="px-4 py-1.5 text-xs text-white bg-white/10 rounded-full border border-white/10 shadow-sm">Renda</button>
+                                    <button class="px-4 py-1.5 text-xs text-gray-400 hover:text-white transition-colors">Despesas</button>
+                                </div>
+                                <button class="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                                    Este ano <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Área do Gráfico CSS -->
+                        <div class="flex-1 flex relative z-10">
+                            <!-- Eixo Y -->
+                            <div class="flex flex-col justify-between text-[10px] text-gray-500 pr-4 pb-6 h-full">
+                                <span>50k</span>
+                                <span>40k</span>
+                                <span>30k</span>
+                                <span>20k</span>
+                                <span>10k</span>
+                            </div>
+                            
+                            <!-- Eixo X e Barras -->
+                            <div class="flex-1 flex justify-between items-end pb-6 relative h-full border-b border-white/5">
+                                <!-- Linhas guias de fundo poderiam ir aqui -->
+
+                                <!-- Coluna: Jan -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[30%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Jan</span>
+                                </div>
+                                <!-- Coluna: Fev -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[50%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Fev</span>
+                                </div>
+                                <!-- Coluna: Mar -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[35%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Mar</span>
+                                </div>
+                                <!-- Coluna: Abr -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[25%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Abr</span>
+                                </div>
+                                <!-- Coluna: Mai -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[40%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Mai</span>
+                                </div>
+                                <!-- Coluna: Jun (Destaque) -->
+                                <div class="flex flex-col items-center gap-3 relative">
+                                    <!-- Tooltip visível -->
+                                    <div class="absolute -top-10 bg-dark-bg border border-white/10 text-white text-xs py-1 px-2.5 rounded-md whitespace-nowrap shadow-lg z-20 font-medium">
+                                        $40.856
+                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-dark-bg border-b border-r border-white/10 rotate-45"></div>
+                                    </div>
+                                    <div class="w-12 h-[70%] glow-bar-active rounded-t-lg z-10"></div>
+                                    <span class="text-[11px] text-white font-medium absolute -bottom-6">Jun</span>
+                                </div>
+                                <!-- Coluna: Jul -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[45%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Jul</span>
+                                </div>
+                                <!-- Coluna: Ago -->
+                                <div class="flex flex-col items-center gap-3 group">
+                                    <div class="w-12 h-[30%] glow-bar-inactive rounded-t-lg transition-all hover:brightness-125"></div>
+                                    <span class="text-[11px] text-gray-500 absolute -bottom-6">Ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico Donut: Receita -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col items-center relative overflow-hidden">
+                        
+                        <!-- Efeito de fundo sutil para o gráfico circular -->
+                        <div class="absolute bottom-10 right-10 w-32 h-32 bg-brand-orange/20 blur-[50px] rounded-full pointer-events-none"></div>
+
+                        <div class="w-full flex justify-between items-center mb-6 relative z-10">
+                            <h3 class="text-lg font-medium text-white">Receita</h3>
+                            <button class="text-gray-400 hover:text-white"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+                        </div>
+
+                        <!-- Legendas -->
+                        <div class="flex gap-6 mb-8 text-xs text-gray-400 relative z-10">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-brand-orange"></div> Renda
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-[#a3e635]"></div> Despesas
+                            </div>
+                        </div>
+
+                        <!-- Gráfico Circular SVG -->
+                        <div class="relative w-48 h-48 flex items-center justify-center z-10">
+                            <!-- SVG Definitions -->
+                            <svg class="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <defs>
+                                    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#ffb800" />
+                                        <stop offset="100%" stop-color="#ff5c00" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- Fundo do anel externo -->
+                                <path class="donut-ring-bg" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <!-- Anel externo (Laranja - Renda) -->
+                                <path class="donut-ring-orange" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                
+                                <!-- Fundo do anel interno -->
+                                <path class="donut-ring-bg" stroke-width="3" fill="none" d="M18 6 a 12 12 0 0 1 0 24 a 12 12 0 0 1 0 -24" />
+                                <!-- Anel interno (Verde/Amarelo - Despesas) -->
+                                <path class="donut-ring-yellow" stroke-width="3" fill="none" d="M18 6 a 12 12 0 0 1 0 24 a 12 12 0 0 1 0 -24" />
+                            </svg>
+                            
+                            <!-- Texto Central -->
+                            <div class="text-center absolute">
+                                <div class="text-xl font-bold text-white mb-0.5 shadow-sm">$40.856</div>
+                                <div class="text-[10px] text-gray-400">Junho 2025</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabela de Dados: Lista de Negócios -->
+                <div class="glass-card rounded-2xl p-6">
+                    
+                    <!-- Header da Tabela -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <h3 class="text-lg font-medium text-white">Lista de Negócios</h3>
+                            <div class="relative">
+                                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" placeholder="Buscar negócios..." class="bg-dark-bg/50 border border-white/5 text-xs rounded-lg pl-9 pr-4 py-2 w-48 focus:outline-none focus:border-gray-500 text-white placeholder-gray-500 transition-colors">
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button class="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                                <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i> Filtrar
+                            </button>
+                            <button class="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-300 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                                <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i> Ordenar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabela (feita com CSS Grid para ser responsiva e exata ao layout) -->
+                    <div class="w-full overflow-x-auto">
+                        <div class="min-w-[900px]">
+                            <!-- Cabeçalho das Colunas -->
+                            <div class="grid grid-cols-[30px_2fr_1.5fr_2fr_2fr_1.5fr_1.5fr_1fr] gap-4 py-3 border-b border-white/5 text-xs text-gray-500 font-medium">
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox" class="rounded bg-dark-bg border-white/20 accent-brand-orange w-3.5 h-3.5">
+                                </div>
+                                <div>Título</div>
+                                <div>Marcas</div>
+                                <div>Atividades</div>
+                                <div>Nome do contato</div>
+                                <div>Categoria</div>
+                                <div>Criado em</div>
+                                <div class="text-right">Estágio</div>
+                            </div>
+
+                            <!-- Linha 1 -->
+                            <div class="grid grid-cols-[30px_2fr_1.5fr_2fr_2fr_1.5fr_1.5fr_1fr] gap-4 py-4 border-b border-white/5 text-xs text-gray-300 items-center hover:bg-white/[0.02] transition-colors rounded-lg px-1 -mx-1">
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox" class="rounded bg-dark-bg border-white/20 accent-brand-orange w-3.5 h-3.5">
+                                </div>
+                                <div class="font-medium text-white">Winter Ends</div>
+                                <div>Adidas</div>
+                                <div>Mar 20, 2025 23:14</div>
+                                <div>Bessie Cooper</div>
+                                <div><span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px]">Streetwear</span></div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i data-lucide="clock" class="w-3 h-3"></i> Mês passado</div>
+                                <div class="text-right"><span class="px-4 py-1 rounded-full border border-green-500/30 text-green-400 text-[10px] bg-green-500/5">Ganho</span></div>
+                            </div>
+
+                            <!-- Linha 2 -->
+                            <div class="grid grid-cols-[30px_2fr_1.5fr_2fr_2fr_1.5fr_1.5fr_1fr] gap-4 py-4 border-b border-white/5 text-xs text-gray-300 items-center hover:bg-white/[0.02] transition-colors rounded-lg px-1 -mx-1">
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox" class="rounded bg-dark-bg border-white/20 accent-brand-orange w-3.5 h-3.5">
+                                </div>
+                                <div class="font-medium text-white">Vintage Chronicles</div>
+                                <div>Nike</div>
+                                <div>Fev 2, 2025 19:28</div>
+                                <div>Arlene McCoy</div>
+                                <div><span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px]">Shoes</span></div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i data-lucide="clock" class="w-3 h-3"></i> 15 minutos atrás</div>
+                                <div class="text-right"><span class="px-4 py-1 rounded-full border border-white/20 text-white text-[10px] bg-white/5">Qualificado</span></div>
+                            </div>
+
+                            <!-- Linha 3 -->
+                            <div class="grid grid-cols-[30px_2fr_1.5fr_2fr_2fr_1.5fr_1.5fr_1fr] gap-4 py-4 text-xs text-gray-300 items-center hover:bg-white/[0.02] transition-colors rounded-lg px-1 -mx-1">
+                                <div class="flex items-center justify-center">
+                                    <input type="checkbox" class="rounded bg-dark-bg border-white/20 accent-brand-orange w-3.5 h-3.5">
+                                </div>
+                                <div class="font-medium text-white">Urban Pulse</div>
+                                <div>Uniqlo</div>
+                                <div>Dez 30, 2025 07:52</div>
+                                <div>Devon Lane</div>
+                                <div><span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px]">Crewneck</span></div>
+                                <div class="flex items-center gap-1.5 text-gray-500"><i data-lucide="clock" class="w-3 h-3"></i> 12 minutos atrás</div>
+                                <div class="text-right"><span class="px-4 py-1 rounded-full border border-red-500/30 text-red-400 text-[10px] bg-red-500/5">Perdido</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div> <!-- FIM PÁGINA DASHBOARD -->
+
+                <!-- ================= PÁGINA: LEADS (KANBAN) ================= -->
+                <div id="page-leads" class="page-view space-y-6 hidden">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-white mb-1">Gestão de Leads</h2>
+                            <p class="text-sm text-gray-400">Acompanhe e mova seus contatos pelo funil de vendas.</p>
+                        </div>
+                        <button class="px-4 py-2 bg-brand-orange text-white rounded-lg text-sm font-medium hover:bg-[#e65300] transition-colors shadow-[0_0_15px_rgba(255,92,0,0.4)] flex items-center gap-2 hover:scale-105 transform duration-200">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Novo Lead
+                        </button>
+                    </div>
+                    
+                    <div class="flex gap-6 h-full min-h-[500px] overflow-x-auto pb-4">
+                        <!-- Coluna Kanban: Novos -->
+                        <div class="w-80 shrink-0 flex flex-col gap-4">
+                            <div class="flex items-center justify-between text-gray-400 px-1 border-b border-white/5 pb-2">
+                                <span class="font-medium text-sm flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div> Novos (2)</span>
+                                <i data-lucide="more-horizontal" class="w-4 h-4 cursor-pointer hover:text-white"></i>
+                            </div>
+                            
+                            <!-- Card Lead 1 -->
+                            <div class="glass-card rounded-xl p-5 cursor-pointer hover:-translate-y-1 transition-transform group">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">Em análise</span>
+                                    <div class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/10 hover:bg-white/10">
+                                        <i data-lucide="edit-2" class="w-3.5 h-3.5 text-white"></i>
+                                    </div>
+                                </div>
+                                <h4 class="text-white font-medium text-base mb-1">TechCorp S.A.</h4>
+                                <p class="text-xs text-gray-500 mb-5 line-clamp-2">Interesse no plano Enterprise. Demonstração agendada com o CTO.</p>
+                                <div class="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full border border-dark-card bg-gray-600 flex items-center justify-center"><i data-lucide="user" class="w-3 h-3 text-white"></i></div>
+                                        <div class="w-6 h-6 rounded-full border border-dark-card bg-brand-orange text-[9px] flex items-center justify-center text-white font-bold">+2</div>
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1.5"><i data-lucide="paperclip" class="w-3 h-3"></i> 2</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Card Lead 2 -->
+                            <div class="glass-card rounded-xl p-5 cursor-pointer hover:-translate-y-1 transition-transform group">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> Urgente</span>
+                                </div>
+                                <h4 class="text-white font-medium text-base mb-1">Stark Industries</h4>
+                                <p class="text-xs text-gray-500 mb-5">Aguardando envio do contrato SLA revisado.</p>
+                                <div class="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                                    <span class="text-xs font-medium text-brand-orange">$12.500</span>
+                                    <span class="text-[10px] text-gray-500 flex items-center gap-1.5"><i data-lucide="clock" class="w-3 h-3"></i> Hoje</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna Kanban: Negociação -->
+                        <div class="w-80 shrink-0 flex flex-col gap-4">
+                            <div class="flex items-center justify-between text-gray-400 px-1 border-b border-white/5 pb-2">
+                                <span class="font-medium text-sm flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-yellow shadow-[0_0_8px_rgba(255,184,0,0.8)]"></div> Em Negociação (1)</span>
+                                <i data-lucide="more-horizontal" class="w-4 h-4 cursor-pointer hover:text-white"></i>
+                            </div>
+                            
+                            <!-- Card Lead 3 -->
+                            <div class="glass-card rounded-xl p-5 cursor-pointer hover:-translate-y-1 transition-transform group border border-brand-orange/30 shadow-[0_4px_20px_rgba(255,92,0,0.1)]">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-2.5 py-1 rounded text-[10px] font-medium bg-brand-yellow/10 text-brand-yellow border border-brand-yellow/20">Reunião Fechada</span>
+                                </div>
+                                <h4 class="text-white font-medium text-base mb-1">Wayne Enterprises</h4>
+                                <p class="text-xs text-gray-500 mb-5">Negociação final de valores e aprovação de escopo jurídico.</p>
+                                <div class="flex items-center justify-between mt-auto pt-3 border-t border-white/5">
+                                    <span class="text-xs font-medium text-white">$45.000</span>
+                                    <span class="text-[10px] text-brand-orange flex items-center gap-1.5"><i data-lucide="calendar" class="w-3 h-3"></i> Amanhã, 14:00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Coluna Kanban: Fechados -->
+                        <div class="w-80 shrink-0 flex flex-col gap-4">
+                            <div class="flex items-center justify-between text-gray-400 px-1 border-b border-white/5 pb-2">
+                                <span class="font-medium text-sm flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-green shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div> Ganhos (0)</span>
+                                <i data-lucide="more-horizontal" class="w-4 h-4 cursor-pointer hover:text-white"></i>
+                            </div>
+                            <div class="h-32 rounded-xl border-2 border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center text-xs text-gray-500 transition-colors hover:border-white/20 hover:bg-white/[0.04]">
+                                <i data-lucide="move" class="w-5 h-5 mb-2 text-gray-600"></i>
+                                Arraste cards para cá
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- FIM PÁGINA LEADS -->
+
+                <!-- ================= PÁGINA: PROJETOS (GRID) ================= -->
+                <div id="page-projects" class="page-view space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-white mb-1">Projetos Ativos</h2>
+                            <p class="text-sm text-gray-400">Gerencie equipes e acompanhe o progresso das entregas.</p>
+                        </div>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:flex-none">
+                                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" placeholder="Buscar projeto..." class="bg-dark-bg/50 border border-white/5 text-sm rounded-lg pl-9 pr-4 py-2 w-full sm:w-64 focus:outline-none focus:border-gray-500 text-white transition-colors">
+                            </div>
+                            <button class="px-3 py-2 bg-white/5 text-gray-300 rounded-lg text-sm border border-white/10 hover:bg-white/10 transition-colors flex items-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i> <span class="hidden sm:inline">Filtrar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        
+                        <!-- Card Projeto 1 -->
+                        <div class="glass-card rounded-2xl p-6 group cursor-pointer hover:border-white/10 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shadow-[inset_0_0_10px_rgba(168,85,247,0.2)]">
+                                    <i data-lucide="smartphone" class="w-6 h-6"></i>
+                                </div>
+                                <button class="text-gray-500 hover:text-white p-1 rounded-md hover:bg-white/5"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+                            </div>
+                            <h3 class="text-lg font-medium text-white mb-2 group-hover:text-purple-400 transition-colors">App Mobile V2.0</h3>
+                            <p class="text-sm text-gray-400 mb-6 line-clamp-2 h-10">Reformulação completa do aplicativo principal focando em usabilidade e nova identidade visual.</p>
+                            
+                            <div class="space-y-2 mb-6">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">Progresso Geral</span>
+                                    <span class="text-white font-medium">75%</span>
+                                </div>
+                                <div class="w-full bg-dark-bg rounded-full h-1.5 border border-white/5 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-purple-600 to-purple-400 h-1.5 rounded-full relative" style="width: 75%">
+                                        <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                                <div class="flex -space-x-2">
+                                    <div class="w-8 h-8 rounded-full border-2 border-dark-card bg-[#2dd4bf] text-[10px] flex items-center justify-center font-bold text-dark-bg">JS</div>
+                                    <div class="w-8 h-8 rounded-full border-2 border-dark-card bg-[#fbbf24] text-[10px] flex items-center justify-center font-bold text-dark-bg">AL</div>
+                                    <div class="w-8 h-8 rounded-full border-2 border-dark-card bg-white/10 text-[10px] flex items-center justify-center text-white"><i data-lucide="plus" class="w-3 h-3"></i></div>
+                                </div>
+                                <span class="text-xs text-gray-500 flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-md border border-white/5"><i data-lucide="calendar" class="w-3 h-3"></i> 12 Out</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Projeto 2 -->
+                        <div class="glass-card rounded-2xl p-6 group cursor-pointer hover:border-white/10 transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
+                            <div class="flex justify-between items-start mb-5">
+                                <div class="w-12 h-12 rounded-xl bg-brand-green/10 border border-brand-green/20 flex items-center justify-center text-brand-green shadow-[inset_0_0_10px_rgba(34,197,94,0.2)]">
+                                    <i data-lucide="globe" class="w-6 h-6"></i>
+                                </div>
+                                <button class="text-gray-500 hover:text-white p-1 rounded-md hover:bg-white/5"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+                            </div>
+                            <h3 class="text-lg font-medium text-white mb-2 group-hover:text-brand-green transition-colors">Portal B2B Corporativo</h3>
+                            <p class="text-sm text-gray-400 mb-6 line-clamp-2 h-10">Desenvolvimento da plataforma B2B para clientes com integração direta de ERP.</p>
+                            
+                            <div class="space-y-2 mb-6">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">Progresso Geral</span>
+                                    <span class="text-white font-medium">30%</span>
+                                </div>
+                                <div class="w-full bg-dark-bg rounded-full h-1.5 border border-white/5 overflow-hidden">
+                                    <div class="bg-gradient-to-r from-green-600 to-green-400 h-1.5 rounded-full" style="width: 30%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-4 border-t border-white/5">
+                                <div class="flex -space-x-2">
+                                    <div class="w-8 h-8 rounded-full border-2 border-dark-card bg-[#f43f5e] text-[10px] flex items-center justify-center font-bold text-white">MR</div>
+                                    <div class="w-8 h-8 rounded-full border-2 border-dark-card bg-white/10 text-[10px] flex items-center justify-center text-white"><i data-lucide="plus" class="w-3 h-3"></i></div>
+                                </div>
+                                <span class="text-xs text-gray-500 flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-md border border-white/5"><i data-lucide="calendar" class="w-3 h-3"></i> 28 Nov</span>
+                            </div>
+                        </div>
+
+                        <!-- Card Criar Novo Projeto -->
+                        <div class="glass-card rounded-2xl p-6 group cursor-pointer hover:border-brand-orange/30 border-dashed border-2 border-white/10 bg-white/[0.01] flex flex-col items-center justify-center text-center min-h-[260px] transition-all">
+                            <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 group-hover:text-brand-orange group-hover:bg-brand-orange/10 group-hover:border-brand-orange/20 group-hover:scale-110 transition-all mb-4">
+                                <i data-lucide="plus" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-base font-medium text-white mb-2">Novo Projeto</h3>
+                            <p class="text-xs text-gray-500 w-3/4">Configure um novo workspace, defina prazos e convide sua equipe.</p>
+                        </div>
+
+                    </div>
+                </div> <!-- FIM PÁGINA PROJETOS -->
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Inicializa os ícones da biblioteca Lucide e Lógica Interativa -->
+    <script>
+        lucide.createIcons();
+
+        // Lógica de Interação SPA (Navegação entre páginas)
+        function switchPage(pageId) {
+            
+            // 1. Esconder todas as views de páginas e resetar animação
+            document.querySelectorAll('.page-view').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('block', 'page-enter');
+            });
+
+            // 2. Mostrar a página selecionada disparando a animação de Fade In
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                // Pequeno delay forçado para reiniciar a animação CSS caso a página já tenha sido aberta antes
+                setTimeout(() => {
+                    targetPage.classList.add('block', 'page-enter');
+                }, 10);
+            }
+
+            // 3. Atualizar estilos do Menu Lateral
+            document.querySelectorAll('.nav-item').forEach(item => {
+                // Remove os estilos ativos e aplica os estilos inativos
+                item.className = 'nav-item flex items-center justify-between px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors';
+                
+                // Correção visual para o ícone Painel que não tem Badge no fim
+                if(item.id === 'nav-dashboard') {
+                   item.className = 'nav-item flex items-center gap-3 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors';
+                }
+            });
+
+            // Adiciona a classe de DESTAQUE (vidro iluminado) no item que foi clicado
+            const activeNav = document.getElementById(`nav-${pageId}`);
+            if (activeNav) {
+                if(pageId === 'dashboard') {
+                    activeNav.className = 'nav-item flex items-center gap-3 px-4 py-2.5 bg-white/10 text-white rounded-xl border border-white/5 shadow-inner transition-colors';
+                } else {
+                    activeNav.className = 'nav-item flex items-center justify-between px-4 py-2.5 bg-white/10 text-white rounded-xl border border-white/5 shadow-inner transition-colors';
+                }
+            }
+
+            // 4. Atualizar o Breadcrumb (título no header do app)
+            const titles = {
+                'dashboard': 'Visão Geral',
+                'leads': 'Gestão de Leads',
+                'projects': 'Projetos Ativos'
+            };
+            document.getElementById('header-title').innerText = titles[pageId] || 'Página';
+            
+            // Recriar ícones para garantir que funcionem nos elementos recém-renderizados
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

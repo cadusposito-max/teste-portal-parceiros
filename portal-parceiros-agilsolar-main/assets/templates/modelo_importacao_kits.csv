@@ -1,0 +1,4 @@
+id;categoria;name;brand;power;price;list_price;type;tag;description
+;kitsInversor;KIT 4 MOD 585W + MICRO INV GROWATT NEO 2.25KW;GROWATT;2.34;7797;8197;Bifasico;ALTA POTENCIA;2.34kWp - GROWATT
+;kitsInversor;KIT 5 MOD 585W + INV SOFAR 3.3K;SOFAR;2.925;9597;10197;Bifasico;CUSTO BENEFICIO;2.925kWp - SOFAR
+;kitsMicro;KIT 6 MOD 585W + MICRO INV SOFAR 3.3K;SOFAR;3.51;10697;11397;Trifasico;MAIS VENDIDO;3.51kWp - SOFAR

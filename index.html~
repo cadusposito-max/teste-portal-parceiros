@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ágil Solar - Portal Vendedor</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Configurações Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            orange: { 500: '#f97316', 600: '#ea580c' },
+            yellow: { 400: '#facc15', 500: '#eab308' }
+          },
+          animation: {
+            'spin-slow': 'spin 3s linear infinite',
+            'fade-in-down': 'fadeInDown 0.5s ease-out',
+            'fade-in-up': 'fadeInUp 0.5s ease-out',
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            fadeInDown: {
+              '0%': { opacity: '0', transform: 'translateY(-10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #050505; color: #e5e5e5; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #171717; }
+    ::-webkit-scrollbar-thumb { background: #404040; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f97316; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="selection:bg-orange-500 selection:text-white overflow-x-hidden">
+
+<!-- TELA DE LOGIN -->
+<div id="login-screen" class="fixed inset-0 z-[200] bg-[#050505] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-500">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-900/10 via-black to-black animate-pulse"></div>
+
+  <div class="relative z-10 w-full max-w-md px-6">
+    <div class="relative mb-10 flex justify-center group">
+      <div class="absolute inset-0 bg-orange-600 blur-[80px] opacity-20 animate-pulse"></div>
+      <img src="assets/img/logo.png" alt="Ágil Solar" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-64 md:w-72 h-auto object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.4)] animate-pulse-slow">
+    </div>
+
+    <div class="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+      <div class="mb-8 text-center">
+        <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter uppercase mb-1 pb-1 pr-1 inline-block">Acesso Restrito</h2>
+        <p class="text-neutral-500 text-[10px] font-black uppercase tracking-[0.2em]">Insira as suas credenciais</p>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">E-mail</label>
+          <input type="email" id="login-email" required class="w-full bg-black border border-neutral-800 focus:border-orange-500 rounded-none px-4 py-3 text-white placeholder-neutral-700 font-bold transition-all" placeholder="vendedor@agilsolar.com">
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Senha</label>
+          <input type="password" id="login-password" required class="w-full bg-black border border-neutral-800 focus:border-orange-500 rounded-none px-4 py-3 text-white placeholder-neutral-700 font-bold transition-all" placeholder="••••••••">
+        </div>
+
+        <p id="login-error" class="hidden text-red-500 text-xs font-bold text-center bg-red-500/10 p-2 border border-red-500/20"></p>
+
+        <button type="submit" id="btn-submit-login" class="w-full mt-4 py-4 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(234,88,12,0.3)] active:scale-95 flex justify-center items-center gap-2">
+          <i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i>
+          <span>ENTRAR NO SISTEMA</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen" class="fixed inset-0 z-[100] bg-[#050505] flex flex-col items-center justify-center overflow-hidden transition-opacity duration-1000 ease-in-out hidden">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-orange-900/20 via-black to-black animate-pulse"></div>
+  <div class="relative z-10 flex flex-col items-center transition-transform duration-1000" id="splash-content">
+
+    <div class="relative mb-6 group">
+      <div class="absolute inset-0 bg-orange-600 blur-[80px] opacity-30 animate-pulse"></div>
+      <img src="assets/img/logo.png" alt="Ágil Solar" onerror="this.src='https://placehold.co/300x100?text=Agil+Solar'" class="relative w-80 md:w-96 h-auto object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.5)] animate-pulse-slow">
+    </div>
+
+    <div class="flex flex-col items-center gap-3 w-64 mt-8">
+      <div class="flex justify-between w-full text-[10px] font-black uppercase text-neutral-600 tracking-widest">
+        <span>System Check</span><span id="loading-percentage" class="text-orange-500">0%</span>
+      </div>
+      <div class="w-full h-1.5 bg-neutral-900 rounded-none overflow-hidden border border-neutral-800">
+        <div id="loading-bar" class="h-full bg-gradient-to-r from-orange-600 to-yellow-400 transition-all duration-200 ease-out shadow-[0_0_10px_rgba(234,88,12,0.5)]" style="width: 0%"></div>
+      </div>
+      <p class="text-[10px] font-mono text-neutral-700 mt-2 animate-pulse">Sincronizando Banco de Dados...</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP CONTENT -->
+<div id="app-content" class="opacity-0 scale-95 transition-all duration-1000 hidden">
+  <header class="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-neutral-800 shadow-[0_10px_30px_-10px_rgba(0,0,0,1)] animate-fade-in-down">
+    <div class="bg-gradient-to-r from-orange-600 to-yellow-500 h-1 w-full"></div>
+
+    <div class="max-w-7xl mx-auto px-4 py-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+
+        <div class="flex items-center gap-4 group cursor-pointer" onclick="window.scrollTo(0,0)">
+          <img src="assets/img/logo.png" alt="Ágil Solar" onerror="this.src='https://placehold.co/150x50?text=Agil+Solar'" class="h-10 md:h-16 w-auto object-contain hover:scale-105 transition-transform drop-shadow-[0_0_10px_rgba(249,115,22,0.3)]">
+          <div class="hidden sm:block border-l-2 border-orange-500/50 pl-3">
+            <p class="text-white text-[10px] font-black uppercase tracking-[0.3em]">Portal<br>Vendedor</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+          <nav class="flex bg-neutral-900/50 p-1 border border-neutral-800 overflow-x-auto no-scrollbar" id="tab-container"></nav>
+
+          <!-- Ícone Admin Oculto conforme solicitado -->
+          <button id="admin-toggle-btn" class="hidden p-3 border transition-all duration-300 bg-black border-neutral-800 text-neutral-500 hover:text-white hover:border-white" title="Modo ADMIN">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+          </button>
+
+          <button onclick="handleLogout()" class="p-3 border transition-all duration-300 bg-black border-neutral-800 text-red-500/80 hover:text-red-500 hover:bg-red-500/10 hover:border-red-500/50" title="Sair do Sistema">
+            <i data-lucide="power" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8 relative animate-fade-in-up">
+
+    <div id="admin-bar" class="hidden mb-8 bg-red-900/10 border-2 border-red-600/30 p-4 flex items-center justify-between animate-fade-in-down backdrop-blur-sm">
+      <div class="flex items-center gap-3">
+        <div class="bg-red-600 p-2 text-white"><i data-lucide="settings" class="w-5 h-5 animate-spin-slow"></i></div>
+        <div>
+          <span class="text-red-500 font-black uppercase tracking-widest block text-xs">Atenção</span>
+          <span class="text-white font-bold text-sm">MODO ADMINISTRADOR ATIVO (Visualização Livre)</span>
+        </div>
+      </div>
+      <button onclick="openModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-6 py-3 font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(234,88,12,0.2)] hover:shadow-[0_0_30px_rgba(234,88,12,0.4)] active:scale-95">
+        <i data-lucide="plus" class="w-5 h-5 stroke-[3px]"></i>
+        NOVO KIT
+      </button>
+    </div>
+
+    <!-- Toolbar Principal -->
+    <div id="main-toolbar" class="flex flex-col sm:flex-row gap-4 mb-8">
+      <div class="relative flex-1 group">
+        <div class="absolute inset-0 bg-orange-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-600 group-focus-within:text-orange-500 transition-colors"></i>
+        <input type="text" id="search-input" placeholder="BUSCAR CLIENTE..." class="relative w-full pl-12 pr-4 py-4 bg-neutral-900 border-2 border-neutral-800 text-white placeholder:text-neutral-600 focus:outline-none focus:border-orange-500 focus:bg-black transition-all font-bold uppercase tracking-wide">
+      </div>
+      <div id="view-toggle-container" class="flex bg-neutral-900 p-1 border border-neutral-800 shrink-0 hidden">
+        <button onclick="setViewMode('grid')" id="btn-grid" class="p-3 transition-all bg-gradient-to-r from-orange-600 to-yellow-500 text-black"><i data-lucide="grid" class="w-6 h-6"></i></button>
+        <button onclick="setViewMode('list')" id="btn-list" class="p-3 transition-all text-neutral-600 hover:text-white"><i data-lucide="list" class="w-6 h-6"></i></button>
+      </div>
+    </div>
+
+    <!-- Container Principal -->
+    <div id="main-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"></div>
+
+    <!-- Estado Vazio / Erros -->
+    <div id="empty-state" class="hidden text-center py-32 border-2 border-dashed border-neutral-800 bg-neutral-900/20">
+      <div id="empty-state-icon" class="inline-flex items-center justify-center w-20 h-20 bg-neutral-900 mb-6 text-neutral-700 border border-neutral-800"><i data-lucide="search" class="w-10 h-10"></i></div>
+      <p id="empty-state-text" class="text-neutral-500 font-bold uppercase tracking-widest mb-4">Nenhum resultado encontrado</p>
+      <button id="empty-state-btn" class="hidden text-orange-500 font-black hover:text-white hover:underline uppercase tracking-wide">+ AÇÃO</button>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL POPUP: MONTAR PROPOSTA CRM -->
+<div id="proposal-builder-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-md p-2 md:p-6 hidden transition-opacity duration-300">
+  <div class="bg-neutral-950 border border-neutral-800 w-full max-w-5xl h-full md:h-[90vh] flex flex-col shadow-[0_0_50px_rgba(234,88,12,0.1)] relative">
+
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center p-4 md:p-6 border-b border-neutral-800 bg-black">
+      <div>
+        <h2 class="text-xl md:text-2xl font-black text-white uppercase flex items-center gap-2">
+          <i data-lucide="shopping-cart" class="text-orange-500 w-6 h-6 stroke-[3px]"></i>
+          NOVA PROPOSTA
+        </h2>
+        <p class="text-neutral-500 text-xs font-bold uppercase tracking-widest mt-1">
+          Cliente: <span id="pb-client-name" class="text-orange-400">...</span>
+        </p>
+      </div>
+      <button onclick="closeProposalBuilder()" class="text-neutral-500 hover:text-red-500 transition-colors bg-neutral-900 p-2 rounded-lg border border-neutral-800"><i data-lucide="x" class="w-6 h-6"></i></button>
+    </div>
+
+    <!-- Modal Controls -->
+    <div class="p-4 md:p-6 bg-neutral-900 border-b border-neutral-800 flex flex-col sm:flex-row gap-4 shadow-xl z-10">
+      <div class="flex bg-black p-1 border border-neutral-800 rounded">
+        <button id="pb-tab-inversor" onclick="setPBTab('kitsInversor')" class="flex-1 px-4 py-3 text-xs font-bold uppercase transition-all bg-orange-500 text-black shadow-md">Inversores</button>
+        <button id="pb-tab-micro" onclick="setPBTab('kitsMicro')" class="flex-1 px-4 py-3 text-xs font-bold uppercase transition-all text-neutral-500 hover:text-white">Microinversores</button>
+      </div>
+
+      <div class="relative flex-1 group">
+        <div class="absolute inset-0 bg-orange-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-600 group-focus-within:text-orange-500 transition-colors"></i>
+        <input type="text" id="pb-search" placeholder="BUSCAR POR POTÊNCIA OU GERAÇÃO EST. (ex: 500)..." class="relative w-full pl-12 pr-4 py-3 bg-black border border-neutral-700 text-white focus:outline-none focus:border-orange-500 transition-all font-bold uppercase text-xs md:text-sm">
+      </div>
+    </div>
+
+    <!-- Modal Content (Lista de Produtos) -->
+    <div id="pb-products-container" class="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-[#050505] content-start">
+      <!-- Injetado via JS -->
+    </div>
+
+    <div id="pb-empty" class="hidden flex-1 flex flex-col items-center justify-center p-6 bg-[#050505]">
+      <i data-lucide="search-x" class="w-12 h-12 text-neutral-700 mb-4"></i>
+      <p class="text-neutral-500 font-bold uppercase tracking-widest text-center">Nenhum kit atende a este filtro</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CADASTRAR KIT ADMIN -->
+<div id="modal-overlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 hidden">
+  <div class="bg-neutral-900 border-2 border-orange-600/50 w-full max-w-lg shadow-[0_0_50px_rgba(234,88,12,0.2)] animate-fade-in-up">
+    <div class="flex justify-between items-center p-6 border-b border-neutral-800 bg-black/50">
+      <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 flex items-center gap-2 italic tracking-tighter uppercase pb-1 pr-1">
+        <i data-lucide="edit-2" class="w-6 h-6 text-orange-500" id="modal-icon"></i>
+        <span id="modal-title">NOVA OFERTA</span>
+      </h2>
+      <button onclick="closeModal()" class="text-neutral-500 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+    </div>
+
+    <form id="product-form" class="p-6 space-y-5">
+      <input type="hidden" id="form-id">
+      <div class="grid grid-cols-2 gap-5">
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Produto</label>
+          <input required id="form-name" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white placeholder-neutral-700 font-bold uppercase transition-all" placeholder="NOME DO KIT">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Marca</label>
+          <input required id="form-brand" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white placeholder-neutral-700 font-bold uppercase transition-all" placeholder="FABRICANTE">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Potência (kWp)</label>
+          <input required type="number" step="0.01" id="form-power" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] text-green-500/80 font-black uppercase tracking-widest">Preço Venda</label>
+          <input required type="number" id="form-price" class="w-full bg-black border border-green-900 focus:border-green-500 text-green-400 rounded-none px-4 py-3 font-mono font-bold">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] text-red-500/80 font-black uppercase tracking-widest">Preço Lista</label>
+          <input required type="number" id="form-listPrice" class="w-full bg-black border border-red-900 focus:border-red-500 text-red-400 rounded-none px-4 py-3 font-mono font-bold">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Tipo</label>
+          <select id="form-type" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-bold uppercase">
+            <option>Monofásico</option><option>Bifásico</option><option>Trifásico</option>
+          </select>
+        </div>
+        <div class="space-y-1">
+          <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Tag</label>
+          <select id="form-tag" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-bold uppercase">
+            <option>MAIS VENDIDO</option><option>PREMIUM</option><option>CUSTO-BENEFÍCIO</option>
+            <option>LANÇAMENTO</option><option>ALTA POTÊNCIA</option><option>PROJETO ESPECIAL</option>
+          </select>
+        </div>
+      </div>
+      <div class="pt-4 flex gap-4">
+        <button type="button" onclick="closeModal()" class="flex-1 py-4 bg-neutral-800 hover:bg-neutral-700 text-white font-black uppercase tracking-widest transition-colors border-b-4 border-neutral-950 active:border-b-0 active:translate-y-1">Cancelar</button>
+        <button type="submit" id="btn-save-modal" class="flex-1 py-4 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest transition-all border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 shadow-[0_0_20px_rgba(234,88,12,0.4)]">SALVAR OFERTA</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: NOVO CLIENTE -->
+<div id="client-modal-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 hidden">
+  <div class="bg-neutral-900 border-2 border-orange-600/50 rounded-none w-full max-w-sm shadow-[0_0_50px_rgba(234,88,12,0.2)] animate-fade-in-up">
+    <div class="flex justify-between items-center p-6 border-b border-neutral-800 bg-black/50">
+      <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 italic tracking-tighter uppercase pb-1 pr-1">NOVO CLIENTE</h2>
+      <button onclick="closeClientModal()" class="text-neutral-500 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-8 h-8"></i></button>
+    </div>
+    <form id="client-form" class="p-6 space-y-5">
+      <div class="space-y-1">
+        <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Nome do Cliente</label>
+        <input required id="client-nome" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-bold uppercase transition-all" placeholder="EX: JOÃO SILVA">
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">WhatsApp (com DDD)</label>
+        <input required id="client-telefone" type="tel" maxlength="15" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-mono font-bold transition-all" placeholder="11 99999-9999">
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] text-orange-500/80 font-black uppercase tracking-widest">Cidade/UF</label>
+        <input required id="client-cidade" class="w-full bg-black border border-neutral-700 focus:border-orange-500 rounded-none px-4 py-3 text-white font-bold uppercase transition-all" placeholder="ARAÇATUBA/SP">
+      </div>
+      <button type="submit" id="btn-save-client" class="w-full mt-2 py-4 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black font-black uppercase tracking-widest transition-all border-b-4 border-orange-800 active:border-b-0 active:translate-y-1 shadow-[0_0_20px_rgba(234,88,12,0.4)]">SALVAR CLIENTE</button>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" class="fixed bottom-10 right-10 bg-gradient-to-r from-orange-600 to-yellow-500 text-black px-8 py-5 shadow-[0_0_50px_rgba(234,88,12,0.5)] flex items-center gap-4 border-4 border-orange-400 transform translate-y-full opacity-0 transition-all duration-300 z-[9999]" style="pointer-events: none;">
+  <div class="bg-black p-1"><i data-lucide="check" class="w-6 h-6 text-orange-500 stroke-[4px]"></i></div>
+  <span id="toast-msg" class="font-black uppercase tracking-wider text-sm">NOTIFICAÇÃO</span>
+</div>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+  // ==========================================
+  // 1. CONFIGURAÇÃO SUPABASE
+  // ==========================================
+  const SUPABASE_URL = 'https://tzwjxgprhorqrmpqudgg.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6d2p4Z3ByaG9ycXJtcHF1ZGdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjczNTksImV4cCI6MjA4NzcwMzM1OX0.hwfzCb9FGVXX7Uf0pY7zFS6SZHrh0pzWk1gKFVq2DX4';
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // --- ESTADO GLOBAL ---
+  let state = {
+    data: [],
+    clientes: [],
+    activeTab: 'clientes',
+    searchTerm: '',
+    viewMode: 'grid',
+    isEditMode: false,
+    currentUser: null,
+
+    pbActiveClient: null,
+    pbCategory: 'kitsInversor',
+    pbSearch: ''
+  };
+
+  // REMOVIDO ABA DE INVERSORES E MICROINVERSORES
+  const TABS = [
+    { id: 'clientes', label: 'MEUS CLIENTES', icon: 'users' }
+  ];
+
+  // ==========================================
+  // 2. AUTENTICAÇÃO
+  // ==========================================
+  async function checkAuth() {
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+
+      if (session && session.user) {
+        state.currentUser = session.user;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('splash-screen').classList.remove('hidden');
+
+        initSplash();
+        await fetchProducts();
+        await fetchClientes();
+        renderTabs();
+      } else {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('splash-screen').classList.add('hidden');
+        document.getElementById('app-content').classList.add('hidden');
+      }
+    } catch (error) {
+      console.error("Erro auth:", error);
+      document.getElementById('login-error').innerText = "Insira as chaves do Supabase na linha 402 do código.";
+      document.getElementById('login-error').classList.remove('hidden');
+    }
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    const btnSubmit = document.getElementById('btn-submit-login');
+
+    btnSubmit.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> AUTENTICANDO...`;
+    lucide.createIcons();
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      errorEl.innerText = "Credenciais inválidas ou erro no Supabase.";
+      errorEl.classList.remove('hidden');
+      btnSubmit.innerHTML = `<i data-lucide="log-in" class="w-5 h-5 stroke-[3px]"></i> ENTRAR NO SISTEMA`;
+      lucide.createIcons();
+    } else {
+      errorEl.classList.add('hidden');
+      state.currentUser = data.user;
+
+      await updateVendedorStats(email);
+
+      document.getElementById('login-screen').classList.add('opacity-0');
+      setTimeout(async () => {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('splash-screen').classList.remove('hidden');
+        initSplash();
+        await fetchProducts();
+        await fetchClientes();
+        renderTabs();
+      }, 500);
+    }
+  });
+
+  async function updateVendedorStats(email) {
+    let { data: stats } = await supabaseClient.from('vendedores_stats').select('*').eq('email', email).single();
+    if (stats) {
+      await supabaseClient.from('vendedores_stats').update({
+        total_logins: stats.total_logins + 1,
+        ultimo_acesso: new Date().toISOString()
+      }).eq('email', email);
+    } else {
+      await supabaseClient.from('vendedores_stats').insert([{ email: email, total_logins: 1 }]);
+    }
+  }
+
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+  }
+
+  // ==========================================
+  // 3. BUSCAR DADOS
+  // ==========================================
+  async function fetchProducts() {
+    const { data, error } = await supabaseClient.from('produtos').select('*');
+    if (!error) state.data = data || [];
+  }
+
+  async function fetchClientes() {
+    if (!state.currentUser) return;
+    const { data, error } = await supabaseClient.from('clientes').select('*').eq('vendedor_email', state.currentUser.email).order('created_at', { ascending: false });
+    if (!error) state.clientes = data || [];
+  }
+
+  // ==========================================
+  // 4. INTERFACE BASE
+  // ==========================================
+  function initSplash() {
+    let progress = 0;
+    const percentageEl = document.getElementById('loading-percentage');
+    const barEl = document.getElementById('loading-bar');
+
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 15) + 5;
+      if(progress > 100) progress = 100;
+      percentageEl.innerText = `${progress}%`;
+      barEl.style.width = `${progress}%`;
+
+      if (progress === 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          document.getElementById('splash-screen').classList.add('opacity-0', 'pointer-events-none');
+          document.getElementById('splash-content').classList.add('scale-110');
+          document.getElementById('app-content').classList.remove('opacity-0', 'scale-95', 'hidden');
+          document.getElementById('app-content').classList.add('opacity-100', 'scale-100');
+          renderContent();
+        }, 500);
+        setTimeout(() => document.getElementById('splash-screen').classList.add('hidden'), 2000);
+      }
+    }, 100);
+  }
+
+  function formatCurrency(val) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = msg;
+    toast.classList.remove('translate-y-full', 'opacity-0');
+    setTimeout(() => toast.classList.add('translate-y-full', 'opacity-0'), 3000);
+  }
+
+  function getBadgeStyles(tag) {
+    const styles = {
+      'MAIS VENDIDO': 'bg-gradient-to-r from-orange-600 to-yellow-500 text-black border-orange-500',
+      'PREMIUM': 'bg-neutral-800 text-orange-400 border-orange-500',
+      'CUSTO-BENEFÍCIO': 'bg-green-600 text-white border-green-500',
+      'LANÇAMENTO': 'bg-blue-600 text-white border-blue-500',
+      'ALTA POTÊNCIA': 'bg-red-600 text-white border-red-500',
+      'PROJETO ESPECIAL': 'bg-neutral-700 text-neutral-300 border-neutral-600',
+    };
+    return styles[tag] || styles['PROJETO ESPECIAL'];
+  }
+
+  function renderTabs() {
+    const container = document.getElementById('tab-container');
+    container.innerHTML = TABS.map(tab => {
+      const isActive = state.activeTab === tab.id;
+      const activeClasses = 'bg-gradient-to-r from-orange-600 to-yellow-500 border-orange-500 text-black shadow-[0_0_15px_rgba(234,88,12,0.3)] translate-y-[-2px]';
+      const inactiveClasses = 'bg-transparent border-transparent text-neutral-500 hover:text-white hover:border-neutral-700';
+      return `
+                    <button onclick="setTab('${tab.id}')" class="flex items-center gap-2 px-6 py-3 text-xs font-black uppercase tracking-wider transition-all duration-200 border ${isActive ? activeClasses : inactiveClasses} whitespace-nowrap">
+                        <i data-lucide="${tab.icon}" class="w-4 h-4 ${isActive ? 'stroke-[3px]' : ''}"></i>
+                        ${tab.label}
+                    </button>
+                `;
+    }).join('');
+    lucide.createIcons();
+  }
+
+  function setTab(tabId) { state.activeTab = tabId; renderTabs(); renderContent(); }
+  function setViewMode(mode) {
+    state.viewMode = mode;
+    document.getElementById('btn-grid').className = mode === 'grid' ? 'p-3 transition-all bg-gradient-to-r from-orange-600 to-yellow-500 text-black' : 'p-3 transition-all text-neutral-600 hover:text-white';
+    document.getElementById('btn-list').className = mode === 'list' ? 'p-3 transition-all bg-gradient-to-r from-orange-600 to-yellow-500 text-black' : 'p-3 transition-all text-neutral-600 hover:text-white';
+    renderContent();
+  }
+
+  function renderContent() {
+    const container = document.getElementById('main-container');
+    const toggleContainer = document.getElementById('view-toggle-container');
+    const adminBar = document.getElementById('admin-bar');
+    const mainToolbar = document.getElementById('main-toolbar');
+
+    if (state.activeTab === 'clientes') {
+      mainToolbar.classList.remove('hidden');
+      toggleContainer.classList.add('hidden');
+      if(adminBar) adminBar.classList.add('hidden');
+      renderClientesList(container);
+    } else {
+      if (!state.isEditMode) {
+        mainToolbar.classList.add('hidden');
+      } else {
+        mainToolbar.classList.remove('hidden');
+        toggleContainer.classList.remove('hidden');
+        if(adminBar) adminBar.classList.remove('hidden');
+      }
+      renderProductsList(container);
+    }
+    lucide.createIcons();
+  }
+
+  // ==========================================
+  // 5. RENDERIZADORES ESPECÍFICOS
+  // ==========================================
+  function renderClientesList(container) {
+    container.className = "flex flex-col gap-4";
+
+    let list = state.clientes;
+    if (state.searchTerm) {
+      const lower = state.searchTerm.toLowerCase();
+      list = list.filter(c => c.nome.toLowerCase().includes(lower) || c.telefone.includes(lower));
+    }
+
+    const emptyState = document.getElementById('empty-state');
+    const emptyBtn = document.getElementById('empty-state-btn');
+
+    if (list.length === 0) {
+      container.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      document.getElementById('empty-state-text').innerText = "Nenhum cliente na sua carteira";
+      document.getElementById('empty-state-icon').innerHTML = '<i data-lucide="users" class="w-10 h-10"></i>';
+      emptyBtn.classList.remove('hidden');
+      emptyBtn.innerText = "+ CADASTRAR CLIENTE";
+      emptyBtn.onclick = openClientModal;
+      return;
+    } else {
+      emptyState.classList.add('hidden');
+    }
+
+    let html = `
+                <div class="flex justify-between items-center p-4 bg-neutral-900 border border-neutral-800 mb-2">
+                    <h2 class="text-xl font-black text-white uppercase tracking-widest flex items-center gap-2"><i data-lucide="users" class="w-6 h-6 text-orange-500"></i> Carteira</h2>
+                    <button onclick="openClientModal()" class="bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-4 py-2 font-black uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(234,88,12,0.3)] active:scale-95 flex gap-2 items-center text-xs">
+                        <i data-lucide="user-plus" class="w-4 h-4 stroke-[3px]"></i> NOVO CLIENTE
+                    </button>
+                </div>
+            `;
+
+    html += list.map(c => `
+                <div class="bg-neutral-900 border border-neutral-800 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-orange-500 transition-all group">
+                    <div>
+                        <h3 class="text-white font-black text-lg uppercase group-hover:text-orange-400 transition-colors">${c.nome}</h3>
+                        <p class="text-neutral-500 text-sm font-mono flex items-center gap-1 mt-1"><i data-lucide="phone" class="w-3 h-3"></i> ${c.telefone}</p>
+                    </div>
+                    <button onclick="openProposalBuilder('${c.id}')" class="bg-neutral-800 border border-neutral-700 hover:border-orange-500 hover:bg-orange-500 hover:text-black text-neutral-300 px-5 py-3 font-black uppercase tracking-wider transition-all active:scale-95 flex gap-2 items-center text-xs w-full sm:w-auto justify-center shadow-lg">
+                        <i data-lucide="file-text" class="w-4 h-4 stroke-[3px]"></i> NOVA PROPOSTA
+                    </button>
+                </div>
+            `).join('');
+
+    container.innerHTML = html;
+  }
+
+  function renderProductsList(container) {
+    const emptyState = document.getElementById('empty-state');
+    const emptyBtn = document.getElementById('empty-state-btn');
+
+    if (!state.isEditMode) {
+      container.innerHTML = '';
+      container.className = "flex flex-col";
+      emptyState.classList.remove('hidden');
+
+      document.getElementById('empty-state-icon').innerHTML = '<i data-lucide="lock" class="w-10 h-10 text-red-500"></i>';
+      document.getElementById('empty-state-icon').className = "inline-flex items-center justify-center w-20 h-20 bg-red-900/10 mb-6 text-red-500 border border-red-800";
+
+      document.getElementById('empty-state-text').innerHTML = "<span class='text-red-500 text-2xl'>ACESSO BLOQUEADO</span><br><span class='text-sm font-medium text-neutral-400 lowercase normal-case mt-4 block max-w-md mx-auto'>Os kits e valores agora são exclusivos do <b>Criador de Propostas</b>.<br>Aceda aos seus clientes e clique em 'Nova Proposta' para gerar o orçamento.</span>";
+
+      emptyBtn.classList.remove('hidden');
+      emptyBtn.innerText = "IR PARA MEUS CLIENTES";
+      emptyBtn.onclick = () => setTab('clientes');
+
+      lucide.createIcons();
+      return;
+    }
+
+    // Admin mode rendering (hidden in normal flow due to removed admin toggle)
+    document.getElementById('empty-state-icon').innerHTML = '<i data-lucide="search" class="w-10 h-10"></i>';
+    document.getElementById('empty-state-icon').className = "inline-flex items-center justify-center w-20 h-20 bg-neutral-900 mb-6 text-neutral-700 border border-neutral-800";
+
+    let list = state.data.filter(item => item.categoria === state.activeTab);
+    if (state.searchTerm) {
+      const lower = state.searchTerm.toLowerCase();
+      list = list.filter(item => item.name.toLowerCase().includes(lower) || item.brand.toLowerCase().includes(lower));
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      document.getElementById('empty-state-text').innerText = "Nenhum kit encontrado";
+      if(state.isEditMode) {
+        emptyBtn.classList.remove('hidden');
+        emptyBtn.innerText = "+ CRIAR NOVO ITEM";
+        emptyBtn.onclick = () => openModal();
+      } else {
+        emptyBtn.classList.add('hidden');
+      }
+      return;
+    } else {
+      emptyState.classList.add('hidden');
+    }
+
+    container.className = state.viewMode === 'grid'
+            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+            : "flex flex-col gap-4 bg-neutral-900/50 border border-neutral-800 rounded-none";
+
+    container.innerHTML = list.map(item => {
+      const discount = Math.round(((item.list_price - item.price) / item.list_price) * 100);
+      const badgeClass = getBadgeStyles(item.tag);
+      const formattedPrice = formatCurrency(item.price);
+      const formattedListPrice = formatCurrency(item.list_price);
+
+      const adminButtons = `
+                    <div class="flex gap-2">
+                        <button onclick='openModal(${JSON.stringify(item)})' class="p-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteItem('${item.id}')" class="p-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>`;
+
+      if (state.viewMode === 'grid') {
+        return `
+                    <div class="relative group flex flex-col overflow-hidden transition-all duration-300 bg-neutral-900 border-2 border-dashed border-orange-500/50 hover:-translate-y-1 opacity-80 hover:opacity-100">
+                        <div class="absolute top-0 right-0 p-2 z-20 flex gap-1 bg-black/80 backdrop-blur border-b border-l border-neutral-700">${adminButtons}</div>
+                        <div class="absolute -left-1 top-4 z-10"><div class="bg-red-600 text-white text-xs font-black px-3 py-1 shadow-lg flex items-center gap-1 skew-x-[-10deg] border-2 border-red-800"><span class="skew-x-[10deg]">-${discount}% OFF</span></div></div>
+                        <div class="p-6 relative z-10 flex flex-col h-full">
+                            <div class="flex justify-end mb-4"><span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${item.tag}</span></span></div>
+                            <div class="mb-1"><span class="text-[10px] text-neutral-500 font-black uppercase tracking-[0.2em]">${item.brand}</span></div>
+                            <h3 class="text-white font-black text-xl leading-none uppercase tracking-tight mb-4">${item.name}</h3>
+                            <div class="bg-black/50 border border-neutral-800 p-3 mb-6 grid grid-cols-2 gap-2">
+                                <div class="flex flex-col"><span class="text-[10px] text-neutral-500 font-bold uppercase">Potência</span><span class="text-orange-500 font-black text-lg flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4 fill-orange-500"></i> ${item.power} <span class="text-xs">kWp</span></span></div>
+                                <div class="flex flex-col border-l border-neutral-800 pl-3"><span class="text-[10px] text-neutral-500 font-bold uppercase">Tipo</span><span class="text-neutral-300 font-bold text-sm uppercase mt-1 truncate">${item.type}</span></div>
+                            </div>
+                            <div class="mt-auto pt-4 border-t-2 border-dashed border-neutral-800">
+                                <div class="flex flex-col mb-1"><span class="text-xs text-neutral-500 line-through font-bold decoration-red-500 decoration-2">DE: ${formattedListPrice}</span></div>
+                                <div>
+                                    <span class="text-[10px] text-orange-500 font-black uppercase tracking-wider block mb-[-4px]">À VISTA</span>
+                                    <div class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block"><span class="text-base align-top text-neutral-500 mr-0.5">R$</span>${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(item.price)}<span class="text-lg align-top text-neutral-500">,00</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+      } else {
+        return `
+                    <div class="relative flex flex-col sm:flex-row sm:items-center p-5 gap-4 group bg-neutral-900 border-b border-dashed border-orange-500/30 transition-all opacity-80 hover:opacity-100">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${item.tag}</span></span>
+                                <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest bg-black px-2 py-0.5">${item.brand}</span>
+                            </div>
+                            <h3 class="text-white font-black text-lg uppercase tracking-tight truncate group-hover:text-orange-400 transition-colors">${item.name}</h3>
+                            <div class="flex items-center gap-4 text-xs mt-2 text-neutral-400 uppercase font-bold">
+                                <span class="flex items-center text-orange-500"><i data-lucide="zap" class="w-3 h-3 mr-1"></i> ${item.power} kWp</span>
+                                <span class="w-1 h-1 bg-neutral-600 rounded-full"></span><span class="truncate max-w-[300px]">${item.description}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between sm:justify-end gap-6 sm:min-w-[300px] border-t sm:border-t-0 border-neutral-800 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                            <div class="text-right">
+                                <div class="text-[10px] font-bold text-neutral-500 line-through decoration-red-600">${formattedListPrice}</div>
+                                <div class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
+                            </div>
+                            ${adminButtons}
+                        </div>
+                    </div>`;
+      }
+    }).join('');
+  }
+
+  // ==========================================
+  // 6. POPUP GIGANTE DA PROPOSTA
+  // ==========================================
+  function openProposalBuilder(clientId) {
+    state.pbActiveClient = state.clientes.find(c => c.id === clientId);
+    document.getElementById('pb-client-name').innerText = state.pbActiveClient.nome;
+
+    state.pbCategory = 'kitsInversor';
+    state.pbSearch = '';
+    document.getElementById('pb-search').value = '';
+
+    updatePBTabsUI();
+    renderModalProducts();
+    document.getElementById('proposal-builder-modal').classList.remove('hidden');
+  }
+
+  function closeProposalBuilder() {
+    document.getElementById('proposal-builder-modal').classList.add('hidden');
+    state.pbActiveClient = null;
+  }
+
+  function setPBTab(category) {
+    state.pbCategory = category;
+    updatePBTabsUI();
+    renderModalProducts();
+  }
+
+  function updatePBTabsUI() {
+    const btnInv = document.getElementById('pb-tab-inversor');
+    const btnMic = document.getElementById('pb-tab-micro');
+
+    if(state.pbCategory === 'kitsInversor') {
+      btnInv.className = "flex-1 px-4 py-3 text-xs font-bold uppercase transition-all bg-orange-500 text-black shadow-md";
+      btnMic.className = "flex-1 px-4 py-3 text-xs font-bold uppercase transition-all text-neutral-500 hover:text-white";
+    } else {
+      btnMic.className = "flex-1 px-4 py-3 text-xs font-bold uppercase transition-all bg-orange-500 text-black shadow-md";
+      btnInv.className = "flex-1 px-4 py-3 text-xs font-bold uppercase transition-all text-neutral-500 hover:text-white";
+    }
+  }
+
+  document.getElementById('pb-search').addEventListener('input', (e) => {
+    state.pbSearch = e.target.value.toLowerCase();
+    renderModalProducts();
+  });
+
+  function renderModalProducts() {
+    const container = document.getElementById('pb-products-container');
+    const emptyEl = document.getElementById('pb-empty');
+
+    let list = state.data.filter(k => k.categoria === state.pbCategory);
+
+    if (state.pbSearch) {
+      list = list.filter(item => {
+        const estGeneration = (item.power * 120).toFixed(0);
+        return item.name.toLowerCase().includes(state.pbSearch) ||
+                item.brand.toLowerCase().includes(state.pbSearch) ||
+                item.power.toString().includes(state.pbSearch) ||
+                estGeneration.includes(state.pbSearch);
+      });
+    }
+
+    if(list.length === 0) {
+      container.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else {
+      emptyEl.classList.add('hidden');
+      emptyEl.classList.remove('flex');
+      container.classList.remove('hidden');
+
+      container.innerHTML = list.map(item => {
+        const estGeneration = (item.power * 120).toFixed(0);
+        const formattedPrice = formatCurrency(item.price);
+        const formattedListPrice = formatCurrency(item.list_price);
+
+        // ALTERAÇÃO: Botão modificado para "COPIAR LINK"
+        return `
+                    <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-5 flex flex-col gap-4 group transition-all rounded-sm shadow-xl">
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${item.brand}</span>
+                            <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold">DE: ${formattedListPrice}</span>
+                        </div>
+
+                        <h3 class="text-white font-black text-sm uppercase leading-tight group-hover:text-orange-400 transition-colors">${item.name}</h3>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-black p-2 border border-neutral-800 flex flex-col items-center justify-center">
+                                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potência</span>
+                                <span class="text-orange-500 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${item.power} kWp</span>
+                            </div>
+                            <div class="bg-neutral-900 p-2 border border-neutral-800 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]">
+                                <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geração Est.</span>
+                                <span class="text-blue-400 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ~${estGeneration} kWh</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-neutral-800 flex items-center justify-between gap-3">
+                            <div class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-yellow-400 tracking-tighter pb-1 pr-1 inline-block">${formattedPrice}</div>
+
+                            <button onclick='copyProposalLink(${JSON.stringify(item)}, event)' class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] text-[10px] font-black uppercase tracking-widest min-w-[110px]">
+                                <i data-lucide="link" class="w-4 h-4"></i> COPIAR LINK
+                            </button>
+                        </div>
+                    </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+  }
+
+  // ==========================================
+  // 7. GERAR LINK NO SUPABASE E COPIAR
+  // ==========================================
+  async function copyProposalLink(kit, event) {
+    const client = state.pbActiveClient;
+    if(!client) return alert('Nenhum cliente em atendimento!');
+
+    const btnCopiar = event.currentTarget;
+    const originalText = btnCopiar.innerHTML;
+    btnCopiar.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> GERANDO...';
+    lucide.createIcons();
+
+    try {
+      // 1. Inserir Proposta no Supabase
+      const { data, error } = await supabaseClient.from('propostas').insert([{
+        vendedor_email: state.currentUser.email,
+        cliente_nome: client.nome,
+        cliente_telefone: client.telefone,
+        cliente_cidade: client.cidade,
+        kit_nome: kit.name,
+        kit_brand: kit.brand,
+        kit_power: kit.power,
+        kit_price: kit.price,
+        kit_list_price: kit.list_price
+      }]).select();
+
+      if (error) throw error;
+
+      const propostaId = data[0].id;
+
+      // 2. Criar Link (Pega o domínio atual onde o index.html está hospedado)
+      const baseUrl = window.location.href.split('index.html')[0].replace(/\/$/, "");
+      const linkProposta = `${baseUrl}/proposta.html?id=${propostaId}`;
+
+      // 3. Copiar o link para a Área de Transferência
+      const tempInput = document.createElement("textarea");
+      tempInput.value = linkProposta;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand("copy"); // Metódo compatível para copiar
+      document.body.removeChild(tempInput);
+
+      // 4. Gravar Analytics Extra
+      supabaseClient.from('logs_propostas').insert([{
+        vendedor_email: state.currentUser.email,
+        kit_nome: kit.name,
+        valor_kit: kit.price,
+        acao: 'LINK_COPIADO'
+      }]);
+
+      // Feedback Visual do Botão
+      btnCopiar.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> COPIADO!';
+      btnCopiar.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+      btnCopiar.classList.add('bg-green-600', 'hover:bg-green-500');
+      lucide.createIcons();
+
+      showToast('LINK DA PROPOSTA COPIADO!');
+
+      // Restaura o botão original após 3 segundos
+      setTimeout(() => {
+        btnCopiar.innerHTML = originalText;
+        btnCopiar.classList.remove('bg-green-600', 'hover:bg-green-500');
+        btnCopiar.classList.add('bg-blue-600', 'hover:bg-blue-500');
+        lucide.createIcons();
+      }, 3000);
+
+    } catch (err) {
+      console.error("Erro ao gerar link:", err);
+      alert("Ocorreu um erro ao gerar a proposta. Verifique o console ou se criou a tabela 'propostas'.");
+      btnCopiar.innerHTML = originalText;
+      lucide.createIcons();
+    }
+  }
+
+  // ==========================================
+  // 8. ADMIN: CRIAR CLIENTE & PRODUTOS
+  // ==========================================
+  document.getElementById('client-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!state.currentUser) return alert('Faça login primeiro!');
+
+    const btnSave = document.getElementById('btn-save-client');
+    btnSave.innerText = "SALVANDO...";
+
+    const newClient = {
+      vendedor_email: state.currentUser.email,
+      nome: document.getElementById('client-nome').value.toUpperCase(),
+      telefone: document.getElementById('client-telefone').value,
+      cidade: document.getElementById('client-cidade').value
+    };
+
+    await supabaseClient.from('clientes').insert([newClient]);
+    await fetchClientes();
+
+    closeClientModal();
+    showToast('CLIENTE SALVO!');
+    renderContent();
+    btnSave.innerText = "SALVAR CLIENTE";
+  });
+
+  function openClientModal() {
+    document.getElementById('client-modal-overlay').classList.remove('hidden');
+    document.getElementById('client-form').reset();
+  }
+  function closeClientModal() { document.getElementById('client-modal-overlay').classList.add('hidden'); }
+
+  const modal = document.getElementById('modal-overlay');
+  function openModal(item = null) {
+    modal.classList.remove('hidden');
+    if(item) {
+      document.getElementById('modal-title').innerText = 'EDITAR OFERTA';
+      document.getElementById('form-id').value = item.id;
+      document.getElementById('form-name').value = item.name;
+      document.getElementById('form-brand').value = item.brand;
+      document.getElementById('form-power').value = item.power;
+      document.getElementById('form-price').value = item.price;
+      document.getElementById('form-listPrice').value = item.list_price;
+      document.getElementById('form-type').value = item.type;
+      document.getElementById('form-tag').value = item.tag;
+    } else {
+      document.getElementById('modal-title').innerText = 'NOVA OFERTA';
+      document.getElementById('product-form').reset();
+      document.getElementById('form-id').value = '';
+    }
+  }
+  function closeModal() { modal.classList.add('hidden'); }
+
+  document.getElementById('product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('form-id').value;
+    const btnSave = document.getElementById('btn-save-modal');
+    btnSave.innerHTML = "SALVANDO...";
+
+    const productData = {
+      categoria: state.activeTab === 'clientes' ? 'kitsInversor' : state.activeTab,
+      name: document.getElementById('form-name').value.toUpperCase(),
+      brand: document.getElementById('form-brand').value.toUpperCase(),
+      power: Number(document.getElementById('form-power').value),
+      price: Number(document.getElementById('form-price').value),
+      list_price: Number(document.getElementById('form-listPrice').value),
+      type: document.getElementById('form-type').value,
+      tag: document.getElementById('form-tag').value,
+      description: document.getElementById('form-power').value + 'kWp - ' + document.getElementById('form-brand').value.toUpperCase()
+    };
+
+    if (id) {
+      await supabaseClient.from('produtos').update(productData).eq('id', id);
+    } else {
+      await supabaseClient.from('produtos').insert([productData]);
+    }
+
+    await fetchProducts();
+    closeModal();
+    showToast('OFERTA SALVA COM SUCESSO');
+    btnSave.innerHTML = "SALVAR OFERTA";
+    renderContent();
+  });
+
+  async function deleteItem(id) {
+    if(confirm('TEM CERTEZA? ESSA AÇÃO NÃO PODE SER DESFEITA.')) {
+      await supabaseClient.from('produtos').delete().eq('id', id);
+      await fetchProducts();
+      showToast('ITEM REMOVIDO');
+      renderContent();
+    }
+  }
+
+  function toggleAdminMode() {
+    state.isEditMode = !state.isEditMode;
+    document.getElementById('admin-toggle-btn').className = state.isEditMode ? 'p-3 border transition-all duration-300 bg-red-600 border-red-500 text-white animate-pulse' : 'p-3 border transition-all duration-300 bg-black border-neutral-800 text-neutral-500 hover:text-white hover:border-white';
+    renderContent();
+  }
+
+  // 1. CRIAMOS A FUNÇÃO DA MÁSCARA
+  function formatarTelefone(event) {
+    let campo = event.target; // Pega o campo que o usuário está digitando
+    let numeros = campo.value.replace(/\D/g, ''); // Limpa tudo que não for número
+    let resultado = '';
+
+    // 2. VAMOS MONTANDO O TEXTO PASSO A PASSO
+    if (numeros.length > 0) {
+      // Se digitou algo, já abre o parênteses e coloca os 2 primeiros números (DDD)
+      resultado = '(' + numeros.substring(0, 2);
+    }
+
+    if (numeros.length > 2) {
+      // Se já tem mais de 2 números, fecha o parênteses, dá espaço e bota os próximos 5 números
+      resultado += ') ' + numeros.substring(2, 7);
+    }
+
+    if (numeros.length > 7) {
+      // Se passou de 7 números, bota o tracinho e os últimos 4 números
+      resultado += '-' + numeros.substring(7, 11);
+    }
+
+    // 3. DEVOLVE O TEXTO FORMATADO PARA O CAMPO
+    campo.value = resultado;
+  }
+
+  // Inits
+  document.getElementById('search-input').addEventListener('input', (e) => { state.searchTerm = e.target.value; renderContent(); });
+  document.getElementById('client-telefone').addEventListener('input', formatarTelefone);
+  lucide.createIcons();
+  checkAuth();
+
+</script>
+</body>
+</html>

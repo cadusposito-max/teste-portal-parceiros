@@ -70,13 +70,25 @@ img[data-theme-logo="true"] {
    METRIC CARDS — Premium glassmorphism
    ========================================== */
 .metric-card {
-  background: linear-gradient(145deg, #111111 0%, #0c0c0c 60%, #080808 100%);
+  background: linear-gradient(145deg, rgba(22,22,26,0.92) 0%, rgba(14,14,16,0.75) 60%, rgba(10,10,12,0.85) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(255,255,255,0.06) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.45),
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    inset 1px 0 0 rgba(255,255,255,0.03);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.35s ease,
               border-color 0.35s ease;
 }
 .metric-card:hover {
   transform: translateY(-3px);
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(249,115,22,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.1) !important;
 }
 
 /* ==========================================
@@ -1293,165 +1305,398 @@ body.theme-light {
   }
 }
 
+/* ============================================================
+   PREMIUM RESTYLING — Liquid Glass Dark
+   Parceiros Ágil Solar — Visual upgrade layer
+   Referência: versao_ios26.html
+   Regra crítica: ZERO alteração de lógica ou funcionalidade.
+              Apenas CSS. Apenas visual.
+   ============================================================ */
 
-/* ==============================================
-   PREMIUM DESIGN UPGRADE v2.0 — Agil Solar Portal
-   Glassmorphism / Glow / Depth / Modern Aesthetics
-   ============================================== */
+/* ── DESIGN TOKENS ─────────────────────────────────────────── */
+:root {
+  --pr-bg:        #09090b;
+  --pr-surface:   #111113;
+  --pr-card:      #18181b;
+  --pr-border:    rgba(255,255,255,0.06);
+  --pr-border-md: rgba(255,255,255,0.1);
+  --pr-orange:    #f97316;
+  --pr-yellow:    #facc15;
+  --pr-glow-o:    rgba(249,115,22,0.22);
+  --pr-glow-y:    rgba(250,204,21,0.12);
+  --pr-r-sm:      10px;
+  --pr-r-md:      14px;
+  --pr-r-lg:      20px;
+  --pr-r-xl:      26px;
+  --pr-r-2xl:     32px;
+}
 
-/* ---- 1. BACKGROUND — subtle color blooms ---- */
-body:not(.theme-light) {
-  background-color: #060608;
+/* ── BODY ── warm dark with ambient glow ───────────────────── */
+body {
+  background-color: var(--pr-bg) !important;
   background-image:
-    radial-gradient(ellipse 80% 45% at 8% -8%,  rgba(249,115,22,0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 92% 108%, rgba(234,179,8,0.055) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 50% 55%,  rgba(20,20,40,0.12) 0%, transparent 65%);
+    radial-gradient(ellipse 70% 45% at 8% 3%,  rgba(249,115,22,0.055) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 35% at 90% 95%, rgba(250,204,21,0.035) 0%, transparent 60%);
 }
 
-/* ---- 2. HEADER — glass + stronger shadow ---- */
-#app-content > header {
-  background: rgba(5,5,8,0.93) !important;
-  border-bottom-color: rgba(255,255,255,0.065) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.65), 0 12px 48px rgba(0,0,0,0.3) !important;
+/* ── SCROLLBARS ─────────────────────────────────────────────── */
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
 }
-
-/* ---- 3. NAV TABS CONTAINER ---- */
-#tab-container {
-  background: rgba(15,15,18,0.75) !important;
-  border-color: rgba(255,255,255,0.07) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* ---- 4. METRIC CARD — glassmorphism upgrade ---- */
-.metric-card {
-  background: linear-gradient(145deg, rgba(255,255,255,0.048) 0%, rgba(255,255,255,0.02) 50%, rgba(5,5,8,0.6) 100%) !important;
-  border: 1px solid rgba(255,255,255,0.085) !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 0 rgba(0,0,0,0.25) !important;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.metric-card:hover {
-  border-color: rgba(249,115,22,0.22) !important;
-  box-shadow: 0 14px 44px rgba(0,0,0,0.52), 0 0 0 1px rgba(249,115,22,0.12), inset 0 1px 0 rgba(255,255,255,0.09) !important;
-}
-
-/* ---- 5. SEARCH INPUT ---- */
-#search-input {
-  background: rgba(10,10,13,0.97) !important;
-  border-color: rgba(255,255,255,0.1) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
-}
-#search-input:focus {
-  border-color: rgba(249,115,22,0.75) !important;
-  box-shadow: 0 0 0 3px rgba(249,115,22,0.1), inset 0 1px 0 rgba(255,255,255,0.04) !important;
-}
-
-/* ---- 6. ALL DARK-MODE INPUTS focus glow ---- */
-body:not(.theme-light) input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
-body:not(.theme-light) select:focus,
-body:not(.theme-light) textarea:focus {
-  box-shadow: 0 0 0 3px rgba(249,115,22,0.13), inset 0 1px 0 rgba(255,255,255,0.03) !important;
-  outline: none !important;
-}
-
-/* ---- 7. NEON GLOW TEXT — stronger bloom ---- */
-.neon-orange {
-  text-shadow: 0 0 8px rgba(249,115,22,0.75), 0 0 18px rgba(249,115,22,0.42), 0 0 36px rgba(249,115,22,0.18);
-}
-.neon-green {
-  text-shadow: 0 0 8px rgba(34,197,94,0.75), 0 0 18px rgba(34,197,94,0.42), 0 0 36px rgba(34,197,94,0.18);
-}
-
-/* ---- 8. AVATAR PULSE — more dramatic ring ---- */
-@keyframes avatar-ring-v3 {
-  0%, 100% { box-shadow: 0 0 0 0   rgba(249,115,22,0.6),  0 0 0 0   rgba(249,115,22,0.2); }
-  35%       { box-shadow: 0 0 0 4px rgba(249,115,22,0.22), 0 0 0 9px rgba(249,115,22,0.08); }
-  65%       { box-shadow: 0 0 0 5px rgba(249,115,22,0),    0 0 0 14px rgba(249,115,22,0); }
-}
-.avatar-pulse {
-  animation: avatar-ring-v3 3.6s ease-in-out infinite !important;
-}
-
-/* ---- 9. CHAT FAB — stronger glow ---- */
-.chat-fab-btn {
-  box-shadow: 0 0 22px rgba(249,115,22,0.50), 0 0 50px rgba(249,115,22,0.18), 0 4px 20px rgba(0,0,0,0.55) !important;
-}
-.chat-fab-btn:hover {
-  box-shadow: 0 0 32px rgba(249,115,22,0.65), 0 0 70px rgba(249,115,22,0.25), 0 6px 28px rgba(0,0,0,0.65) !important;
-}
-
-/* ---- 10. TABLE ROW HOVER — richer gradient ---- */
-.table-row-hover:hover {
-  background: linear-gradient(90deg, rgba(249,115,22,0.08) 0%, rgba(249,115,22,0.03) 45%, transparent 85%) !important;
-  border-left-color: rgba(249,115,22,0.55) !important;
-}
-
-/* ---- 11. MODAL BACKDROPS — deeper blur + saturation ---- */
-#proposal-builder-modal,
-#modal-overlay,
-#client-modal-overlay,
-#confirm-modal-overlay,
-#fecha-venda-modal {
-  backdrop-filter: blur(22px) saturate(1.4) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(1.4) !important;
-}
-
-/* ---- 12. PROPOSAL BUILDER MODAL CARD ---- */
-#proposal-builder-modal > div {
-  border-color: rgba(255,255,255,0.075) !important;
-  box-shadow: 0 0 90px rgba(234,88,12,0.22), 0 0 180px rgba(234,88,12,0.08), 0 0 0 1px rgba(255,255,255,0.05) !important;
-}
-
-/* ---- 13. TOAST — rounded + stronger glow ---- */
-#toast {
-  border-radius: 14px !important;
-  border-width: 1px !important;
-  border-color: rgba(249,115,22,0.55) !important;
-  box-shadow: 0 0 40px rgba(234,88,12,0.45), 0 0 80px rgba(234,88,12,0.15), 0 8px 32px rgba(0,0,0,0.55) !important;
-}
-
-/* ---- 14. HOVER LIFT — slightly more bounce ---- */
-.hover-lift:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.45) !important;
-}
-
-/* ---- 15. MOBILE MENU — glass ---- */
-#mobile-menu {
-  background: rgba(3,3,5,0.97) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-}
-
-/* ---- 16. VERSION NOTICE — stronger backdrop ---- */
-#version-update-notice {
-  backdrop-filter: blur(24px) saturate(1.3) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(1.3) !important;
-  border-color: rgba(249,115,22,0.45) !important;
-}
-
-/* ---- 17. SCROLLBAR — gradient thumb ---- */
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #2a2a2e, #1c1c20);
+  background: rgba(255,255,255,0.09);
+  border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #f97316, #ea580c);
+  background: rgba(249,115,22,0.45);
 }
 
-/* ---- 18. ANIMATED STRIPE — subtle opacity ---- */
+/* ── GLASS CARD — reusable component ──────────────────────── */
+.glass-card {
+  background: linear-gradient(145deg, rgba(28,28,32,0.88) 0%, rgba(18,18,22,0.65) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: var(--pr-r-lg) !important;
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.38),
+    inset 0 1px 1px rgba(255,255,255,0.10),
+    inset 1px 0 1px rgba(255,255,255,0.04),
+    inset -1px -1px 1px rgba(0,0,0,0.22);
+}
+
+/* ── HEADER — glass refinement ─────────────────────────────── */
+header.sticky {
+  background: rgba(9,9,11,0.93) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
+/* ── NAVIGATION TABS (in header) ───────────────────────────── */
+#tab-container {
+  border-radius: var(--pr-r-md) !important;
+  background: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  overflow: hidden;
+}
+#tab-container button,
+#tab-container a {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── INPUTS, SELECTS, TEXTAREAS — global rounded ───────────── */
+/* Override inline rounded-none from Tailwind via !important    */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  border-radius: var(--pr-r-sm) !important;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.14) !important;
+}
+
+/* ── BUTTONS — global rounded (excluding icon-only / special) ─ */
+button:not(.chat-icon-btn):not(.chat-thread-send-btn):not(.vid-nav-btn):not(.chat-thread-meta-btn):not([class*="rounded-full"]) {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── LOGIN SCREEN CARD ─────────────────────────────────────── */
+#login-screen .login-card-glass,
+#login-screen > div > div > .bg-neutral-900\/80 {
+  border-radius: var(--pr-r-xl) !important;
+  background: linear-gradient(160deg, rgba(22,22,28,0.96) 0%, rgba(12,12,16,0.88) 100%) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow:
+    0 40px 90px rgba(0,0,0,0.75),
+    0 0 70px rgba(249,115,22,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.09),
+    inset 0 -1px 0 rgba(0,0,0,0.3) !important;
+}
+#reset-password-screen .bg-neutral-900\/80 {
+  border-radius: var(--pr-r-xl) !important;
+  background: linear-gradient(160deg, rgba(22,22,28,0.96) 0%, rgba(12,12,16,0.88) 100%) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow:
+    0 40px 90px rgba(0,0,0,0.75),
+    0 0 70px rgba(249,115,22,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.09) !important;
+}
+
+/* ── SPLASH LOADING BAR ─────────────────────────────────────── */
+#loading-bar-wrapper {
+  border-radius: 999px !important;
+  overflow: hidden;
+}
+
+/* ── ADMIN BAR ──────────────────────────────────────────────── */
+#admin-bar {
+  border-radius: var(--pr-r-md) !important;
+  background: rgba(90,15,15,0.18) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(239,68,68,0.14) !important;
+}
+
+/* ── MAIN TOOLBAR ───────────────────────────────────────────── */
+#main-toolbar input {
+  border-radius: var(--pr-r-md) !important;
+}
+#view-toggle-container {
+  border-radius: var(--pr-r-sm) !important;
+  overflow: hidden;
+}
+
+/* ── EMPTY STATE ────────────────────────────────────────────── */
+#empty-state {
+  border-radius: var(--pr-r-lg) !important;
+  background: linear-gradient(145deg, rgba(18,18,22,0.5) 0%, rgba(10,10,14,0.35) 100%) !important;
+  backdrop-filter: blur(10px) !important;
+  border-color: rgba(255,255,255,0.05) !important;
+}
+#empty-state-icon {
+  border-radius: var(--pr-r-md) !important;
+}
+
+/* ── MODAL OVERLAYS — glass + rounded ───────────────────────── */
+#modal-overlay > div {
+  border-radius: var(--pr-r-xl) !important;
+  overflow: hidden;
+  border: 1px solid rgba(249,115,22,0.18) !important;
+  box-shadow: 0 0 60px rgba(249,115,22,0.12), 0 32px 80px rgba(0,0,0,0.75) !important;
+}
+#client-modal-overlay > div {
+  border-radius: var(--pr-r-xl) !important;
+  overflow: hidden;
+  border: 1px solid rgba(249,115,22,0.18) !important;
+  box-shadow: 0 0 50px rgba(249,115,22,0.1), 0 24px 60px rgba(0,0,0,0.7) !important;
+}
+#confirm-modal-overlay > div {
+  border-radius: var(--pr-r-xl) !important;
+  overflow: hidden;
+  border: 1px solid rgba(239,68,68,0.15) !important;
+  box-shadow: 0 0 50px rgba(239,68,68,0.1), 0 24px 60px rgba(0,0,0,0.7) !important;
+}
+#fecha-venda-modal > div {
+  border-radius: var(--pr-r-xl) !important;
+  box-shadow: 0 0 70px rgba(34,197,94,0.12), 0 32px 80px rgba(0,0,0,0.75) !important;
+}
+#proposal-builder-modal > div {
+  border-radius: var(--pr-r-xl) !important;
+  overflow: hidden;
+  background: rgba(9,9,11,0.98) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 0 80px rgba(249,115,22,0.08), 0 40px 100px rgba(0,0,0,0.85) !important;
+}
+
+/* Modal header refinements */
+#modal-overlay > div > .flex.justify-between,
+#client-modal-overlay > div > .flex.justify-between,
+#fecha-venda-modal > div > div.border-b,
+#proposal-builder-modal > div > .border-b {
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* Fecha venda client display */
+#fecha-venda-modal .bg-neutral-900.border.border-neutral-800 {
+  border-radius: var(--pr-r-sm) !important;
+}
+#fv-kit-info {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast {
+  border-radius: var(--pr-r-md) !important;
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  background: linear-gradient(135deg, #ea580c 0%, #ca8a04 100%) !important;
+  backdrop-filter: blur(16px) !important;
+  box-shadow:
+    0 8px 36px rgba(249,115,22,0.35),
+    0 0 60px rgba(249,115,22,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+#toast > div {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── DYNAMIC CARD ITEMS (JS-rendered) ───────────────────────── */
+.client-metric-card,
+.dash-metric-card {
+  border-radius: var(--pr-r-md) !important;
+}
+.client-metric-card:hover,
+.dash-metric-card:hover {
+  border-color: rgba(249,115,22,0.18) !important;
+  box-shadow:
+    0 0 0 1px rgba(249,115,22,0.1),
+    0 10px 36px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+/* ── SECTION CONTAINERS (JS-rendered panels) ────────────────── */
+/* Hero section with grid background in clients view */
+section.bg-\[\#080808\].bg-grid {
+  border-radius: var(--pr-r-md) !important;
+}
+
+/* Proposal builder product containers */
+#pb-products-container,
+#pb-section-financiamento,
+#pb-section-historico,
+#pb-equip-panel {
+  background: rgba(8,8,10,0.8) !important;
+  border-radius: 0 0 var(--pr-r-xl) var(--pr-r-xl);
+}
+#pb-promocional-toolbar {
+  background: rgba(12,12,16,0.7) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+/* Proposta personalizada form card */
+#pb-equip-form .bg-neutral-900\/60 {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── PROPOSAL BUILDER MODE TABS ─────────────────────────────── */
+#proposal-builder-modal .flex.bg-neutral-900 {
+  border-radius: var(--pr-r-sm) !important;
+  overflow: hidden;
+  background: rgba(18,18,22,0.8) !important;
+}
+#proposal-builder-modal .flex.bg-black {
+  border-radius: var(--pr-r-sm) !important;
+  overflow: hidden;
+}
+
+/* ── TABLE ROW HOVER ─────────────────────────────────────────── */
+.table-row-hover {
+  border-radius: 10px;
+}
+.table-row-hover:hover {
+  background: linear-gradient(90deg, rgba(249,115,22,0.055) 0%, transparent 70%) !important;
+  border-left-color: rgba(249,115,22,0.4) !important;
+}
+
+/* ── BADGES & STATUS PILLS (JS-rendered spans) ──────────────── */
+/* Target small label spans that act as badges */
+.metric-card span[class*="px-2"],
+.client-metric-card span[class*="px-2"],
+.dash-metric-card span[class*="px-2"],
+#main-container span[class*="border"][class*="text-"][class*="px-"] {
+  border-radius: 999px !important;
+}
+
+/* ── PROGRESS BARS ───────────────────────────────────────────── */
+.bar-animated {
+  border-radius: 999px !important;
+}
+
+/* ── ANIMATED STRIPE REFINEMENT ─────────────────────────────── */
 .animated-stripe {
-  opacity: 0.88;
+  opacity: 0.75;
 }
 
-/* ---- REDUCED MOTION OVERRIDE ---- */
-@media (prefers-reduced-motion: reduce) {
-  body:not(.theme-light) {
-    background-image: none;
-  }
-  .metric-card, .chat-fab-btn {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
+/* ── ADMIN JS-RENDERED ITEMS ────────────────────────────────── */
+/* Admin user rows light glass */
+#main-container .border.border-neutral-800 {
+  border-radius: var(--pr-r-sm) !important;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
+#main-container .border.border-neutral-800:hover {
+  border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* ── CHAT SHELL — glass premium ──────────────────────────────── */
+.chat-shell--desktop .chat-shell-window {
+  border-radius: var(--pr-r-lg) !important;
+  background: rgba(10,10,12,0.97) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(249,115,22,0.06) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+.chat-list-panel {
+  background: rgba(10,10,14,0.8) !important;
+}
+.chat-thread-profile-card {
+  border-radius: var(--pr-r-md) !important;
+  background: rgba(16,16,20,0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.5) !important;
+}
+.chat-search-wrap {
+  border-bottom-color: rgba(255,255,255,0.05) !important;
+}
+.chat-search-wrap input {
+  background: transparent !important;
+  color: var(--chat-text) !important;
+}
+.chat-directory-card {
+  border-radius: var(--pr-r-lg) !important;
+  background: rgba(12,12,16,0.97) !important;
+  backdrop-filter: blur(24px) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* ── VERSION UPDATE NOTICE ───────────────────────────────────── */
+#version-update-notice {
+  border-radius: var(--pr-r-lg) !important;
+  background: rgba(10,10,12,0.97) !important;
+  backdrop-filter: blur(16px) !important;
+  border-color: rgba(249,115,22,0.3) !important;
+}
+#version-update-notice .version-update-btn {
+  border-radius: var(--pr-r-sm) !important;
+}
+
+/* ── FOCUS RING IMPROVEMENT ──────────────────────────────────── */
+*:focus-visible {
+  outline: 2px solid rgba(249,115,22,0.55) !important;
+  outline-offset: 2px !important;
+}
+
+/* ── PAGE ENTER ANIMATION ───────────────────────────────────── */
+.page-enter,
+.animate-fade-in-up,
+#app-content.opacity-100 {
+  animation: fadeSlideUp 0.45s ease-out both;
+}
+
+/* ── LIGHT THEME OVERRIDES for new elements ──────────────────── */
+body.theme-light .glass-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+body.theme-light .metric-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+body.theme-light header.sticky {
+  background: rgba(248,250,252,0.95) !important;
+  border-bottom-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08) !important;
+}
+body.theme-light #toast {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+  box-shadow: 0 8px 36px rgba(37,99,235,0.35) !important;
+}
+body.theme-light #login-screen > div > div > .bg-neutral-900\/80,
+body.theme-light #reset-password-screen .bg-neutral-900\/80 {
+  background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-color: rgba(0,0,0,0.1) !important;
+  box-shadow: 0 40px 90px rgba(0,0,0,0.15) !important;
+}
+
+/* ============================================================
+   END PREMIUM RESTYLING LAYER
+   ============================================================ */
