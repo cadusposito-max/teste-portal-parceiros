@@ -1,45 +1,10 @@
-/* ==========================================
+﻿/* ==========================================
    ESTILOS GLOBAIS — Ágil Solar Portal
    ========================================== */
 
 body {
   background-color: #050505;
   color: #e5e5e5;
-}
-
-/* ==========================================
-   STITCH DESIGN SYSTEM - ETHEREAL VAULT
-   ========================================== */
-.glass-surface {
-  background-color: rgba(56, 52, 52, 0.6); /* surface-container-highest */
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-}
-
-.ghost-border {
-  border: 1px solid rgba(90, 65, 56, 0.15); /* outline-variant at 15% */
-}
-
-.ambient-shadow-primary {
-  box-shadow: 0 0 60px rgba(244, 99, 23, 0.06); /* Blur 60px, 6% opacity of #f46317 */
-}
-
-.glass-pulse {
-  position: relative;
-  display: inline-flex;
-}
-.glass-pulse::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  background: rgba(244, 99, 23, 0.1);
-  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes pulse-ring {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: scale(1.4); opacity: 0; }
 }
 
 /* ==========================================
