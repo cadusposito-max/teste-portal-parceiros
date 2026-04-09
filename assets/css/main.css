@@ -1306,397 +1306,804 @@ body.theme-light {
 }
 
 /* ============================================================
-   PREMIUM RESTYLING — Liquid Glass Dark
-   Parceiros Ágil Solar — Visual upgrade layer
+   PREMIUM RESTYLING v2 — Liquid Glass · Apple-Like
+   Parceiros Ágil Solar — Deep visual upgrade
    Referência: versao_ios26.html
-   Regra crítica: ZERO alteração de lógica ou funcionalidade.
-              Apenas CSS. Apenas visual.
+   Regra: VISUAL ONLY. Zero alteração funcional.
+   Foco: materialidade, profundidade, composição.
    ============================================================ */
 
-/* ── DESIGN TOKENS ─────────────────────────────────────────── */
+/* ─── 1. DESIGN TOKENS ──────────────────────────────────────── */
 :root {
-  --pr-bg:        #09090b;
-  --pr-surface:   #111113;
-  --pr-card:      #18181b;
-  --pr-border:    rgba(255,255,255,0.06);
-  --pr-border-md: rgba(255,255,255,0.1);
-  --pr-orange:    #f97316;
-  --pr-yellow:    #facc15;
-  --pr-glow-o:    rgba(249,115,22,0.22);
-  --pr-glow-y:    rgba(250,204,21,0.12);
-  --pr-r-sm:      10px;
-  --pr-r-md:      14px;
-  --pr-r-lg:      20px;
-  --pr-r-xl:      26px;
-  --pr-r-2xl:     32px;
+  /* Glass surfaces */
+  --g-surf-1:    rgba(24, 24, 32, 0.94);
+  --g-surf-2:    rgba(16, 16, 22, 0.78);
+  --g-surf-3:    rgba(12, 12, 18, 0.88);
+
+  /* Glass border & highlight */
+  --g-border:    rgba(255, 255, 255, 0.072);
+  --g-hi-top:    rgba(255, 255, 255, 0.12);   /* reflexo de topo (aresta de vidro) */
+  --g-hi-side:   rgba(255, 255, 255, 0.045);
+  --g-hi-bot:    rgba(0,   0,   0,   0.22);
+
+  /* Depth layers */
+  --g-d1: 0 1px 3px   rgba(0,0,0,0.28);
+  --g-d2: 0 6px 20px  rgba(0,0,0,0.42);
+  --g-d3: 0 20px 52px rgba(0,0,0,0.28);
+
+  /* Brand */
+  --br-o:    #f97316;
+  --br-a:    #f59e0b;
+  --br-glow: rgba(249,115,22,0.14);
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
 }
 
-/* ── BODY ── warm dark with ambient glow ───────────────────── */
+/* ─── 2. BODY — atmosfera rica ──────────────────────────────── */
 body {
-  background-color: var(--pr-bg) !important;
+  background-color: #09090c !important;
+  background-image: none !important;
+  overflow-x: hidden;
+}
+
+/* Glow ambiente superior-esquerdo (como o .bg-glow-tl da referência) */
+body::before {
+  content: '';
+  position: fixed;
+  top: -160px;
+  left: -160px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle at center,
+    rgba(249, 115, 22, 0.09) 0%,
+    rgba(245, 158, 11, 0.04) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glow ambiente inferior-direito */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -120px;
+  right: -100px;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(
+    circle at center,
+    rgba(234, 179, 8, 0.05) 0%,
+    transparent 65%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Todo o conteúdo acima da atmosfera */
+body > * { position: relative; z-index: 1; }
+
+/* Sutil grade de fundo que reforça a profundidade */
+#app-content::before {
+  content: '';
+  position: fixed;
+  inset: 0;
   background-image:
-    radial-gradient(ellipse 70% 45% at 8% 3%,  rgba(249,115,22,0.055) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 35% at 90% 95%, rgba(250,204,21,0.035) 0%, transparent 60%);
+    linear-gradient(rgba(255,255,255,0.010) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.010) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* ── SCROLLBARS ─────────────────────────────────────────────── */
-::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.02);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.09);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(249,115,22,0.45);
+/* ─── 3. APP SHELL — sensação de produto premium ────────────── */
+#app-content {
+  position: relative;
+  isolation: isolate;
 }
 
-/* ── GLASS CARD — reusable component ──────────────────────── */
-.glass-card {
-  background: linear-gradient(145deg, rgba(28,28,32,0.88) 0%, rgba(18,18,22,0.65) 100%);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.06) !important;
-  border-radius: var(--pr-r-lg) !important;
-  box-shadow:
-    0 8px 32px rgba(0,0,0,0.38),
-    inset 0 1px 1px rgba(255,255,255,0.10),
-    inset 1px 0 1px rgba(255,255,255,0.04),
-    inset -1px -1px 1px rgba(0,0,0,0.22);
+/* main content: mais respiro vertical */
+#app-content > main {
+  padding-top:    2.25rem !important;
+  padding-bottom: 3.5rem  !important;
 }
 
-/* ── HEADER — glass refinement ─────────────────────────────── */
+@media (max-width: 768px) {
+  #app-content > main {
+    padding-top:    1rem   !important;
+    padding-bottom: 2rem   !important;
+  }
+}
+
+/* ─── 4. HEADER — vidro saturado premium ────────────────────── */
 header.sticky {
-  background: rgba(9,9,11,0.93) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-  box-shadow: 0 4px 40px rgba(0,0,0,0.65), 0 1px 0 rgba(255,255,255,0.03) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 11, 17, 0.97) 0%,
+    rgba(9,  9,  15, 0.92) 100%
+  ) !important;
+  backdrop-filter: saturate(180%) blur(32px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(32px) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.055) !important;
+  box-shadow:
+    0  1px  0  rgba(255,255,255,0.040),   /* linha de reflexo no topo */
+    0  2px  8px rgba(0,0,0,0.40),
+    0  8px 36px rgba(0,0,0,0.30) !important;
 }
 
-/* ── NAVIGATION TABS (in header) ───────────────────────────── */
-#tab-container {
-  border-radius: var(--pr-r-md) !important;
-  background: rgba(255,255,255,0.03) !important;
-  border-color: rgba(255,255,255,0.06) !important;
-  overflow: hidden;
+/* Stripe do header — mais sutil, menos "gamer" */
+.animated-stripe {
+  opacity: 0.45 !important;
 }
+
+/* ─── 5. NAVIGATION TABS — pílulas glass (estilo sidebar da referência) */
+#tab-container {
+  background: rgba(255,255,255,0.035) !important;
+  border: 1px solid rgba(255,255,255,0.065) !important;
+  border-radius: var(--r-md) !important;
+  padding: 3px !important;
+  gap: 2px !important;
+}
+
 #tab-container button,
 #tab-container a {
-  border-radius: var(--pr-r-sm) !important;
+  border-radius: var(--r-sm) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  padding: 7px 14px !important;
+  transition:
+    background  0.20s ease,
+    box-shadow  0.20s ease,
+    color       0.20s ease !important;
 }
 
-/* ── INPUTS, SELECTS, TEXTAREAS — global rounded ───────────── */
-/* Override inline rounded-none from Tailwind via !important    */
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+/* Tab ativa — glass elevado como item de sidebar da referência */
+#tab-container button.tab-active-underline,
+#tab-container a.tab-active-underline {
+  background: linear-gradient(
+    148deg,
+    rgba(255,255,255,0.14) 0%,
+    rgba(255,255,255,0.08) 100%
+  ) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 1px 5px  rgba(0,0,0,0.35),
+    0 3px 10px rgba(0,0,0,0.22),
+    inset 0  1px 0 rgba(255,255,255,0.16),
+    inset 0 -1px 0 rgba(0,0,0,0.22) !important;
+}
+
+/* Remove underline laranja — substituído pelo glass pill */
+#tab-container button.tab-active-underline::after,
+#tab-container a.tab-active-underline::after {
+  display: none !important;
+}
+
+/* Menu mobile */
+#mobile-menu {
+  background: rgba(9,9,15,0.98) !important;
+  backdrop-filter: blur(28px) !important;
+  border-top-color: rgba(255,255,255,0.045) !important;
+}
+
+/* Header divider */
+#header-user {
+  border-left-color: rgba(255,255,255,0.06) !important;
+}
+
+/* ─── 6. METRIC CARDS — superfície de vidro escuro real ─────── */
+.metric-card {
+  background: linear-gradient(
+    148deg,
+    var(--g-surf-1) 0%,
+    var(--g-surf-2) 52%,
+    var(--g-surf-3) 100%
+  ) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--g-border) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow:
+    var(--g-d1),
+    var(--g-d2),
+    var(--g-d3),
+    inset 0  1px 0 var(--g-hi-top),    /* aresta de vidro superior */
+    inset 1px 0  0 var(--g-hi-side),   /* aresta lateral */
+    inset 0 -1px 0 var(--g-hi-bot) !important;
+  transition:
+    transform    0.30s cubic-bezier(0.34, 1.40, 0.64, 1),
+    box-shadow   0.30s ease,
+    border-color 0.30s ease !important;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  box-shadow:
+    0 2px   6px rgba(0,0,0,0.32),
+    0 12px 36px rgba(0,0,0,0.52),
+    0 32px 72px rgba(0,0,0,0.28),
+    0  0    0  1px rgba(249,115,22,0.07),
+    inset 0  1px 0 rgba(255,255,255,0.14),
+    inset 1px 0  0 rgba(255,255,255,0.055) !important;
+}
+
+/* ─── 7. GLASS CARD — panel mais elevado ────────────────────── */
+.glass-card {
+  background: linear-gradient(
+    148deg,
+    rgba(28, 28, 36, 0.92) 0%,
+    rgba(18, 18, 26, 0.68) 100%
+  ) !important;
+  backdrop-filter: blur(22px) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+  border: 1px solid var(--g-border) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow:
+    0  4px  8px rgba(0,0,0,0.22),
+    0 14px 42px rgba(0,0,0,0.46),
+    0 36px 88px rgba(0,0,0,0.28),
+    inset 0  1px 1px rgba(255,255,255,0.13),
+    inset 1px 0  1px rgba(255,255,255,0.05),
+    inset -1px -1px 1px rgba(0,0,0,0.26) !important;
+}
+
+/* ─── 8. SHINE EFFECT — passagem de luz mais premium ────────── */
+.shine-effect::after {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255,255,255,0.030) 50%,
+    transparent 100%
+  ) !important;
+}
+
+/* ─── 9. INPUTS GLOBAIS — glass refinado ────────────────────── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="range"]),
 select,
 textarea {
-  border-radius: var(--pr-r-sm) !important;
+  background: rgba(255,255,255,0.045) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: var(--r-xs) !important;
+  color: rgba(255,255,255,0.92) !important;
+  transition:
+    border-color  0.20s ease,
+    background    0.20s ease,
+    box-shadow    0.20s ease !important;
 }
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):focus,
 select:focus,
 textarea:focus {
-  box-shadow: 0 0 0 3px rgba(249,115,22,0.14) !important;
+  background:   rgba(255,255,255,0.065) !important;
+  border-color: rgba(249,115,22,0.48) !important;
+  box-shadow:   0 0 0 3px rgba(249,115,22,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.05) !important;
+  outline: none !important;
 }
 
-/* ── BUTTONS — global rounded (excluding icon-only / special) ─ */
+/* override o bg-black dos inputs de login/modais */
+#login-screen input,
+#reset-password-screen input,
+#modal-overlay input,
+#modal-overlay select,
+#client-modal-overlay input,
+#fecha-venda-modal select,
+#proposal-builder-modal input,
+#proposal-builder-modal select {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* search bar principal (override do bg-neutral-900 inline) */
+#search-input {
+  background: rgba(255,255,255,0.04) !important;
+  border-width: 1px !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+#search-input:focus {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: rgba(249,115,22,0.45) !important;
+}
+
+/* ─── 10. BOTÕES — arredondados e elevados ───────────────────── */
 button:not(.chat-icon-btn):not(.chat-thread-send-btn):not(.vid-nav-btn):not(.chat-thread-meta-btn):not([class*="rounded-full"]) {
-  border-radius: var(--pr-r-sm) !important;
+  border-radius: var(--r-xs) !important;
 }
 
-/* ── LOGIN SCREEN CARD ─────────────────────────────────────── */
-#login-screen .login-card-glass,
-#login-screen > div > div > .bg-neutral-900\/80 {
-  border-radius: var(--pr-r-xl) !important;
-  background: linear-gradient(160deg, rgba(22,22,28,0.96) 0%, rgba(12,12,16,0.88) 100%) !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+/* Botões CTA com gradiente — glow suave */
+button[class*="from-orange"],
+button[class*="from-green"] {
+  border-radius: var(--r-sm) !important;
   box-shadow:
-    0 40px 90px rgba(0,0,0,0.75),
-    0 0 70px rgba(249,115,22,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.09),
-    inset 0 -1px 0 rgba(0,0,0,0.3) !important;
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 4px 16px rgba(249,115,22,0.20) !important;
+  transition: all 0.20s ease !important;
 }
-#reset-password-screen .bg-neutral-900\/80 {
-  border-radius: var(--pr-r-xl) !important;
-  background: linear-gradient(160deg, rgba(22,22,28,0.96) 0%, rgba(12,12,16,0.88) 100%) !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
-  border: 1px solid rgba(255,255,255,0.08) !important;
+button[class*="from-orange"]:hover {
   box-shadow:
-    0 40px 90px rgba(0,0,0,0.75),
-    0 0 70px rgba(249,115,22,0.05),
-    inset 0 1px 0 rgba(255,255,255,0.09) !important;
+    0 0 0 1px rgba(255,255,255,0.12),
+    0 6px 24px rgba(249,115,22,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.16) !important;
+  transform: translateY(-1px) !important;
+}
+button[class*="from-green"]:hover {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.10),
+    0 6px 24px rgba(34,197,94,0.28) !important;
+  transform: translateY(-1px) !important;
 }
 
-/* ── SPLASH LOADING BAR ─────────────────────────────────────── */
-#loading-bar-wrapper {
-  border-radius: 999px !important;
-  overflow: hidden;
-}
-
-/* ── ADMIN BAR ──────────────────────────────────────────────── */
-#admin-bar {
-  border-radius: var(--pr-r-md) !important;
-  background: rgba(90,15,15,0.18) !important;
-  backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(239,68,68,0.14) !important;
-}
-
-/* ── MAIN TOOLBAR ───────────────────────────────────────────── */
-#main-toolbar input {
-  border-radius: var(--pr-r-md) !important;
+/* ─── 11. BARRA PRINCIPAL DE BUSCA (toolbar) ─────────────────── */
+#main-toolbar .relative.flex-1 {
+  container-type: inline-size;
 }
 #view-toggle-container {
-  border-radius: var(--pr-r-sm) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-sm) !important;
   overflow: hidden;
 }
 
-/* ── EMPTY STATE ────────────────────────────────────────────── */
+/* ─── 12. ADMIN BAR — glass contexto alerta ──────────────────── */
+#admin-bar {
+  background: rgba(80,8,8,0.22) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(239,68,68,0.12) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow:
+    0 4px 20px rgba(0,0,0,0.30),
+    inset 0 1px 0 rgba(239,68,68,0.06) !important;
+}
+
+/* ─── 13. EMPTY STATE ────────────────────────────────────────── */
 #empty-state {
-  border-radius: var(--pr-r-lg) !important;
-  background: linear-gradient(145deg, rgba(18,18,22,0.5) 0%, rgba(10,10,14,0.35) 100%) !important;
+  background: rgba(255,255,255,0.014) !important;
   backdrop-filter: blur(10px) !important;
-  border-color: rgba(255,255,255,0.05) !important;
+  border: 1px dashed rgba(255,255,255,0.06) !important;
+  border-radius: var(--r-lg) !important;
 }
 #empty-state-icon {
-  border-radius: var(--pr-r-md) !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-md) !important;
 }
 
-/* ── MODAL OVERLAYS — glass + rounded ───────────────────────── */
+/* ─── 14. TELA DE LOGIN — painel premium flutuante ──────────── */
+#login-screen {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -15%,
+      rgba(249,115,22,0.07) 0%, transparent 60%),
+    #09090c !important;
+}
+#login-screen > .relative.z-10 > div > .bg-neutral-900\/80,
+#login-screen > div > div > .bg-neutral-900\/80 {
+  background: linear-gradient(
+    158deg,
+    rgba(22,22,32,0.97) 0%,
+    rgba(14,14,22,0.93) 100%
+  ) !important;
+  backdrop-filter: blur(40px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(150%) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: var(--r-xl) !important;
+  box-shadow:
+    0 0  0  1px rgba(255,255,255,0.024),
+    0 32px 100px rgba(0,0,0,0.82),
+    0  8px  32px rgba(0,0,0,0.60),
+    0  0   60px rgba(249,115,22,0.04),
+    inset 0  1px 0 rgba(255,255,255,0.10),
+    inset 0 -1px 0 rgba(0,0,0,0.36) !important;
+}
+
+/* Reset de senha */
+#reset-password-screen .bg-neutral-900\/80 {
+  background: linear-gradient(
+    158deg,
+    rgba(22,22,32,0.97) 0%,
+    rgba(14,14,22,0.93) 100%
+  ) !important;
+  backdrop-filter: blur(40px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(150%) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: var(--r-xl) !important;
+  box-shadow:
+    0 32px 100px rgba(0,0,0,0.80),
+    0  8px  28px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+
+/* Loading bar splash */
+#splash-screen .w-full.h-1\.5,
+.w-full.h-1\.5.bg-neutral-900 {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+}
+
+/* ─── 15. MODAL: ADMIN KIT ───────────────────────────────────── */
 #modal-overlay > div {
-  border-radius: var(--pr-r-xl) !important;
+  background: linear-gradient(
+    158deg,
+    rgba(20,20,30,0.98) 0%,
+    rgba(12,12,20,0.97) 100%
+  ) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-xl) !important;
   overflow: hidden;
-  border: 1px solid rgba(249,115,22,0.18) !important;
-  box-shadow: 0 0 60px rgba(249,115,22,0.12), 0 32px 80px rgba(0,0,0,0.75) !important;
+  box-shadow:
+    0  0   0  1px rgba(255,255,255,0.022),
+    0 32px 90px rgba(0,0,0,0.82),
+    0  0  60px rgba(249,115,22,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
 }
+
+/* ─── 16. MODAL: NOVO CLIENTE ────────────────────────────────── */
 #client-modal-overlay > div {
-  border-radius: var(--pr-r-xl) !important;
+  background: linear-gradient(
+    158deg,
+    rgba(20,20,30,0.98) 0%,
+    rgba(12,12,20,0.97) 100%
+  ) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-xl) !important;
   overflow: hidden;
-  border: 1px solid rgba(249,115,22,0.18) !important;
-  box-shadow: 0 0 50px rgba(249,115,22,0.1), 0 24px 60px rgba(0,0,0,0.7) !important;
+  box-shadow:
+    0 28px 80px rgba(0,0,0,0.80),
+    0  0  50px rgba(249,115,22,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.07) !important;
 }
+
+/* ─── 17. MODAL: CONFIRMAÇÃO ─────────────────────────────────── */
 #confirm-modal-overlay > div {
-  border-radius: var(--pr-r-xl) !important;
-  overflow: hidden;
-  border: 1px solid rgba(239,68,68,0.15) !important;
-  box-shadow: 0 0 50px rgba(239,68,68,0.1), 0 24px 60px rgba(0,0,0,0.7) !important;
-}
-#fecha-venda-modal > div {
-  border-radius: var(--pr-r-xl) !important;
-  box-shadow: 0 0 70px rgba(34,197,94,0.12), 0 32px 80px rgba(0,0,0,0.75) !important;
-}
-#proposal-builder-modal > div {
-  border-radius: var(--pr-r-xl) !important;
-  overflow: hidden;
-  background: rgba(9,9,11,0.98) !important;
+  background: linear-gradient(
+    158deg,
+    rgba(20,12,12,0.98) 0%,
+    rgba(14,8,8,0.97) 100%
+  ) !important;
   border: 1px solid rgba(255,255,255,0.06) !important;
-  box-shadow: 0 0 80px rgba(249,115,22,0.08), 0 40px 100px rgba(0,0,0,0.85) !important;
-}
-
-/* Modal header refinements */
-#modal-overlay > div > .flex.justify-between,
-#client-modal-overlay > div > .flex.justify-between,
-#fecha-venda-modal > div > div.border-b,
-#proposal-builder-modal > div > .border-b {
-  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-}
-
-/* Fecha venda client display */
-#fecha-venda-modal .bg-neutral-900.border.border-neutral-800 {
-  border-radius: var(--pr-r-sm) !important;
-}
-#fv-kit-info {
-  border-radius: var(--pr-r-sm) !important;
-}
-
-/* ── TOAST ──────────────────────────────────────────────────── */
-#toast {
-  border-radius: var(--pr-r-md) !important;
-  border: 1px solid rgba(255,255,255,0.25) !important;
-  background: linear-gradient(135deg, #ea580c 0%, #ca8a04 100%) !important;
-  backdrop-filter: blur(16px) !important;
+  border-radius: var(--r-xl) !important;
+  overflow: hidden;
   box-shadow:
-    0 8px 36px rgba(249,115,22,0.35),
-    0 0 60px rgba(249,115,22,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.2) !important;
-}
-#toast > div {
-  border-radius: var(--pr-r-sm) !important;
-}
-
-/* ── DYNAMIC CARD ITEMS (JS-rendered) ───────────────────────── */
-.client-metric-card,
-.dash-metric-card {
-  border-radius: var(--pr-r-md) !important;
-}
-.client-metric-card:hover,
-.dash-metric-card:hover {
-  border-color: rgba(249,115,22,0.18) !important;
-  box-shadow:
-    0 0 0 1px rgba(249,115,22,0.1),
-    0 10px 36px rgba(0,0,0,0.55),
+    0 28px 80px rgba(0,0,0,0.80),
+    0  0  40px rgba(239,68,68,0.07),
     inset 0 1px 0 rgba(255,255,255,0.06) !important;
 }
 
-/* ── SECTION CONTAINERS (JS-rendered panels) ────────────────── */
-/* Hero section with grid background in clients view */
-section.bg-\[\#080808\].bg-grid {
-  border-radius: var(--pr-r-md) !important;
+/* ─── 18. MODAL: FECHAR VENDA ────────────────────────────────── */
+#fecha-venda-modal > div {
+  background: linear-gradient(
+    180deg,
+    rgba(10,15,12,0.99) 0%,
+    rgba(8,12,10,0.98)  100%
+  ) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: var(--r-xl) !important;
+  overflow: hidden;
+  box-shadow:
+    0 32px 90px rgba(0,0,0,0.84),
+    0  0  60px rgba(34,197,94,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.07) !important;
 }
 
-/* Proposal builder product containers */
+/* ─── 19. MODAL: PROPOSAL BUILDER ───────────────────────────── */
+#proposal-builder-modal > div {
+  background: linear-gradient(
+    180deg,
+    rgba(11,11,17,0.99) 0%,
+    rgba(9,9,15,0.98)   100%
+  ) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: var(--r-xl) !important;
+  overflow: hidden;
+  box-shadow:
+    0  0   0  1px rgba(255,255,255,0.020),
+    0 40px 120px rgba(0,0,0,0.90),
+    0  0   80px rgba(249,115,22,0.05),
+    inset 0 1px 0 rgba(255,255,255,0.07) !important;
+}
+
+/* Tab selectors dentro do proposal builder */
+#proposal-builder-modal .flex.bg-neutral-900\/80,
+#proposal-builder-modal .flex.bg-black,
+#proposal-builder-modal .flex.bg-neutral-900,
+#pb-mode-helper + .flex {
+  background: rgba(255,255,255,0.038) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-sm) !important;
+  overflow: hidden;
+}
+
+/* Cabeçalhos de modais */
+#modal-overlay .border-b,
+#client-modal-overlay .border-b,
+#fecha-venda-modal .border-b,
+#proposal-builder-modal .border-b {
+  border-bottom-color: rgba(255,255,255,0.048) !important;
+  background: rgba(255,255,255,0.015) !important;
+}
+
+/* ─── 20. MODAL: ADMIN SETTINGS (renderizado por JS) ─────────── */
+/* Mira o div glass gerado por admin.js */
+#main-container .bg-neutral-900.border-2:first-child {
+  border-radius: var(--r-xl) !important;
+  border-color: rgba(239,68,68,0.15) !important;
+}
+
+/* ─── 21. TOAST ──────────────────────────────────────────────── */
+#toast {
+  background: linear-gradient(
+    135deg,
+    #ea580c 0%,
+    #d97706 100%
+  ) !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow:
+    0  8px 36px rgba(234,88,12,0.36),
+    0  0  60px rgba(234,88,12,0.14),
+    inset 0 1px 0 rgba(255,255,255,0.24) !important;
+  backdrop-filter: blur(20px) !important;
+}
+#toast > div.bg-black {
+  background: rgba(0,0,0,0.28) !important;
+  border-radius: var(--r-xs) !important;
+  border: none !important;
+}
+
+/* ─── 22. TABLE ROWS ──────────────────────────────────────────── */
+.table-row-hover {
+  border-radius: var(--r-xs) !important;
+  transition: background 0.18s ease !important;
+}
+.table-row-hover:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(249,115,22,0.052) 0%,
+    rgba(249,115,22,0.020) 40%,
+    transparent 80%
+  ) !important;
+  border-left-color: rgba(249,115,22,0.36) !important;
+}
+
+/* ─── 23. CARDS RENDERIZADOS POR JS ──────────────────────────── */
+.client-metric-card,
+.dash-metric-card {
+  border-radius: var(--r-md) !important;
+}
+
+/* Items de lista admin */
+#main-container .border.border-neutral-800 {
+  border-radius: var(--r-sm) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  transition: border-color 0.2s ease, background 0.2s ease !important;
+}
+#main-container .border.border-neutral-800:hover {
+  border-color: rgba(255,255,255,0.10) !important;
+}
+/* Itens com bg-neutral-900/60 border (admin) */
+#main-container .bg-neutral-900\/60 {
+  background: rgba(255,255,255,0.028) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+#main-container .bg-neutral-900\/60:hover {
+  background: rgba(255,255,255,0.042) !important;
+}
+
+/* Seção hero admin com grid */
+section.bg-\[\#080808\].bg-grid {
+  background-color: rgba(8,8,13,0.96) !important;
+  border-radius: var(--r-md) !important;
+  border-color: rgba(255,255,255,0.055) !important;
+}
+
+/* ─── 24. PROPOSAL BUILDER INTERNO ───────────────────────────── */
 #pb-products-container,
 #pb-section-financiamento,
 #pb-section-historico,
 #pb-equip-panel {
-  background: rgba(8,8,10,0.8) !important;
-  border-radius: 0 0 var(--pr-r-xl) var(--pr-r-xl);
+  background: rgba(9,9,15,0.88) !important;
 }
 #pb-promocional-toolbar {
-  background: rgba(12,12,16,0.7) !important;
-  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  background: rgba(255,255,255,0.018) !important;
+  border-bottom-color: rgba(255,255,255,0.048) !important;
 }
-/* Proposta personalizada form card */
 #pb-equip-form .bg-neutral-900\/60 {
-  border-radius: var(--pr-r-sm) !important;
+  background: rgba(255,255,255,0.030) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-sm) !important;
 }
 
-/* ── PROPOSAL BUILDER MODE TABS ─────────────────────────────── */
-#proposal-builder-modal .flex.bg-neutral-900 {
-  border-radius: var(--pr-r-sm) !important;
-  overflow: hidden;
-  background: rgba(18,18,22,0.8) !important;
+/* ─── 25. SCROLLBARS PREMIUM ──────────────────────────────────── */
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.018) !important;
+  border-radius: 99px !important;
 }
-#proposal-builder-modal .flex.bg-black {
-  border-radius: var(--pr-r-sm) !important;
-  overflow: hidden;
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.085) !important;
+  border-radius: 99px !important;
 }
-
-/* ── TABLE ROW HOVER ─────────────────────────────────────────── */
-.table-row-hover {
-  border-radius: 10px;
-}
-.table-row-hover:hover {
-  background: linear-gradient(90deg, rgba(249,115,22,0.055) 0%, transparent 70%) !important;
-  border-left-color: rgba(249,115,22,0.4) !important;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(249,115,22,0.42) !important;
 }
 
-/* ── BADGES & STATUS PILLS (JS-rendered spans) ──────────────── */
-/* Target small label spans that act as badges */
-.metric-card span[class*="px-2"],
-.client-metric-card span[class*="px-2"],
-.dash-metric-card span[class*="px-2"],
-#main-container span[class*="border"][class*="text-"][class*="px-"] {
-  border-radius: 999px !important;
-}
-
-/* ── PROGRESS BARS ───────────────────────────────────────────── */
-.bar-animated {
-  border-radius: 999px !important;
-}
-
-/* ── ANIMATED STRIPE REFINEMENT ─────────────────────────────── */
-.animated-stripe {
-  opacity: 0.75;
-}
-
-/* ── ADMIN JS-RENDERED ITEMS ────────────────────────────────── */
-/* Admin user rows light glass */
-#main-container .border.border-neutral-800 {
-  border-radius: var(--pr-r-sm) !important;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-#main-container .border.border-neutral-800:hover {
-  border-color: rgba(255,255,255,0.1) !important;
-}
-
-/* ── CHAT SHELL — glass premium ──────────────────────────────── */
+/* ─── 26. CHAT SHELL ──────────────────────────────────────────── */
 .chat-shell--desktop .chat-shell-window {
-  border-radius: var(--pr-r-lg) !important;
-  background: rgba(10,10,12,0.97) !important;
+  background: rgba(10,10,16,0.97) !important;
+  backdrop-filter: blur(32px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
   border: 1px solid rgba(255,255,255,0.07) !important;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(249,115,22,0.06) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow:
+    0  0   0  1px rgba(255,255,255,0.022),
+    0 24px 72px rgba(0,0,0,0.66),
+    0  0  40px rgba(249,115,22,0.05) !important;
 }
 .chat-list-panel {
-  background: rgba(10,10,14,0.8) !important;
-}
-.chat-thread-profile-card {
-  border-radius: var(--pr-r-md) !important;
-  background: rgba(16,16,20,0.96) !important;
-  backdrop-filter: blur(16px) !important;
-  border-color: rgba(255,255,255,0.08) !important;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.5) !important;
+  background: rgba(255,255,255,0.015) !important;
 }
 .chat-search-wrap {
-  border-bottom-color: rgba(255,255,255,0.05) !important;
+  border-bottom-color: rgba(255,255,255,0.042) !important;
 }
-.chat-search-wrap input {
-  background: transparent !important;
-  color: var(--chat-text) !important;
+.chat-thread-profile-card {
+  background: rgba(14,14,22,0.97) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55) !important;
 }
 .chat-directory-card {
-  border-radius: var(--pr-r-lg) !important;
-  background: rgba(12,12,16,0.97) !important;
+  background: rgba(12,12,18,0.97) !important;
   backdrop-filter: blur(24px) !important;
-  border-color: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  border-radius: var(--r-lg) !important;
 }
 
-/* ── VERSION UPDATE NOTICE ───────────────────────────────────── */
+/* ─── 27. VERSION UPDATE ──────────────────────────────────────── */
 #version-update-notice {
-  border-radius: var(--pr-r-lg) !important;
-  background: rgba(10,10,12,0.97) !important;
-  backdrop-filter: blur(16px) !important;
-  border-color: rgba(249,115,22,0.3) !important;
-}
-#version-update-notice .version-update-btn {
-  border-radius: var(--pr-r-sm) !important;
+  background: rgba(10,10,16,0.97) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(249,115,22,0.28) !important;
+  border-radius: var(--r-md) !important;
+  box-shadow: 0 12px 48px rgba(249,115,22,0.16) !important;
 }
 
-/* ── FOCUS RING IMPROVEMENT ──────────────────────────────────── */
+/* ─── 28. SEÇÃO SECTION-ICON ──────────────────────────────────── */
+.section-icon {
+  border-radius: var(--r-xs) !important;
+  background: rgba(255,255,255,0.045) !important;
+}
+
+/* ─── 29. FOCUS RING ──────────────────────────────────────────── */
 *:focus-visible {
-  outline: 2px solid rgba(249,115,22,0.55) !important;
+  outline: 2px solid rgba(249,115,22,0.52) !important;
   outline-offset: 2px !important;
 }
 
-/* ── PAGE ENTER ANIMATION ───────────────────────────────────── */
-.page-enter,
-.animate-fade-in-up,
-#app-content.opacity-100 {
-  animation: fadeSlideUp 0.45s ease-out both;
+/* ─── 30. SELECTION ───────────────────────────────────────────── */
+::selection {
+  background-color: rgba(249,115,22,0.30) !important;
+  color: #fff !important;
 }
 
-/* ── LIGHT THEME OVERRIDES for new elements ──────────────────── */
+/* ─── 31. BADGES GLOBAIS (spans como pílulas) ─────────────────── */
+span[class*="px-"][class*="rounded"],
+.metric-card span[class*="px-2"],
+.client-metric-card span[class*="px-2"],
+#main-container span[class*="border"][class*="text-"] {
+  border-radius: 999px !important;
+}
+
+/* ─── 32. REDUCED MOTION ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .metric-card, .glass-card {
+    transition: none !important;
+  }
+  body::before, body::after {
+    display: none !important;
+  }
+  #app-content::before {
+    display: none !important;
+  }
+}
+
+/* ─── 33. MOBILE — economiza GPU ──────────────────────────────── */
+@media (max-width: 768px) {
+  body::before, body::after {
+    display: none !important;
+  }
+  #app-content::before {
+    display: none !important;
+  }
+  .metric-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(18,18,24,0.98) !important;
+  }
+}
+
+/* ─── 34. LIGHT THEME OVERRIDE ────────────────────────────────── */
+body.theme-light::before,
+body.theme-light::after {
+  display: none !important;
+}
+body.theme-light #app-content::before {
+  display: none !important;
+}
+body.theme-light {
+  background-color: #f0f4f8 !important;
+}
 body.theme-light .glass-card {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%) !important;
-  border-color: rgba(0,0,0,0.08) !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+  border: 1px solid rgba(0,0,0,0.07) !important;
+  box-shadow:
+    0 4px 20px rgba(0,0,0,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.90) !important;
+  backdrop-filter: none !important;
 }
 body.theme-light .metric-card {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 60%, #f1f5f9 100%) !important;
-  border-color: rgba(0,0,0,0.08) !important;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  box-shadow:
+    0 2px 12px rgba(0,0,0,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.90) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 body.theme-light header.sticky {
-  background: rgba(248,250,252,0.95) !important;
+  background: rgba(248,250,252,0.97) !important;
   border-bottom-color: rgba(0,0,0,0.08) !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08) !important;
+  box-shadow:
+    0 1px 0 rgba(0,0,0,0.06),
+    0 4px 24px rgba(0,0,0,0.10) !important;
+}
+body.theme-light #tab-container {
+  background: rgba(0,0,0,0.04) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+body.theme-light #tab-container button.tab-active-underline {
+  background: linear-gradient(148deg, rgba(0,0,0,0.08), rgba(0,0,0,0.04)) !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.60) !important;
+  color: #0f172a !important;
+}
+body.theme-light input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+body.theme-light select,
+body.theme-light textarea {
+  background: rgba(255,255,255,0.85) !important;
+  border-color: rgba(0,0,0,0.14) !important;
+  color: #0f172a !important;
+}
+body.theme-light input:focus,
+body.theme-light select:focus,
+body.theme-light textarea:focus {
+  border-color: rgba(37,99,235,0.48) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
 }
 body.theme-light #toast {
   background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
   box-shadow: 0 8px 36px rgba(37,99,235,0.35) !important;
 }
+body.theme-light #login-screen {
+  background: linear-gradient(160deg, #f0f4f8 0%, #e2e8f0 100%) !important;
+}
+body.theme-light #login-screen > .relative.z-10 > div > .bg-neutral-900\/80,
 body.theme-light #login-screen > div > div > .bg-neutral-900\/80,
 body.theme-light #reset-password-screen .bg-neutral-900\/80 {
-  background: linear-gradient(160deg, #f8fafc 0%, #e2e8f0 100%) !important;
-  border-color: rgba(0,0,0,0.1) !important;
-  box-shadow: 0 40px 90px rgba(0,0,0,0.15) !important;
+  background: linear-gradient(158deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: rgba(0,0,0,0.10) !important;
+  box-shadow:
+    0 32px 100px rgba(0,0,0,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.80) !important;
 }
 
 /* ============================================================
-   END PREMIUM RESTYLING LAYER
+   END PREMIUM RESTYLING v2 LAYER
    ============================================================ */
