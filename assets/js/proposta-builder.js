@@ -321,7 +321,7 @@ function renderFinanciamento() {
 
   const cardsHTML = BANCOS_FINANCIAMENTO.map((b) => `
     <a href="${b.url}" target="_blank" rel="noopener noreferrer"
-      class="metric-card shine-effect group block glass-surface ghost-border hover:border-stitch-primary/30 p-5 transition-all duration-300 cursor-pointer">
+      class="metric-card shine-effect group block border border-neutral-800 hover:border-orange-500/30 p-5 transition-all duration-300 cursor-pointer">
       <div class="flex items-center gap-4 mb-4">
         <div class="w-12 h-12 rounded-full bg-gradient-to-br ${b.cor} flex items-center justify-center text-base font-black shadow-[0_0_12px_rgba(249,115,22,0.2)] shrink-0">
           ${escapeHTML(b.icon)}
@@ -428,7 +428,7 @@ function renderHistorico() {
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button onclick="copiarLinkExistente('${p.id}', this)"
-              class="flex items-center gap-1.5 glass-surface ghost-border hover:border-stitch-primary/40 text-stitch-text px-3 py-2 font-black uppercase tracking-wider transition-all text-[9px]">
+              class="flex items-center gap-1.5 bg-neutral-800 border border-neutral-700 hover:border-orange-500/50 hover:text-orange-400 text-neutral-400 px-3 py-2 font-black uppercase tracking-wider transition-all text-[9px]">
               <i data-lucide="copy" class="w-3.5 h-3.5"></i>COPIAR LINK
             </button>
           </div>
@@ -751,7 +751,7 @@ function renderModalProducts() {
 
     if (state.pbViewMode === 'grid') {
       return `
-        <div class="glass-surface ghost-border hover:border-stitch-primary/30 p-5 flex flex-col gap-4 group transition-all rounded-sm shadow-xl">
+        <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-5 flex flex-col gap-4 group transition-all rounded-sm shadow-xl">
           <div class="flex justify-between items-start">
             <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>
             <span class="text-[10px] text-neutral-500 line-through decoration-red-500 font-bold">DE: ${formattedListPrice}</span>
@@ -762,7 +762,7 @@ function renderModalProducts() {
               <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Potencia</span>
               <span class="text-orange-500 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="zap" class="w-3 h-3"></i> ${safePower} kWp</span>
             </div>
-            <div class="glass-surface p-2 border border-stitch-border/30 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]">
+            <div class="bg-neutral-900 p-2 border border-neutral-800 flex flex-col items-center justify-center shadow-[inset_0_0_10px_rgba(59,130,246,0.05)]">
               <span class="text-[9px] text-neutral-500 font-bold uppercase tracking-widest">Geracao Est.</span>
               <span class="text-blue-400 font-black flex items-center gap-1 mt-1 text-sm"><i data-lucide="sun" class="w-3 h-3"></i> ${estGeneration} kWh</span>
             </div>
@@ -777,7 +777,7 @@ function renderModalProducts() {
     }
 
     return `
-      <div class="glass-surface ghost-border hover:border-stitch-primary/30 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group transition-all rounded-sm shadow-xl">
+      <div class="bg-[#0f0f0f] border border-neutral-800 hover:border-orange-500 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group transition-all rounded-sm shadow-xl">
         <div class="flex-1 min-w-0 flex flex-col gap-2">
           <div class="flex items-center gap-2">
             <span class="text-[10px] bg-orange-600/20 text-orange-500 px-2 py-0.5 font-bold uppercase tracking-widest border border-orange-500/30">${safeBrand}</span>

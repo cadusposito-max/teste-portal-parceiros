@@ -3,7 +3,7 @@
 // ==========================================
 
 function canManageProductCatalog() {
-  return Boolean(state.isAdmin || state.isGestor);
+  return Boolean(state.isAdmin && state.currentAal === 'aal2');
 }
 
 function renderProductsList(container) {
@@ -27,7 +27,7 @@ function renderProductsList(container) {
   }
 
   document.getElementById('empty-state-icon').innerHTML = '<i data-lucide="search" class="w-10 h-10"></i>';
-  document.getElementById('empty-state-icon').className = 'inline-flex items-center justify-center w-20 h-20 glass-surface mb-6 text-warning border-stitch-border/30';
+  document.getElementById('empty-state-icon').className = 'inline-flex items-center justify-center w-20 h-20 bg-neutral-900 mb-6 text-neutral-700 border border-neutral-800';
 
   let list = state.activeTab === 'admin'
     ? [...state.data]
@@ -57,7 +57,7 @@ function renderProductsList(container) {
 
   container.className = state.viewMode === 'grid'
     ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'
-    : 'flex flex-col gap-4 glass-surface ghost-border rounded-none';
+    : 'flex flex-col gap-4 bg-neutral-900/50 border border-neutral-800 rounded-none';
 
   container.innerHTML = list.map(item => {
     const discount          = Math.round(((item.list_price - item.price) / item.list_price) * 100);
@@ -78,14 +78,14 @@ function renderProductsList(container) {
 
     if (state.viewMode === 'grid') {
       return `
-        <div class="relative group flex flex-col overflow-hidden transition-all duration-300 glass-surface ghost-border hover:-translate-y-1 opacity-80 hover:opacity-100">
+        <div class="relative group flex flex-col overflow-hidden transition-all duration-300 bg-neutral-900 border-2 border-dashed border-orange-500/50 hover:-translate-y-1 opacity-80 hover:opacity-100">
           <div class="absolute top-0 right-0 p-2 z-20 flex gap-1 bg-black/80 backdrop-blur border-b border-l border-neutral-700">${adminButtons}</div>
           <div class="absolute -left-1 top-4 z-10"><div class="bg-red-600 text-white text-xs font-black px-3 py-1 shadow-lg flex items-center gap-1 skew-x-[-10deg] border-2 border-red-800"><span class="skew-x-[10deg]">-${discount}% OFF</span></div></div>
           <div class="p-6 relative z-10 flex flex-col h-full">
             <div class="flex justify-end mb-4"><span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${safeTag}</span></span></div>
             <div class="mb-1"><span class="text-[10px] text-neutral-500 font-bold uppercase tracking-[0.2em]">${safeBrand}</span></div>
             <h3 class="text-white font-black text-xl leading-none uppercase tracking-tight mb-4">${safeName}</h3>
-            <div class="glass-surface border border-stitch-border/30 p-3 mb-6 grid grid-cols-2 gap-2">
+            <div class="bg-black/50 border border-neutral-800 p-3 mb-6 grid grid-cols-2 gap-2">
               <div class="flex flex-col"><span class="text-[10px] text-neutral-500 font-bold uppercase">Potência</span><span class="text-orange-500 font-black text-lg flex items-center gap-1"><i data-lucide="zap" class="w-4 h-4 fill-orange-500"></i> ${item.power} <span class="text-xs">kWp</span></span></div>
               <div class="flex flex-col border-l border-neutral-800 pl-3"><span class="text-[10px] text-neutral-500 font-bold uppercase">Tipo</span><span class="text-neutral-300 font-bold text-sm uppercase mt-1 truncate">${safeType}</span></div>
             </div>
@@ -100,7 +100,7 @@ function renderProductsList(container) {
         </div>`;
     } else {
       return `
-        <div class="relative flex flex-col sm:flex-row sm:items-center p-5 gap-4 group glass-surface ghost-border border-b transition-all opacity-80 hover:opacity-100">
+        <div class="relative flex flex-col sm:flex-row sm:items-center p-5 gap-4 group bg-neutral-900 border-b border-dashed border-orange-500/30 transition-all opacity-80 hover:opacity-100">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-3 mb-2 flex-wrap">
               <span class="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] font-black uppercase tracking-tighter border-l-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${badgeClass}"><span class="skew-x-[10deg] inline-block">${safeTag}</span></span>

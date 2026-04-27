@@ -1,5 +1,5 @@
-// ==========================================
-// PERFIL DO USUÁRIO — Modal com 3 abas
+﻿// ==========================================
+// PERFIL DO USUÃRIO â€” Modal com 3 abas
 // ==========================================
 
 let _profileTab = 'dados';
@@ -98,7 +98,7 @@ function _renderProfileModal() {
   _renderProfileBody();
 }
 
-// ─── ABA: DADOS ───────────────────────────────────────────────
+// â”€â”€â”€ ABA: DADOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _profileDadosHTML() {
   const rawAvatarUrl = state.profile?.avatar_url || '';
   const safeAvatarUrl = rawAvatarUrl ? safeImageUrl(rawAvatarUrl, 'assets/img/logo-light.png') : '';
@@ -122,13 +122,13 @@ function _profileDadosHTML() {
           </label>
           <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="_previewAvatar(event)">
           ${rawAvatarUrl ? `<button onclick="_removeAvatar()" class="ml-2 inline-flex items-center gap-1.5 text-red-500 hover:text-red-400 text-[9px] font-black uppercase tracking-widest transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i>REMOVER</button>` : ''}
-          <p class="text-neutral-700 text-[9px] mt-1.5">JPG ou PNG, máx. 2MB</p>
+          <p class="text-neutral-700 text-[9px] mt-1.5">JPG ou PNG, mÃ¡x. 2MB</p>
         </div>
       </div>
 
       <!-- Nome -->
       <div>
-        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Nome de Exibição</label>
+        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Nome de ExibiÃ§Ã£o</label>
         <input type="text" id="profile-nome" maxlength="60"
           value="${escapeHTML(state.profile?.nome || '')}"
           placeholder="Seu nome"
@@ -146,14 +146,14 @@ function _profileDadosHTML() {
 
       <!-- E-mail (read-only) -->
       <div>
-        <label class="block text-[9px] text-neutral-600 font-black uppercase tracking-widest mb-2">E-mail <span class="text-neutral-700">(não editável)</span></label>
+        <label class="block text-[9px] text-neutral-600 font-black uppercase tracking-widest mb-2">E-mail <span class="text-neutral-700">(nÃ£o editÃ¡vel)</span></label>
         <input type="email" value="${escapeHTML(state.currentUser?.email || '')}" disabled
           class="w-full bg-neutral-950 border border-neutral-900 px-4 py-3 text-neutral-600 font-bold text-sm cursor-not-allowed">
       </div>
 
-      <!-- Aparência -->
+      <!-- AparÃªncia -->
       <div>
-        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Aparência</label>
+        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">AparÃªncia</label>
         <div class="flex flex-wrap gap-1.5">
           <button type="button" onclick="_setThemeFromProfile('dark')"
             class="${themeBtnClass('dark')} border px-4 py-2 font-black uppercase text-[9px] tracking-widest flex items-center gap-2 transition-all">
@@ -188,7 +188,7 @@ function _previewAvatar(event) {
   const file = event.target.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) {
-    showToast('Imagem muito grande. Máximo 2MB.');
+    showToast('Imagem muito grande. MÃ¡ximo 2MB.');
     return;
   }
   const reader = new FileReader();
@@ -224,7 +224,7 @@ async function _saveDados() {
       return;
     }
     const { data: urlData } = supabaseClient.storage.from('avatars').getPublicUrl(path);
-    // Adiciona cache-buster para forçar atualização da imagem
+    // Adiciona cache-buster para forÃ§ar atualizaÃ§Ã£o da imagem
     avatar_url = safeImageUrl(urlData.publicUrl + '?t=' + Date.now(), null);
   }
 
@@ -270,23 +270,23 @@ async function _removeAvatar() {
   _renderProfileModal();
 }
 
-// ─── ABA: SENHA ───────────────────────────────────────────────
+// â”€â”€â”€ ABA: SENHA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _profileSenhaHTML() {
   return `
     <div class="flex flex-col gap-5">
       <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-widest border border-neutral-800 bg-neutral-900/40 p-3">
         <i data-lucide="info" class="w-3.5 h-3.5 inline-block mr-1 text-neutral-500"></i>
-        A nova senha deve ter no mínimo 6 caracteres.
+        A nova senha deve ter no mÃ­nimo 6 caracteres.
       </p>
 
       <div>
         <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Nova Senha</label>
-        <input type="password" id="profile-senha-nova" placeholder="••••••••"
+        <input type="password" id="profile-senha-nova" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
           class="w-full bg-black border border-neutral-800 focus:border-orange-500 px-4 py-3 text-white font-bold text-sm outline-none transition-all placeholder-neutral-700">
       </div>
       <div>
         <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Confirmar Nova Senha</label>
-        <input type="password" id="profile-senha-confirm" placeholder="••••••••"
+        <input type="password" id="profile-senha-confirm" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
           class="w-full bg-black border border-neutral-800 focus:border-orange-500 px-4 py-3 text-white font-bold text-sm outline-none transition-all placeholder-neutral-700">
       </div>
 
@@ -301,17 +301,17 @@ function _profileSenhaHTML() {
 async function _saveSenha() {
   const nova    = document.getElementById('profile-senha-nova')?.value || '';
   const confirm = document.getElementById('profile-senha-confirm')?.value || '';
-  if (nova.length < 6)      { showToast('A senha deve ter no mínimo 6 caracteres.'); return; }
-  if (nova !== confirm)     { showToast('As senhas não conferem.'); return; }
+  if (nova.length < 6)      { showToast('A senha deve ter no mÃ­nimo 6 caracteres.'); return; }
+  if (nova !== confirm)     { showToast('As senhas nÃ£o conferem.'); return; }
 
   const { error } = await supabaseClient.auth.updateUser({ password: nova });
   if (error) {
-    // Não vazar detalhes internos do Supabase para o cliente
+    // NÃ£o vazar detalhes internos do Supabase para o cliente
     const msg = String(error.message || '').toLowerCase();
     if (msg.includes('same password') || msg.includes('different')) {
-      showToast('A nova senha não pode ser igual à atual.');
+      showToast('A nova senha nÃ£o pode ser igual Ã  atual.');
     } else {
-      showToast('Não foi possível alterar a senha. Tente novamente.');
+      showToast('NÃ£o foi possÃ­vel alterar a senha. Tente novamente.');
     }
     return;
   }
@@ -319,15 +319,19 @@ async function _saveSenha() {
   closeProfileModal();
 }
 
-// ─── ABA: 2FA ─────────────────────────────────────────────────
+// â”€â”€â”€ ABA: 2FA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _profile2FAHTML() {
+  const description = state.isAdmin
+    ? 'Obrigatorio para administradores. Se desativar, a sessao sera encerrada imediatamente.'
+    : 'Opcional para o seu perfil. Se desativar, voce precisara fazer login novamente.';
+
   return `
     <div id="mfa-area" class="flex flex-col gap-4">
       <div class="flex items-center gap-3 bg-neutral-900/60 border border-neutral-800 p-4">
         <i data-lucide="shield-check" class="w-8 h-8 text-orange-400 shrink-0"></i>
         <div>
-          <p class="text-white font-black text-sm uppercase tracking-wider">Autenticação em 2 Fatores</p>
-          <p class="text-neutral-500 text-[10px] mt-0.5">Use Google Authenticator, Authy ou similar para gerar o código.</p>
+          <p class="text-white font-black text-sm uppercase tracking-wider">AutenticaÃ§Ã£o em 2 Fatores</p>
+          <p class="text-neutral-500 text-[10px] mt-0.5">${description}</p>
         </div>
       </div>
       <div id="mfa-status-area" class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest text-center py-4">
@@ -353,7 +357,7 @@ async function _load2FAStatus() {
           <i data-lucide="shield-check" class="w-5 h-5 text-white shrink-0"></i>
           <div class="flex-1">
             <p class="text-white font-black text-sm uppercase">2FA ATIVO</p>
-            <p class="text-green-100 text-[10px]">Seu login está protegido com autenticação em dois fatores.</p>
+            <p class="text-green-100 text-[10px]">Seu login estÃ¡ protegido com autenticaÃ§Ã£o em dois fatores.</p>
           </div>
         </div>
         <button onclick="_disable2FA('${totpFactor.id}')"
@@ -369,7 +373,7 @@ async function _load2FAStatus() {
           <i data-lucide="shield-off" class="w-5 h-5 text-neutral-500 shrink-0"></i>
           <div class="flex-1">
             <p class="text-neutral-400 font-black text-sm uppercase">2FA INATIVO</p>
-            <p class="text-neutral-600 text-[10px]">Ative para adicionar uma camada extra de segurança.</p>
+            <p class="text-neutral-600 text-[10px]">Ative para adicionar uma camada extra de seguranÃ§a.</p>
           </div>
         </div>
         <button onclick="_enroll2FA()"
@@ -403,7 +407,7 @@ async function _enroll2FA() {
         <p class="text-white font-mono text-xs tracking-widest break-all">${escapeHTML(secret)}</p>
       </div>
       <div>
-        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">Código de Verificação (6 dígitos)</label>
+        <label class="block text-[9px] text-orange-500 font-black uppercase tracking-widest mb-2">CÃ³digo de VerificaÃ§Ã£o (6 dÃ­gitos)</label>
         <input type="text" id="mfa-code-input" maxlength="6" inputmode="numeric" placeholder="000000"
           class="w-full bg-black border border-neutral-800 focus:border-orange-500 px-4 py-3 text-white font-mono text-center text-lg tracking-[0.5em] outline-none transition-all placeholder-neutral-700">
       </div>
@@ -419,7 +423,7 @@ async function _enroll2FA() {
 
 async function _verify2FA(factorId) {
   const code = document.getElementById('mfa-code-input')?.value.trim();
-  if (!code || code.length !== 6) { showToast('Insira o código de 6 dígitos.'); return; }
+  if (!code || code.length !== 6) { showToast('Insira o cÃ³digo de 6 dÃ­gitos.'); return; }
 
   const { data: challengeData, error: chErr } = await supabaseClient.auth.mfa.challenge({ factorId });
   if (chErr) { showToast('Erro: ' + chErr.message); return; }
@@ -430,7 +434,7 @@ async function _verify2FA(factorId) {
     code,
   });
 
-  if (verErr) { showToast('Código inválido. Tente novamente.'); return; }
+  if (verErr) { showToast('CÃ³digo invÃ¡lido. Tente novamente.'); return; }
 
   showToast('2FA ATIVADO COM SUCESSO!');
   _load2FAStatus();
@@ -438,14 +442,22 @@ async function _verify2FA(factorId) {
 
 function _disable2FA(factorId) {
   showConfirmModal(
-    'Tem certeza que deseja desativar o 2FA? Seu login ficará menos seguro.',
+    'Tem certeza que deseja desativar o 2FA? Seu login ficarÃ¡ menos seguro.',
     async () => {
       const { error } = await supabaseClient.auth.mfa.unenroll({ factorId });
       if (error) { showToast('Erro: ' + error.message); return; }
-      showToast('2FA DESATIVADO.');
-      _load2FAStatus();
+
+      if (typeof closeProfileModal === 'function') closeProfileModal();
+      if (typeof _authForceReturnToLogin === 'function') {
+        await _authForceReturnToLogin('2FA desativado. Faca login novamente para continuar.');
+      } else {
+        if (typeof clearSessionState === 'function') clearSessionState();
+        await supabaseClient.auth.signOut().catch(() => {});
+        if (typeof resetUser === 'function') resetUser();
+      }
     },
     'DESATIVAR 2FA'
   );
 }
+
 

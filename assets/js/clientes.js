@@ -297,7 +297,7 @@ function renderClientActions(client, compact = false) {
         <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
         <span>WhatsApp</span>
       </a>`
-    : `<button disabled class="w-full min-w-0 flex items-center justify-center gap-1.5 glass-surface ghost-border text-neutral-600 ${shared} font-black uppercase tracking-wider cursor-not-allowed">
+    : `<button disabled class="w-full min-w-0 flex items-center justify-center gap-1.5 bg-neutral-900 border border-neutral-800 text-neutral-600 ${shared} font-black uppercase tracking-wider cursor-not-allowed">
         <i data-lucide="message-circle-off" class="w-3.5 h-3.5"></i>
         <span>Sem WhatsApp</span>
       </button>`;
@@ -353,7 +353,7 @@ function renderClienteCard(client, index, options = {}) {
   const titleSize = compact ? 'text-sm' : 'text-sm md:text-base';
 
   return `
-    <article class="metric-card client-metric-card shine-effect ${stagger} relative  glass-surface ghost-border hover:border-stitch-primary/30 ${cardPadding} group transition-all duration-300">
+    <article class="metric-card client-metric-card shine-effect ${stagger} relative border border-neutral-800 hover:border-orange-500/25 ${cardPadding} group transition-all duration-300 bg-[#080808]">
       <div class="absolute top-0 right-0 w-24 h-24 bg-orange-500/4 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
       <div class="relative z-10 flex items-start gap-4">
@@ -431,7 +431,7 @@ function renderAdminClientesToolbar(baseRows, filteredRows) {
     : '';
 
   return `
-    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 glass-surface ghost-border mb-2">
+    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 border border-neutral-800 mb-2">
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute -top-10 -left-10 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-8 -right-8 w-36 h-36 bg-orange-500/10 rounded-full blur-3xl"></div>
@@ -454,7 +454,7 @@ function renderAdminClientesToolbar(baseRows, filteredRows) {
             <button onclick="setAdminClientesViewMode('list')" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest border ${state.adminClientesViewMode === 'list' ? 'bg-neutral-700 text-white border-neutral-600' : 'bg-black border-neutral-800 text-neutral-500 hover:text-white'}">Lista</button>
             <button onclick="setAdminClientesViewMode('kanban')" class="px-3 py-2 text-[9px] font-black uppercase tracking-widest border ${state.adminClientesViewMode === 'kanban' ? 'bg-orange-600 text-black border-orange-500' : 'bg-black border-neutral-800 text-neutral-500 hover:text-white'}">Kanban</button>
           </div>
-          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
+          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
             <i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX
           </button>
           <button onclick="openClientModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]">
@@ -537,7 +537,7 @@ function renderRegularClientesToolbar(filteredRows) {
   }).join('');
 
   return `
-    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 glass-surface ghost-border mb-2">
+    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 border border-neutral-800 mb-2">
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute -top-10 -left-10 w-48 h-48 bg-orange-600/8 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-yellow-500/6 rounded-full blur-3xl"></div>
@@ -550,7 +550,7 @@ function renderRegularClientesToolbar(filteredRows) {
           <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-widest mt-1">${filteredRows.length} exibindo · ${state.clienteFilter !== 'TODOS' ? escapeHTML(state.clienteFilter) : 'Todos os status'}</p>
         </div>
         <div class="flex gap-2 flex-wrap">
-          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
+          <button onclick="exportClientesXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
           <button onclick="openClientModal()" class="flex items-center gap-2 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-black px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> NOVO CLIENTE</button>
         </div>
       </div>
@@ -568,8 +568,8 @@ function renderAdminClientesKanbanView(rows) {
       ${CLIENT_STATUS_SEQUENCE.map((status) => {
         const items = rows.filter((row) => normalizeClientStatus(row?.status) === status);
         return `
-          <div class="glass-surface ghost-border min-h-[220px] flex flex-col">
-            <div class="px-3 py-2.5 border-b border-stitch-border/30 flex items-center justify-between gap-2">
+          <div class="border border-neutral-800 bg-[#080808] min-h-[220px] flex flex-col">
+            <div class="px-3 py-2.5 border-b border-neutral-800 flex items-center justify-between gap-2">
               <span class="text-[10px] font-black uppercase tracking-widest text-white">${escapeHTML(status)}</span>
               <span class="text-[9px] font-black text-orange-400">${items.length}</span>
             </div>
@@ -623,7 +623,7 @@ function renderClientesList(container) {
 
   if (filteredRows.length === 0) {
     html += `
-      <div class="py-16 text-center text-neutral-600 font-bold uppercase tracking-widest text-xs border border-dashed border-neutral-800/60 glass-surface border-stitch-border/30">
+      <div class="py-16 text-center text-neutral-600 font-bold uppercase tracking-widest text-xs border border-dashed border-neutral-800/60 bg-neutral-950/40">
         <i data-lucide="filter-x" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
         Nenhum cliente com os filtros atuais
       </div>

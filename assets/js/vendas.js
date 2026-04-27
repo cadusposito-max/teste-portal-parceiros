@@ -334,7 +334,7 @@ function renderVendaCard(sale, index, options = {}) {
           ${waLink
             ? `<a href="${waLink}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 bg-green-600 border border-green-500 hover:bg-green-700 hover:border-green-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all"><i data-lucide="message-circle" class="w-3 h-3"></i> WhatsApp</a>`
             : ''}
-          ${state.isAdmin ? `<button onclick="deleteVenda('${sale.id}')" class="flex items-center gap-1.5 bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all"><i data-lucide="trash-2" class="w-3 h-3"></i> Excluir</button>` : ''}
+          ${state.isAdmin && state.currentAal === 'aal2' ? `<button onclick="deleteVenda('${sale.id}')" class="flex items-center gap-1.5 bg-red-600 border border-red-500 hover:bg-red-700 hover:border-red-400 text-white px-3 py-1.5 font-black uppercase text-[8px] tracking-widest transition-all"><i data-lucide="trash-2" class="w-3 h-3"></i> Excluir</button>` : ''}
           <p class="text-neutral-700 text-[9px] font-mono uppercase">${escapeHTML(sale?.kit_brand || '')}</p>
         </div>
       </div>
@@ -380,7 +380,7 @@ function renderAdminVendasToolbar(sourceRows, filteredRows) {
     : '';
 
   return `
-    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 glass-surface ghost-border mb-2">
+    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 border border-neutral-800 mb-2">
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute -top-10 -left-10 w-48 h-48 bg-green-600/10 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
@@ -395,7 +395,7 @@ function renderAdminVendasToolbar(sourceRows, filteredRows) {
 
         <div class="flex items-center gap-2 flex-wrap">
           ${scopeSelect}
-          <button onclick="exportVendasXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
+          <button onclick="exportVendasXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
         </div>
       </div>
 
@@ -462,9 +462,9 @@ function renderAdminVendasToolbar(sourceRows, filteredRows) {
 function renderSalesSummaryCards(summary) {
   return `
     <section class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <article class="glass-surface ghost-border p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Total vendido</p><p class="text-2xl font-black text-green-400">${formatCurrency(summary.totalVendido)}</p></article>
-      <article class="glass-surface ghost-border p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Ticket médio</p><p class="text-2xl font-black text-blue-400">${formatCurrency(summary.ticketMedio)}</p></article>
-      <article class="glass-surface ghost-border p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Negócios fechados</p><p class="text-2xl font-black text-white">${summary.qtd}</p></article>
+      <article class="bg-neutral-900/60 border border-neutral-800 p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Total vendido</p><p class="text-2xl font-black text-green-400">${formatCurrency(summary.totalVendido)}</p></article>
+      <article class="bg-neutral-900/60 border border-neutral-800 p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Ticket médio</p><p class="text-2xl font-black text-blue-400">${formatCurrency(summary.ticketMedio)}</p></article>
+      <article class="bg-neutral-900/60 border border-neutral-800 p-4"><p class="text-neutral-600 text-[9px] font-black uppercase tracking-widest mb-1">Negócios fechados</p><p class="text-2xl font-black text-white">${summary.qtd}</p></article>
     </section>
   `;
 }
@@ -513,7 +513,7 @@ function renderVendas(container) {
   }
 
   if (vendas.length === 0) {
-    html += `<div class="py-20 text-center border border-dashed border-neutral-800/60 glass-surface border-stitch-border/30"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 text-neutral-700"></i><p class="text-neutral-500 text-xs font-black uppercase tracking-widest mb-1">Nenhuma venda com os filtros atuais</p><p class="text-neutral-700 text-[10px] font-bold uppercase">Ajuste os filtros para visualizar resultados</p></div>`;
+    html += `<div class="py-20 text-center border border-dashed border-neutral-800/60 bg-neutral-950/40"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 text-neutral-700"></i><p class="text-neutral-500 text-xs font-black uppercase tracking-widest mb-1">Nenhuma venda com os filtros atuais</p><p class="text-neutral-700 text-[10px] font-bold uppercase">Ajuste os filtros para visualizar resultados</p></div>`;
     container.innerHTML = html;
     lucide.createIcons();
     return;
@@ -547,7 +547,7 @@ function renderRegularVendasToolbar(sourceRows, vendas, summary) {
   }).join('');
 
   return `
-    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 glass-surface ghost-border">
+    <section class="relative bg-[#080808] bg-grid overflow-hidden p-6 md:p-8 border border-neutral-800">
       <div class="absolute inset-0 pointer-events-none">
         <div class="absolute -top-10 -left-10 w-48 h-48 bg-green-600/8 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-8 -right-8 w-32 h-32 bg-yellow-500/6 rounded-full blur-3xl"></div>
@@ -559,7 +559,7 @@ function renderRegularVendasToolbar(sourceRows, vendas, summary) {
           <h2 class="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter leading-none">Minhas Vendas <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">${summary.qtd}</span></h2>
           <p class="text-neutral-600 text-[10px] font-bold uppercase tracking-widest mt-1">${summary.ultima ? `Última: ${formatDate(summary.ultima.created_at)}` : 'Nenhuma venda ainda'}</p>
         </div>
-        <button onclick="exportVendasXLSX()" class="flex items-center gap-2 glass-surface ghost-border hover:border-stitch-primary/40 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
+        <button onclick="exportVendasXLSX()" class="flex items-center gap-2 bg-neutral-900 border border-neutral-700 hover:border-green-500 hover:text-green-400 text-neutral-500 px-4 py-2.5 font-black uppercase tracking-wider transition-all text-[10px]"><i data-lucide="download" class="w-3.5 h-3.5"></i> XLSX</button>
       </div>
 
       <div class="relative z-10 flex flex-wrap items-center gap-1.5 mt-4 pt-4 border-t border-neutral-800/40">
@@ -623,7 +623,10 @@ function setVendasPeriod(period) {
 }
 
 function deleteVenda(id) {
-  if (!state.isAdmin) return;
+  if (!state.isAdmin || state.currentAal !== 'aal2') {
+    showToast('Sessao administrativa invalida para excluir venda.');
+    return;
+  }
 
   showConfirmModal(
     'Tem certeza que deseja excluir esta venda? Esta ação não pode ser desfeita.',

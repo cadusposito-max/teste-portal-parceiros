@@ -66,18 +66,19 @@ function initProposalQuickActions() {
   });
 
   btnCopy.addEventListener('click', () => {
-    copiarTextoBlindado(window.location.href);
+    copiarTextoBlindado(getCanonicalProposalUrl());
     if (typeof showToast === 'function') showToast('LINK DA PROPOSTA COPIADO!');
   });
 
   btnOpen.addEventListener('click', () => {
-    const ok = tryOpenExternalBrowser(window.location.href);
+    const canonicalUrl = getCanonicalProposalUrl();
+    const ok = tryOpenExternalBrowser(canonicalUrl);
     if (typeof showToast === 'function') {
       showToast(ok
         ? 'ABRINDO NO NAVEGADOR...'
         : 'Nao foi possivel abrir. Link ja foi copiado.');
     }
-    if (!ok) copiarTextoBlindado(window.location.href);
+    if (!ok) copiarTextoBlindado(canonicalUrl);
   });
 
   lucide.createIcons();
@@ -106,58 +107,64 @@ function startCountdown(createdAt) {
 // CARROSSEL DE VÍDEOS
 // ==========================================
 let videoAtual = 0;
+const isPrintProposalPage = document.body.classList.contains('proposal-print-page');
 const playerContainer = document.getElementById('video-wrapper');
 const dotsContainer   = document.getElementById('video-dots');
+const btnPrevVid      = document.getElementById('btn-prev-vid');
+const btnNextVid      = document.getElementById('btn-next-vid');
 
-VIDEOS_YOUTUBE.forEach((link, index) => {
-  const finalUrl = link + (link.includes('?') ? '&' : '?') + 'enablejsapi=1';
-  const iframe   = document.createElement('iframe');
-  iframe.className = `absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
-  iframe.src       = finalUrl;
-  iframe.title     = `YouTube video player ${index + 1}`;
-  iframe.setAttribute('frameborder', '0');
-  iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-  iframe.setAttribute('allowfullscreen', '');
-  iframe.id = `yt-iframe-${index}`;
-  playerContainer.appendChild(iframe);
-});
+if (playerContainer && dotsContainer && btnPrevVid && btnNextVid && !isPrintProposalPage) {
+  VIDEOS_YOUTUBE.forEach((link, index) => {
+    const finalUrl = link + (link.includes('?') ? '&' : '?') + 'enablejsapi=1';
+    const iframe   = document.createElement('iframe');
+    iframe.className = `absolute top-0 left-0 w-full h-full transition-opacity duration-500 ease-in-out ${index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`;
+    iframe.src       = finalUrl;
+    iframe.title     = `YouTube video player ${index + 1}`;
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.id = `yt-iframe-${index}`;
+    playerContainer.appendChild(iframe);
+  });
 
-function atualizarCarrossel() {
-  VIDEOS_YOUTUBE.forEach((_, index) => {
-    const iframe = document.getElementById(`yt-iframe-${index}`);
-    if (index === videoAtual) {
-      iframe.classList.remove('opacity-0', 'z-0', 'pointer-events-none');
-      iframe.classList.add('opacity-100', 'z-10');
-    } else {
-      iframe.classList.remove('opacity-100', 'z-10');
-      iframe.classList.add('opacity-0', 'z-0', 'pointer-events-none');
-      if (iframe.contentWindow) {
-        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', 'https://www.youtube.com');
+  function atualizarCarrossel() {
+    VIDEOS_YOUTUBE.forEach((_, index) => {
+      const iframe = document.getElementById(`yt-iframe-${index}`);
+      if (!iframe) return;
+      if (index === videoAtual) {
+        iframe.classList.remove('opacity-0', 'z-0', 'pointer-events-none');
+        iframe.classList.add('opacity-100', 'z-10');
+      } else {
+        iframe.classList.remove('opacity-100', 'z-10');
+        iframe.classList.add('opacity-0', 'z-0', 'pointer-events-none');
+        if (iframe.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', 'https://www.youtube.com');
+        }
       }
-    }
+    });
+
+    dotsContainer.innerHTML = '';
+    VIDEOS_YOUTUBE.forEach((_, index) => {
+      const dot      = document.createElement('button');
+      const isActive = index === videoAtual;
+      dot.className  = `h-2.5 rounded-full transition-all duration-300 ${isActive ? 'bg-orange-500 w-8' : 'bg-neutral-600 hover:bg-neutral-400 w-2.5'}`;
+      dot.onclick = () => { videoAtual = index; atualizarCarrossel(); };
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  btnPrevVid.addEventListener('click', () => {
+    videoAtual = (videoAtual - 1 + VIDEOS_YOUTUBE.length) % VIDEOS_YOUTUBE.length;
+    atualizarCarrossel();
   });
 
-  dotsContainer.innerHTML = '';
-  VIDEOS_YOUTUBE.forEach((_, index) => {
-    const dot      = document.createElement('button');
-    const isActive = index === videoAtual;
-    dot.className  = `h-2.5 rounded-full transition-all duration-300 ${isActive ? 'bg-orange-500 w-8' : 'bg-neutral-600 hover:bg-neutral-400 w-2.5'}`;
-    dot.onclick = () => { videoAtual = index; atualizarCarrossel(); };
-    dotsContainer.appendChild(dot);
+  btnNextVid.addEventListener('click', () => {
+    videoAtual = (videoAtual + 1) % VIDEOS_YOUTUBE.length;
+    atualizarCarrossel();
   });
+
+  atualizarCarrossel();
 }
-
-document.getElementById('btn-prev-vid').addEventListener('click', () => {
-  videoAtual = (videoAtual - 1 + VIDEOS_YOUTUBE.length) % VIDEOS_YOUTUBE.length;
-  atualizarCarrossel();
-});
-
-document.getElementById('btn-next-vid').addEventListener('click', () => {
-  videoAtual = (videoAtual + 1) % VIDEOS_YOUTUBE.length;
-  atualizarCarrossel();
-});
-
-atualizarCarrossel();
 
 // ==========================================
 // MODAL DE PARCELAMENTO
@@ -178,15 +185,18 @@ function closeModal() {
   document.body.classList.remove('overflow-hidden');
 }
 
-btnShowInstallments.addEventListener('click', openModal);
-btnCloseModal.addEventListener('click', closeModal);
-modalParcelamento.addEventListener('click', (e) => {
-  if (e.target === modalParcelamento) closeModal();
-});
+if (modalParcelamento && btnShowInstallments && btnCloseModal) {
+  btnShowInstallments.addEventListener('click', openModal);
+  btnCloseModal.addEventListener('click', closeModal);
+  modalParcelamento.addEventListener('click', (e) => {
+    if (e.target === modalParcelamento) closeModal();
+  });
+}
 
 function gerarOpcoesParcelamento(valorBase) {
   const formatter             = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const installmentsContainer = document.getElementById('installments-list');
+  if (!installmentsContainer) return;
   installmentsContainer.innerHTML = '';
 
   for (let i = 1; i <= MAX_PARCELAS; i++) {
@@ -206,6 +216,31 @@ function gerarOpcoesParcelamento(valorBase) {
 // ==========================================
 const urlParams  = new URLSearchParams(window.location.search);
 const propostaId = urlParams.get('id');
+
+function getCanonicalProposalUrl() {
+  const canonicalUrl = new URL('proposta.html', window.location.href);
+  const canonicalParams = new URLSearchParams(window.location.search);
+  canonicalParams.delete('view');
+  canonicalParams.delete('print');
+  canonicalUrl.search = canonicalParams.toString();
+  return canonicalUrl.toString();
+}
+
+function updatePrintProposalLinks() {
+  const links = document.querySelectorAll('[data-print-proposal-link]');
+  if (!links.length) return;
+
+  const printUrl = new URL('proposta-print.html', window.location.href);
+  printUrl.search = window.location.search;
+  printUrl.searchParams.delete('view');
+  printUrl.searchParams.delete('print');
+
+  links.forEach((link) => {
+    link.href = printUrl.toString();
+  });
+}
+
+updatePrintProposalLinks();
 
 function isValidProposalId(value) {
   const raw = String(value || '').trim();
@@ -390,8 +425,16 @@ function renderData(data) {
   const vendorCard     = document.getElementById('vendor-card');
   const vendorAvatarEl = document.getElementById('vendor-avatar');
   const vendorNameEl   = document.getElementById('vendor-name');
+  const vendorPhoneEl  = document.getElementById('vendor-phone');
   if (vendorAvatarEl) vendorAvatarEl.innerText = vendorNome.charAt(0).toUpperCase();
   if (vendorNameEl)   vendorNameEl.innerText   = vendorNome.toUpperCase();
+  if (vendorPhoneEl && vendorTel) {
+    const digits = vendorTel.replace(/\D/g, '');
+    vendorPhoneEl.innerText = digits.length === 11
+      ? `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+      : vendorTel;
+    vendorPhoneEl.classList.remove('hidden');
+  }
   if (vendorCard)     vendorCard.classList.remove('hidden');
 
   // --- Custom notes for PERSONALIZADA and EQUIPAMENTOS ---

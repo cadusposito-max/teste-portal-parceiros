@@ -50,6 +50,12 @@ function sanitizeAdminCreateUserErrorMessage(rawMessage) {
   if (normalized.includes('password') && (normalized.includes('weak') || normalized.includes('invalid'))) {
     return 'Senha temporaria invalida.';
   }
+  if (normalized.includes('aal2') || normalized.includes('mfa')) {
+    return 'Sessao administrativa sem MFA verificado. Faca login novamente.';
+  }
+  if (normalized.includes('acesso negado') || normalized.includes('admin')) {
+    return 'Acesso administrativo negado para esta operacao.';
+  }
 
   // Evita vazar detalhes internos de SQL/RPC para o cliente.
   return 'Falha ao criar usuario no backend.';
@@ -96,8 +102,8 @@ async function fetchFranquiasCatalog() {
 }
 
 async function createAdminUserWithConfirmedEmail(params = {}) {
-  if (!state.isAdmin) {
-    throw new Error('Apenas administradores podem criar usuarios.');
+  if (!state.isAdmin || state.currentAal !== 'aal2') {
+    throw new Error('Sessao administrativa invalida. Faca login novamente com MFA.');
   }
 
   if (!supabaseClient?.functions || typeof supabaseClient.functions.invoke !== 'function') {

@@ -150,30 +150,30 @@ function renderDashboardAdminSection(metrics) {
   const ticketDeltaLabel = `${metrics.ticketDelta >= 0 ? '+' : ''}${metrics.ticketDelta.toFixed(1)}%`;
 
   const topSellersHTML = metrics.topSellers.length > 0
-    ? metrics.topSellers.map((item, idx) => `<div class="flex items-center justify-between border border-stitch-border/30 px-3 py-2 glass-surface"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas · ticket ${formatCurrency(item.ticket)}</p></div><p class="text-[10px] font-black text-green-400">${formatCurrency(item.total)}</p></div>`).join('')
+    ? metrics.topSellers.map((item, idx) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas · ticket ${formatCurrency(item.ticket)}</p></div><p class="text-[10px] font-black text-green-400">${formatCurrency(item.total)}</p></div>`).join('')
     : '<p class="text-[10px] text-neutral-600 font-bold uppercase">Sem vendas no período.</p>';
 
   const topFranchisesHTML = metrics.topFranchises.length > 0
-    ? metrics.topFranchises.map((item, idx) => `<div class="flex items-center justify-between border border-stitch-border/30 px-3 py-2 glass-surface"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas</p></div><p class="text-[10px] font-black text-cyan-300">${formatCurrency(item.total)}</p></div>`).join('')
+    ? metrics.topFranchises.map((item, idx) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><div><p class="text-[10px] font-black text-white uppercase tracking-wider">#${idx + 1} ${escapeHTML(item.nome)}</p><p class="text-[9px] text-neutral-600 font-bold">${item.qtd} vendas</p></div><p class="text-[10px] font-black text-cyan-300">${formatCurrency(item.total)}</p></div>`).join('')
     : '<p class="text-[10px] text-neutral-600 font-bold uppercase">Sem franquias com vendas no período.</p>';
 
   const agingHTML = metrics.aging
-    .map((item) => `<div class="flex items-center justify-between border border-stitch-border/30 px-3 py-2 glass-surface"><span class="text-[10px] font-black uppercase tracking-widest text-neutral-300">${escapeHTML(item.status)}</span><span class="text-[10px] font-black ${item.qty > 0 ? 'text-red-400' : 'text-green-400'}">${item.qty}</span></div>`)
+    .map((item) => `<div class="flex items-center justify-between border border-neutral-800 px-3 py-2"><span class="text-[10px] font-black uppercase tracking-widest text-neutral-300">${escapeHTML(item.status)}</span><span class="text-[10px] font-black ${item.qty > 0 ? 'text-red-400' : 'text-green-400'}">${item.qty}</span></div>`)
     .join('');
 
   return `
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 stagger-4">
-      <section class="xl:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-2 glass-surface ghost-border p-4">
-        <article class="border border-stitch-border/30 p-3 glass-surface"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Receita no período</p><p class="text-lg font-black text-green-400">${formatCurrency(metrics.receita)}</p><p class="text-[9px] font-bold ${metrics.receitaDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${receitaDeltaLabel} vs período anterior</p></article>
-        <article class="border border-stitch-border/30 p-3 glass-surface"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Propostas no período</p><p class="text-lg font-black text-orange-400">${metrics.propostas}</p><p class="text-[9px] text-neutral-600 font-bold">Base temporal coerente</p></article>
-        <article class="border border-stitch-border/30 p-3 glass-surface"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Taxa proposta-venda</p><p class="text-lg font-black text-purple-400">${metrics.propostaToVenda}%</p><p class="text-[9px] text-neutral-600 font-bold">${metrics.vendas} vendas / ${metrics.propostas} propostas</p></article>
-        <article class="border border-stitch-border/30 p-3 glass-surface"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Ticket médio</p><p class="text-lg font-black text-blue-400">${formatCurrency(metrics.ticket)}</p><p class="text-[9px] font-bold ${metrics.ticketDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${ticketDeltaLabel} vs período anterior</p></article>
-        <article class="border border-stitch-border/30 p-3 glass-surface"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Clientes no período</p><p class="text-lg font-black text-white">${metrics.clientes}</p><p class="text-[9px] text-neutral-600 font-bold">cadastros no mesmo período</p></article>
+      <section class="xl:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-2 border border-neutral-800/60 p-4" style="background: linear-gradient(135deg, #0d0d0d 0%, #080808 100%);">
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Receita no período</p><p class="text-lg font-black text-green-400">${formatCurrency(metrics.receita)}</p><p class="text-[9px] font-bold ${metrics.receitaDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${receitaDeltaLabel} vs período anterior</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Propostas no período</p><p class="text-lg font-black text-orange-400">${metrics.propostas}</p><p class="text-[9px] text-neutral-600 font-bold">Base temporal coerente</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Taxa proposta-venda</p><p class="text-lg font-black text-purple-400">${metrics.propostaToVenda}%</p><p class="text-[9px] text-neutral-600 font-bold">${metrics.vendas} vendas / ${metrics.propostas} propostas</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Ticket médio</p><p class="text-lg font-black text-blue-400">${formatCurrency(metrics.ticket)}</p><p class="text-[9px] font-bold ${metrics.ticketDelta >= 0 ? 'text-green-400' : 'text-red-400'}">${ticketDeltaLabel} vs período anterior</p></article>
+        <article class="border border-neutral-800 p-3"><p class="text-[8px] text-neutral-600 font-black uppercase tracking-widest">Clientes no período</p><p class="text-lg font-black text-white">${metrics.clientes}</p><p class="text-[9px] text-neutral-600 font-bold">cadastros no mesmo período</p></article>
       </section>
 
-      <section class="glass-surface ghost-border p-4"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top vendedores</h3><div class="flex flex-col gap-2">${topSellersHTML}</div></section>
-      <section class="glass-surface ghost-border p-4"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top franquias</h3><div class="flex flex-col gap-2">${topFranchisesHTML}</div></section>
-      <section class="glass-surface ghost-border p-4"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Alertas de aging</h3><div class="flex flex-col gap-2">${agingHTML}</div></section>
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top vendedores</h3><div class="flex flex-col gap-2">${topSellersHTML}</div></section>
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Top franquias</h3><div class="flex flex-col gap-2">${topFranchisesHTML}</div></section>
+      <section class="border border-neutral-800/60 p-4" style="background:#0b0b0b;"><h3 class="text-[10px] font-black text-white uppercase tracking-widest mb-3">Alertas de aging</h3><div class="flex flex-col gap-2">${agingHTML}</div></section>
     </div>
   `;
 }
@@ -282,10 +282,10 @@ function renderDashboard(container) {
     : `Mostrando ${rangeStart}-${rangeEnd} de ${totalComunicados}`;
 
   const prevBtnClass = canGoPrev
-    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 glass-surface bg-stitch-surface/60'
+    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 bg-neutral-900/80'
     : 'border border-neutral-900 text-neutral-700 bg-neutral-950/80 cursor-not-allowed';
   const nextBtnClass = canGoNext
-    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 glass-surface bg-stitch-surface/60'
+    ? 'border border-neutral-700 text-neutral-300 hover:text-white hover:border-neutral-500 bg-neutral-900/80'
     : 'border border-neutral-900 text-neutral-700 bg-neutral-950/80 cursor-not-allowed';
 
   const comunicadosNavHTML = totalComunicados > HOME_COMUNICADOS_PAGE_SIZE
@@ -326,8 +326,8 @@ function renderDashboard(container) {
       const encodedId = encodeURIComponent(String(item.id || ''));
 
       return `
-        <article role="button" tabindex="0" onclick="openDashComunicadoModalById('${encodedId}')" onkeydown="handleDashComunicadoCardKey(event, '${encodedId}')" aria-label="Abrir comunicado: ${titulo}" class="group flex items-start gap-3 p-3 hover:bg-stitch-surfaceHigh/20 transition-all border-b border-neutral-900/80 last:border-b-0 min-h-[98px] cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-400/80">
-          <div class="w-24 h-16 glass-surface ghost-border overflow-hidden shrink-0">
+        <article role="button" tabindex="0" onclick="openDashComunicadoModalById('${encodedId}')" onkeydown="handleDashComunicadoCardKey(event, '${encodedId}')" aria-label="Abrir comunicado: ${titulo}" class="group flex items-start gap-3 p-3 hover:bg-neutral-900/30 transition-all border-b border-neutral-900/80 last:border-b-0 min-h-[98px] cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-orange-400/80">
+          <div class="w-24 h-16 bg-neutral-900 border border-neutral-800 overflow-hidden shrink-0">
             <img src="${imagem}" alt="${titulo}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='assets/img/logo-light.png';this.onerror=null;">
           </div>
           <div class="min-w-0 flex-1 flex flex-col gap-1.5">
@@ -347,7 +347,7 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          HERO HEADER - saudação + relógio
          ════════════════════════════════════════ -->
-    <div class="dash-hero stagger-1 relative overflow-hidden glass-surface ghost-border p-6 md:p-8 group">
+    <div class="dash-hero stagger-1 relative overflow-hidden border border-neutral-800/60 p-6 md:p-8 group" style="background: linear-gradient(135deg, #0f0f0f 0%, #080808 100%);">
       <div class="absolute inset-0 bg-grid opacity-50 pointer-events-none"></div>
       <div class="absolute -right-16 -top-16 w-64 h-64 bg-orange-600/5 rounded-full blur-[80px] group-hover:bg-orange-600/8 transition-all duration-1000 pointer-events-none"></div>
       <div class="absolute -left-8 -bottom-8 w-48 h-48 bg-yellow-500/3 rounded-full blur-[60px] pointer-events-none"></div>
@@ -370,7 +370,7 @@ function renderDashboard(container) {
               </div>`
             : state.franquiaNome
               ? `<div class="flex items-center gap-2 mt-3">
-                  <span class="text-[8px] px-2 py-1 border border-neutral-700 glass-surface bg-stitch-surface/40 text-neutral-400 font-black uppercase tracking-widest flex items-center gap-1.5">
+                  <span class="text-[8px] px-2 py-1 border border-neutral-700 bg-neutral-900/60 text-neutral-400 font-black uppercase tracking-widest flex items-center gap-1.5">
                     <i data-lucide="map-pin" class="w-3 h-3"></i> ${escapeHTML(state.franquiaNome)}
                   </span>
                 </div>`
@@ -409,7 +409,7 @@ function renderDashboard(container) {
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
 
       <!-- Clientes -->
-      <div class="metric-card dash-metric-card stagger-2 glass-surface ghost-border ambient-shadow-primary p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Meus Clientes</span>
@@ -425,14 +425,14 @@ function renderDashboard(container) {
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
             <span>Meta</span><span class="text-blue-500">${Math.min(totalClientes * 10, 100)}%</span>
           </div>
-          <div class="w-full h-px bg-stitch-border/30 rounded-full">
+          <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 bar-animated rounded-full" style="width: ${Math.min(totalClientes * 10, 100)}%"></div>
           </div>
         </div>
       </div>
 
       <!-- Propostas -->
-      <div class="metric-card dash-metric-card stagger-2 glass-surface ghost-border ambient-shadow-primary p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 80ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-orange-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Propostas</span>
@@ -448,14 +448,14 @@ function renderDashboard(container) {
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
             <span>Volume</span><span class="text-orange-400">${Math.min(propostasReais * 5, 100)}%</span>
           </div>
-          <div class="w-full h-px bg-stitch-border/30 rounded-full">
+          <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-orange-600 to-yellow-400 bar-animated rounded-full" style="width: ${Math.min(propostasReais * 5, 100)}%"></div>
           </div>
         </div>
       </div>
 
       <!-- Fechados -->
-      <div class="metric-card dash-metric-card stagger-2 glass-surface ghost-border ambient-shadow-primary p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 160ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-green-500 opacity-[0.05] rounded-full blur-2xl group-hover:opacity-[0.1] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Negócios Fechados</span>
@@ -471,14 +471,14 @@ function renderDashboard(container) {
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest">
             <span>Conversão</span><span class="text-green-400">${taxaConversao}%</span>
           </div>
-          <div class="w-full h-px bg-stitch-border/30 rounded-full">
+          <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-green-600 to-green-400 bar-animated rounded-full" style="width: ${taxaConversao}%"></div>
           </div>
         </div>
       </div>
 
       <!-- Ticket Médio -->
-      <div class="metric-card dash-metric-card stagger-2 glass-surface ghost-border ambient-shadow-primary p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
+      <div class="metric-card dash-metric-card stagger-2 shine-effect border border-neutral-800/60 p-3 md:p-6 flex flex-col gap-3 md:gap-4 relative overflow-hidden group cursor-default" style="animation-delay: 240ms">
         <div class="absolute -top-6 -right-6 w-28 h-28 bg-blue-400 opacity-[0.04] rounded-full blur-2xl group-hover:opacity-[0.08] transition-opacity duration-700 pointer-events-none"></div>
         <div class="flex justify-between items-start relative z-10">
           <span class="text-[8px] md:text-[9px] text-neutral-600 font-black uppercase tracking-widest leading-tight">Ticket Médio</span>
@@ -494,7 +494,7 @@ function renderDashboard(container) {
           <div class="flex justify-between text-[8px] text-neutral-700 font-bold uppercase tracking-widest gap-1 min-w-0">
             <span class="shrink-0">Total vendido</span><span class="text-blue-500 truncate text-right">${formatCurrency(totalVendido)}</span>
           </div>
-          <div class="w-full h-px bg-stitch-border/30 rounded-full">
+          <div class="w-full h-px bg-neutral-900 rounded-full">
             <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 bar-animated rounded-full" style="width: ${Math.min(qtdVendas * 20, 100)}%"></div>
           </div>
         </div>
@@ -504,7 +504,7 @@ function renderDashboard(container) {
     <!-- ════════════════════════════════════════
          PIPELINE DE VENDAS
          ════════════════════════════════════════ -->
-    <div class="dash-pipeline stagger-3 relative overflow-hidden glass-surface ghost-border p-6 md:p-7">
+    <div class="dash-pipeline stagger-3 relative overflow-hidden border border-neutral-800/60 p-6 md:p-7" style="background: linear-gradient(135deg, #0e0e0e 0%, #080808 100%);">
       <div class="absolute right-0 top-0 w-48 h-48 bg-purple-600/4 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex items-center justify-between mb-6 relative z-10">
@@ -526,7 +526,7 @@ function renderDashboard(container) {
             <span class="text-[9px] font-black uppercase tracking-widest text-blue-400">Novos</span>
             <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('NOVO')}%</span>
           </div>
-          <div class="h-1 bg-stitch-surfaceHigh/40 rounded-none overflow-hidden">
+          <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
             <div class="h-full bg-gradient-to-r from-blue-700 to-blue-400 funnel-bar rounded-none" style="width: ${fWidth('NOVO')}%"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['NOVO']}</div>
@@ -544,7 +544,7 @@ function renderDashboard(container) {
             <span class="text-[9px] font-black uppercase tracking-widest text-yellow-400 md:hidden">Prop.</span>
             <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('PROPOSTA ENVIADA')}%</span>
           </div>
-          <div class="h-1 bg-stitch-surfaceHigh/40 rounded-none overflow-hidden">
+          <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
             <div class="h-full bg-gradient-to-r from-yellow-700 to-yellow-400 funnel-bar rounded-none" style="width: ${fWidth('PROPOSTA ENVIADA')}%; animation-delay: 180ms;"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['PROPOSTA ENVIADA']}</div>
@@ -562,7 +562,7 @@ function renderDashboard(container) {
             <span class="text-[9px] font-black uppercase tracking-widest text-orange-400 md:hidden">Neg.</span>
             <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('EM NEGOCIAÇÃO')}%</span>
           </div>
-          <div class="h-1 bg-stitch-surfaceHigh/40 rounded-none overflow-hidden">
+          <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
             <div class="h-full bg-gradient-to-r from-orange-700 to-orange-400 funnel-bar rounded-none" style="width: ${fWidth('EM NEGOCIAÇÃO')}%; animation-delay: 360ms;"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-white tabular-nums leading-none">${funil['EM NEGOCIAÇÃO']}</div>
@@ -579,7 +579,7 @@ function renderDashboard(container) {
             <span class="text-[9px] font-black uppercase tracking-widest text-green-400">Fechado</span>
             <span class="text-[9px] text-neutral-700 font-bold tabular-nums">${fPct('FECHADO')}%</span>
           </div>
-          <div class="h-1 bg-stitch-surfaceHigh/40 rounded-none overflow-hidden">
+          <div class="h-1 bg-neutral-900 rounded-none overflow-hidden">
             <div class="h-full bg-gradient-to-r from-green-700 to-green-400 funnel-bar rounded-none" style="width: ${fWidth('FECHADO')}%; animation-delay: 540ms;"></div>
           </div>
           <div class="text-2xl md:text-3xl font-black text-green-400 tabular-nums leading-none neon-green">${funil['FECHADO']}</div>
@@ -598,7 +598,7 @@ function renderDashboard(container) {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 stagger-4">
 
       <!-- Comunicados -->
-      <div class="dash-comunicados-panel col-span-1 lg:col-span-2 glass-surface ghost-border flex flex-col">
+      <div class="dash-comunicados-panel col-span-1 lg:col-span-2 border border-neutral-800/60 flex flex-col" style="background: linear-gradient(180deg, #0d0d0d 0%, #080808 100%);">
         <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-800/50">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-orange-500/10 border border-orange-500/20">
@@ -619,7 +619,7 @@ function renderDashboard(container) {
       <div class="flex flex-col gap-3">
 
         <!-- Materiais Úteis -->
-        <div class="dash-materials-panel glass-surface ghost-border p-5 flex flex-col gap-3">
+        <div class="dash-materials-panel border border-neutral-800/60 p-5 flex flex-col gap-3" style="background: #0d0d0d;">
           <h3 class="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <div class="p-1.5 bg-blue-500/10 border border-blue-500/20">
               <i data-lucide="folder-down" class="w-3 h-3 text-blue-400"></i>
@@ -651,7 +651,7 @@ function renderDashboard(container) {
 
         <!-- CTA Ação Rápida -->
         <div class="dash-quick-panel relative overflow-hidden border border-orange-500/15 p-5 flex flex-col gap-4"
-          class="ambient-shadow-primary">
+          style="background: linear-gradient(135deg, rgba(234,88,12,0.06) 0%, #080808 60%);">
           <div class="absolute inset-0 bg-grid-sm opacity-30 pointer-events-none"></div>
           <div class="relative z-10">
             <div class="text-[8px] font-black text-orange-400/50 uppercase tracking-[0.3em] mb-2">Ação Rápida</div>
@@ -708,7 +708,7 @@ function ensureDashComunicadoModal() {
         <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-black/60">
           <p class="text-[10px] text-neutral-500 font-black uppercase tracking-[0.2em]">Comunicado</p>
           <button id="dash-comunicado-close-btn" type="button" onclick="closeDashComunicadoModal()"
-            class="p-2 glass-surface ghost-border text-neutral-400 hover:text-white hover:border-neutral-500 transition-all"
+            class="p-2 border border-neutral-700 bg-neutral-900 text-neutral-400 hover:text-white hover:border-neutral-500 transition-all"
             aria-label="Fechar comunicado">
             <i data-lucide="x" class="w-4 h-4"></i>
           </button>

@@ -36,6 +36,14 @@
   const TABLE_NAME = 'comunicados';
   const LOCAL_STORAGE_KEY = 'agilsolar.comunicados.v1';
   const FALLBACK_COVER_IMAGE = 'assets/img/logo.png';
+  const isLocalDevEnvironment = () => {
+    try {
+      const host = window.location.hostname;
+      return host === 'localhost' || host === '127.0.0.1';
+    } catch (_) {
+      return false;
+    }
+  };
 
   /**
    * Seed apenas para fallback de desenvolvimento.
@@ -91,7 +99,7 @@
 
   const isAdminUser = () => {
     if (typeof state === 'undefined') return false;
-    return Boolean(state.currentUser && state.isAdmin);
+    return Boolean(state.currentUser && state.isAdmin && state.currentAal === 'aal2');
   };
 
   const assertAdminWriteAccess = () => {
@@ -231,7 +239,7 @@
   }
 
   function persistLocalStore(items) {
-    if (!canUseLocalStorage()) return;
+    if (!isLocalDevEnvironment() || !canUseLocalStorage()) return;
     try {
       window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
     } catch (_) {
@@ -240,7 +248,7 @@
   }
 
   function loadLocalStore() {
-    if (!canUseLocalStorage()) return [];
+    if (!isLocalDevEnvironment() || !canUseLocalStorage()) return [];
     try {
       const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
       if (!raw) return [];
@@ -258,6 +266,11 @@
   }
 
   function bootstrapFallbackStore() {
+    if (!isLocalDevEnvironment()) {
+      setStore([], 'supabase');
+      return;
+    }
+
     const localItems = loadLocalStore();
     if (localItems.length > 0) {
       setStore(localItems, 'local');
@@ -305,8 +318,13 @@
         return cloneItems(comunicadoStore);
       } catch (error) {
         lastError = error;
-        if (!allowFallback) throw error;
+        if (!allowFallback || !isLocalDevEnvironment()) throw error;
       }
+    }
+
+    if (!isLocalDevEnvironment()) {
+      setStore([], 'supabase');
+      return cloneItems(comunicadoStore);
     }
 
     const fallbackItems = loadLocalStore();
@@ -366,7 +384,7 @@
 
     const hasUser = !!getCurrentUser();
     const client = getSupabaseClient();
-    const canFallbackWrite = sourceMode === 'local';
+    const canFallbackWrite = isLocalDevEnvironment() && sourceMode === 'local';
 
     if (hasUser && client) {
       try {
@@ -432,7 +450,7 @@
 
     const hasUser = !!getCurrentUser();
     const client = getSupabaseClient();
-    const canFallbackWrite = sourceMode === 'local';
+    const canFallbackWrite = isLocalDevEnvironment() && sourceMode === 'local';
 
     if (hasUser && client) {
       try {

@@ -41,7 +41,7 @@ function _adminAccessDenied(message = 'Acesso restrito ao administrador.') {
 
 function _requireAdmin(options = {}) {
   const { silent = false, message = 'Acesso restrito ao administrador.' } = options;
-  if (state.isAdmin) return true;
+  if (state.isAdmin && state.currentAal === 'aal2') return true;
   if (!silent) _adminAccessDenied(message);
   return false;
 }
@@ -51,6 +51,26 @@ function _requireAdminOrGestor(options = {}) {
   if (state.isAdmin || state.isGestor) return true;
   if (!silent) _adminAccessDenied(message);
   return false;
+}
+
+function _adminSectionsConfig() {
+  return [
+    { id: 'produtos', adminOnly: true },
+    { id: 'financiadoras', adminOnly: true },
+    { id: 'componentes', adminOnly: true },
+    { id: 'custos', adminOnly: true },
+    { id: 'usuarios', adminOnly: true },
+    { id: 'vendedores', adminOnly: false },
+    { id: 'comunicados', adminOnly: true },
+    { id: 'franquias', adminOnly: true },
+  ];
+}
+
+function _canAccessAdminSection(section) {
+  const config = _adminSectionsConfig().find((item) => item.id === section);
+  if (!config) return false;
+  if (config.adminOnly) return state.isAdmin && state.currentAal === 'aal2';
+  return state.isAdmin || state.isGestor;
 }
 
 function openAdminModal(title, fieldsHTML, onSubmit) {
@@ -91,17 +111,19 @@ function renderAdminPanel(container) {
 
   if (!state.adminSection) state.adminSection = 'produtos';
 
-  // Gestor só acessa KITS (da própria franquia) e VENDEDORES (para ver a equipe)
+  // Regra segura: apenas admin com aal2 altera catálogo e configurações sensíveis.
+  // Gestor mantém acesso operacional restrito à equipe.
   const allSections = [
-    { id: 'produtos',      label: 'KITS',            icon: 'zap' },
+    { id: 'produtos',      label: 'KITS',            icon: 'zap',        adminOnly: true },
     { id: 'financiadoras', label: 'FINANCIADORAS',   icon: 'landmark',   adminOnly: true },
     { id: 'componentes',   label: 'COMPONENTES',     icon: 'cpu',        adminOnly: true },
     { id: 'custos',        label: 'CUSTOS EXTRAS',   icon: 'circle-plus', adminOnly: true },
+    { id: 'franquias',     label: 'FRANQUIAS',       icon: 'building-2', adminOnly: true },
     { id: 'usuarios',      label: 'USUARIOS',        icon: 'user-cog',   adminOnly: true },
     { id: 'vendedores',    label: 'VENDEDORES',       icon: 'users' },
     { id: 'comunicados',   label: 'COMUNICADOS',      icon: 'megaphone',  adminOnly: true },
   ];
-  const sections = allSections.filter(s => !s.adminOnly || state.isAdmin);
+  const sections = allSections.filter((s) => _canAccessAdminSection(s.id));
 
   if (!sections.some(s => s.id === state.adminSection)) {
     state.adminSection = sections[0]?.id || 'produtos';
@@ -118,14 +140,19 @@ function renderAdminPanel(container) {
     </button>`;
   }).join('');
 
+  const panelEyebrow = state.isAdmin ? 'MODO ADMINISTRADOR' : 'MODO GESTOR';
+  const panelTitle = state.isAdmin
+    ? 'Gerenciamento do Sistema Agilsolar'
+    : 'Operacao da sua equipe e unidade';
+
   container.innerHTML = `
     <div class="bg-red-950/10 border border-red-600/20 p-4 flex items-center gap-3">
       <div class="bg-red-600/20 border border-red-600/30 p-2 text-red-400 shrink-0">
         <i data-lucide="shield-check" class="w-4 h-4"></i>
       </div>
       <div>
-        <span class="text-red-400 font-black uppercase tracking-widest text-[9px] block">MODO ADMINISTRADOR</span>
-        <span class="text-white font-bold text-sm">Gerenciamento do Sistema Agilsolar</span>
+        <span class="text-red-400 font-black uppercase tracking-widest text-[9px] block">${panelEyebrow}</span>
+        <span class="text-white font-bold text-sm">${panelTitle}</span>
       </div>
     </div>
     <div class="flex flex-wrap gap-1.5">${tabsHTML}</div>
@@ -154,14 +181,17 @@ function renderAdminPanel(container) {
 }
 
 function setAdminSection(section) {
-  if (!_requireAdminOrGestor()) return;
+  if (!_canAccessAdminSection(section)) {
+    _adminAccessDenied('Sessao sem permissao para esta secao.');
+    return;
+  }
   state.adminSection = section;
   const container = document.getElementById('main-container');
   if (container) renderAdminPanel(container);
 }
 
 async function renderAdminKitsSection(container) {
-  if (!_requireAdminOrGestor()) return;
+  if (!_requireAdmin()) return;
   container.innerHTML = `<div class="flex items-center justify-center py-8 text-neutral-600">
     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i><span class="font-bold uppercase text-[10px] tracking-widest">Carregando...</span>
   </div>`;
@@ -173,17 +203,9 @@ async function renderAdminKitsSection(container) {
     .eq('ativo', true)
     .order('created_at', { ascending: true });
 
-  // Gestor só enxerga a própria franquia no seletor de kits
-  if (state.isGestor && state.franquiaId) {
-    franquiasQuery.eq('id', state.franquiaId);
-  }
-
   const { data: franquias = [] } = await franquiasQuery;
 
-  // Para gestor, travar sempre na própria franquia
-  if (state.isGestor) {
-    state.adminKitsFranquia = state.franquiaId;
-  } else if (!state.adminKitsFranquia || !franquias.find(f => f.id === state.adminKitsFranquia)) {
+  if (!state.adminKitsFranquia || !franquias.find(f => f.id === state.adminKitsFranquia)) {
     state.adminKitsFranquia = franquias[0]?.id || null;
   }
 
@@ -198,8 +220,7 @@ async function renderAdminKitsSection(container) {
     </button>`;
   }).join('');
 
-  // Gestor: esconder o seletor de franquia (só existe a dele)
-  const showFranquiaTabs = state.isAdmin && franquias.length > 0;
+  const showFranquiaTabs = franquias.length > 0;
 
   container.innerHTML = `
     <div class="flex flex-col gap-4">
@@ -218,11 +239,7 @@ async function renderAdminKitsSection(container) {
 }
 
 async function setAdminKitsFranquia(franquiaId) {
-  if (!_requireAdminOrGestor()) return;
-  if (state.isGestor && state.franquiaId && String(franquiaId) !== String(state.franquiaId)) {
-    _adminAccessDenied('Gestor só pode editar a própria franquia.');
-    return;
-  }
+  if (!_requireAdmin()) return;
 
   state.adminKitsFranquia = franquiaId;
   const content = document.getElementById('admin-section-content');
@@ -621,10 +638,10 @@ async function saveVendedorComissao(email, valor) {
     showToast('Valor inválido. Use entre 0 e 100.');
     return;
   }
-  const { error } = await supabaseClient
-    .from('vendedores_stats')
-    .update({ comissao_pct: pct })
-    .eq('email', email);
+  const { error } = await supabaseClient.rpc('admin_update_vendedor_comissao', {
+    p_email: email,
+    p_comissao_pct: pct,
+  });
   if (error) {
     showToast('ERRO: ' + error.message);
   } else {
@@ -1424,7 +1441,7 @@ function setAdminComunicadosStatus(value) {
 }
 
 async function renderAdminComunicados(container, options = {}) {
-  if (!state.isAdmin) {
+  if (!_requireAdmin({ silent: true })) {
     container.innerHTML = `<div class="border border-red-600/40 bg-red-950/20 p-4 text-red-300 text-sm font-bold">Acesso restrito ao administrador.</div>`;
     return;
   }
